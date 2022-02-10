@@ -1,5 +1,5 @@
-#ifndef Gaussian_H_
-#define Gaussian_H_
+#ifndef _GAUSSIAN_H_
+#define _GAUSSIAN_H_
 #include <random>
 
 /**
@@ -9,8 +9,8 @@
  */
 class GaussianDistribution {
 private:
-    const float mu;
-    const float sigma;
+    const double mu;
+    const double sigma;
 
     /**
      * Uses Error Function to produce the CDF of the Gaussian
@@ -21,25 +21,25 @@ private:
      * @param x the point at which to evaluate CDF.
      * @returns Gaussian CDF value evaluated at x.
      */
-    float erfGaussianCdf(const float x);
+    double erfGaussianCdf(const float x);
 
 public:
     GaussianDistribution();
-    GaussianDistribution(const float mu, const float sigma);
+    GaussianDistribution(const double mu, const double sigma);
 
     /**
-     * Returns pointer to distribution mean.
+     * Returns const reference to distribution mean.
      * 
-     * @returns Pointer to mean of Gaussian Distribution.
+     * @returns Const reference to mean of Gaussian Distribution.
      */
-    const float *getMean();
+    const double &const getMean();
 
     /**
-     * Returns pointer to distribution standard deviation.
+     * Returns const reference to distribution standard deviation.
      * 
-     * @returns Pointer to standard deviation of Gaussian Distribution.
+     * @returns Const reference to standard deviation of Gaussian Distribution.
      */
-    const float *getStd();
+    const double &const getStd();
 
     /**
      * Uses private erfGaussianCdf method to produce the CDF of the Gaussian
@@ -49,7 +49,7 @@ public:
      * @param x the point at which to evaluate CDF.
      * @returns Gaussian CDF value evaluated at x.
      */
-    float Cdf(const float x);
+    double Cdf(const double x);
 
     /**
      * Draws a random sample from normal distribution. Parameterized by
@@ -62,4 +62,4 @@ public:
     double Sample(std::mt19937 &gen) const;
 };
 
-#endif
+#endif // _GAUSSIAN_H_

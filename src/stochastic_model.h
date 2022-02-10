@@ -1,5 +1,5 @@
-#ifndef STOCHASTIC_MODEL_H_
-#define STOCHASTIC_MODEL_H_
+#ifndef _STOCHASTIC_MODEL_H_
+#define _STOCHASTIC_MODEL_H_
 #include "gaussian.h"
 
 #include <vector>
@@ -13,12 +13,9 @@ private:
     const GaussianDistribution *dist;
 public:
     StochasticModel();
-    ~StochasticModel();
-    std::vector<const double> *Simulate(const unsigned int size);
+    std::vector<const double> Simulate(const unsigned int size);
+    virtual double CoreEquation(const double x) = 0;
+    virtual ~StochasticModel();
 };
 
-class OrnsteinUhlenbeckModel: public StochasticModel {
-
-};
-
-#endif
+#endif // _STOCHASTIC_MODEL_H_

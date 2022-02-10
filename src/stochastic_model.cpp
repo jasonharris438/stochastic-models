@@ -13,10 +13,9 @@ StochasticModel::~StochasticModel(){
     dist = nullptr;
 }
 
-std::vector<const double> *StochasticModel::Simulate(const unsigned int size){
+std::vector<const double> StochasticModel::Simulate(const unsigned int size){
     // Dynamic heap allocation for vector
-    std::vector<const double> *vec_ptr {nullptr};
-    vec_ptr = new std::vector<const double>;
+    std::vector<const double> vec{};
 
     // Seed random number generator with current time
     long int number = static_cast<long int> (time(NULL));
@@ -24,8 +23,8 @@ std::vector<const double> *StochasticModel::Simulate(const unsigned int size){
 
     for(unsigned int n{} ; n < size ; n++){
         const double sample = (*dist).Sample(gen);
-        (*vec_ptr).push_back(sample);
+        vec.push_back(sample);
     }
 
-    return vec_ptr;
+    return vec;
 }

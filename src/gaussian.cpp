@@ -3,28 +3,26 @@
 #include "gaussian.h"
 
 
-GaussianDistribution::GaussianDistribution(const float mu, const float sigma) :
+GaussianDistribution::GaussianDistribution(const double mu, const double sigma) :
     mu(mu), sigma(sigma) { }
 
 GaussianDistribution::GaussianDistribution() :
     GaussianDistribution(0, 1.0) { }
 
-const float *GaussianDistribution::getMean(){    // Returns pointer to class mean.
-    const float *ptr = &mu;
-    return ptr;
+const double &const GaussianDistribution::getMean(){    // Returns const reference to class mean.
+    return mu;
 }
 
-const float *GaussianDistribution::getStd(){    // Returns pointer to class std.
-    const float *ptr = &sigma;
-    return ptr;
+const double &const GaussianDistribution::getStd(){    // Returns const reference to class std.
+    return sigma;
 }
 
-float GaussianDistribution::erfGaussianCdf(const float x){    // Core calculation for cdf evaluated at x.
+double GaussianDistribution::erfGaussianCdf(const float x){    // Core calculation for cdf evaluated at x.
     return (1.0/2.0) * (1.0 + std::erf(x));
 }
 
-float GaussianDistribution::Cdf(float x){    // Produces cdf for a given x.
-    const float val = (x - mu) / (sigma * std::sqrt(2));
+double GaussianDistribution::Cdf(const double x){    // Produces cdf for a given x.
+    const double val = (x - mu) / (sigma * std::sqrt(2));
     return GaussianDistribution::erfGaussianCdf(val);
 }
 
