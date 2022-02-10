@@ -2,8 +2,6 @@
 #define _STOCHASTIC_MODEL_H_
 #include "gaussian.h"
 
-#include <vector>
-
 /**
  * Stochastic Model base class that handles functionality for fitting, analysing,
  * and simulating statistical models.
@@ -13,8 +11,8 @@ private:
     const GaussianDistribution *dist;
 public:
     StochasticModel();
-    std::vector<const double> Simulate(const unsigned int size);
-    virtual double CoreEquation(const double x) = 0;
+    const double Simulate();
+    virtual const double CoreEquation(const double x, const unsigned int t = 1) = 0;
     virtual ~StochasticModel();
 };
 

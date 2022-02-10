@@ -9,7 +9,7 @@ private:
     const double sigma;
 
 public:
-    virtual double CoreEquation(const double x, const unsigned int t = 1) override;
+    virtual const double CoreEquation(const double x, const unsigned int t = 1) override;
 };
 
 #endif // _ORNSTEIN_UHLENBECK_H_
