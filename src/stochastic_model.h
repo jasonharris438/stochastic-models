@@ -7,11 +7,11 @@
  * and simulating statistical models.
  */
 class StochasticModel {
-private:
+protected:
     const GaussianDistribution *dist;
 public:
     StochasticModel();
-    const double Simulate();
+    std::vector<double> Simulate(const unsigned int size);
     virtual const double CoreEquation(const double x, const unsigned int t = 1) = 0;
     virtual ~StochasticModel();
 };

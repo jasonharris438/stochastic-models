@@ -9,11 +9,11 @@ GaussianDistribution::GaussianDistribution(const double mu, const double sigma) 
 GaussianDistribution::GaussianDistribution() :
     GaussianDistribution(0, 1.0) { }
 
-const double &const GaussianDistribution::getMean(){    // Returns const reference to class mean.
+const double &GaussianDistribution::getMean() {    // Returns const reference to class mean.
     return mu;
 }
 
-const double &const GaussianDistribution::getStd(){    // Returns const reference to class std.
+const double &GaussianDistribution::getStd() {    // Returns const reference to class std.
     return sigma;
 }
 

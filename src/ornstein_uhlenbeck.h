@@ -9,7 +9,10 @@ private:
     const double sigma;
 
 public:
+    OrnsteinUhlenbeckModel();
+    OrnsteinUhlenbeckModel(const double mu, const double alpha, const double sigma);
     virtual const double CoreEquation(const double x, const unsigned int t = 1) override;
+    ~OrnsteinUhlenbeckModel();
 };
 
 #endif // _ORNSTEIN_UHLENBECK_H_

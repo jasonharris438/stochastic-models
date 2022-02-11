@@ -32,14 +32,14 @@ public:
      * 
      * @returns Const reference to mean of Gaussian Distribution.
      */
-    const double &const getMean();
+    const double &getMean();
 
     /**
      * Returns const reference to distribution standard deviation.
      * 
      * @returns Const reference to standard deviation of Gaussian Distribution.
      */
-    const double &const getStd();
+    const double &getStd();
 
     /**
      * Uses private erfGaussianCdf method to produce the CDF of the Gaussian

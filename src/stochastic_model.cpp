@@ -2,7 +2,6 @@
 #include "gaussian.h"
 
 #include <vector>
-#include <time.h>
 
 StochasticModel::StochasticModel() {
     dist = new GaussianDistribution();
@@ -13,11 +12,14 @@ StochasticModel::~StochasticModel(){
     dist = nullptr;
 }
 
-const double StochasticModel::Simulate(){
-    // Seed random number generator with current time
-    long int number = static_cast<long int> (time(NULL));
-    std::mt19937 gen(number);
+std::vector<double> StochasticModel::Simulate(const unsigned int size){
+    const double distribution_mean = (*dist).getMean();
+    std::vector<double> vec = {distribution_mean};
 
-    const double sample = (*dist).Sample(gen);
-    return sample;
+    for(unsigned int n{} ; n < size ; n++){
+        const double sample = CoreEquation(vec[n]);
+        vec.push_back(sample);
+    }
+
+    return vec;
 }
