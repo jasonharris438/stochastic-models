@@ -1,7 +1,7 @@
-#include <cmath>
-#include <random>
 #include "gaussian.h"
 
+#include <cmath>
+#include <random>
 
 GaussianDistribution::GaussianDistribution(const double mu, const double sigma) :
     mu(mu), sigma(sigma) { }
@@ -9,12 +9,14 @@ GaussianDistribution::GaussianDistribution(const double mu, const double sigma) 
 GaussianDistribution::GaussianDistribution() :
     GaussianDistribution(0, 1.0) { }
 
-const double &GaussianDistribution::getMean() {    // Returns const reference to class mean.
-    return mu;
+const double &GaussianDistribution::getMean() const {    // Returns const reference to class mean.
+    const double& mu_ref = mu;
+    return mu_ref;
 }
 
-const double &GaussianDistribution::getStd() {    // Returns const reference to class std.
-    return sigma;
+const double &GaussianDistribution::getStd() const {    // Returns const reference to class std.
+    const double& sigma_ref = sigma;
+    return sigma_ref;
 }
 
 double GaussianDistribution::erfGaussianCdf(const float x){    // Core calculation for cdf evaluated at x.
@@ -26,7 +28,10 @@ double GaussianDistribution::Cdf(const double x){    // Produces cdf for a given
     return GaussianDistribution::erfGaussianCdf(val);
 }
 
-double GaussianDistribution::Sample(std::mt19937 &gen) const {   // Draws random sample from distribution.
+double GaussianDistribution::Sample() const {   // Draws random sample from distribution.
+    std::random_device rd{};
+    std::mt19937 gen(rd());
     std::normal_distribution<> norm(mu, sigma);
-    return norm(gen);
+    double sample = norm(gen);
+    return sample;
 }

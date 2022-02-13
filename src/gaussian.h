@@ -32,14 +32,14 @@ public:
      * 
      * @returns Const reference to mean of Gaussian Distribution.
      */
-    const double &getMean();
+    const double &getMean() const;
 
     /**
      * Returns const reference to distribution standard deviation.
      * 
      * @returns Const reference to standard deviation of Gaussian Distribution.
      */
-    const double &getStd();
+    const double &getStd() const;
 
     /**
      * Uses private erfGaussianCdf method to produce the CDF of the Gaussian
@@ -55,11 +55,9 @@ public:
      * Draws a random sample from normal distribution. Parameterized by
      * mu and sigma private attributes.
      * 
-     * @param gen Reference to mersenne_twister_engine object passed to be
-     * used in random number generation.
      * @returns Single random value drawn from normal distribution.
      */
-    double Sample(std::mt19937 &gen) const;
+    double Sample() const;
 };
 
 #endif // _GAUSSIAN_H_
