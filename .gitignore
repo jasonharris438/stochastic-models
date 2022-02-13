@@ -2,7 +2,7 @@
 .vscode/
 
 # main.cpp file not required
-*/main.cpp
+*main.cpp
 
 # Executables
 *.exe
