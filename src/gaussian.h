@@ -1,6 +1,6 @@
 #ifndef _GAUSSIAN_H_
 #define _GAUSSIAN_H_
-#include <random>
+#include <vector>
 
 /**
  * Gaussian distribution class. Takes two floats as inputs "mu" and "sigma" for 
@@ -55,9 +55,10 @@ public:
      * Draws a random sample from normal distribution. Parameterized by
      * mu and sigma private attributes.
      * 
-     * @returns Single random value drawn from normal distribution.
+     * @param size how many samples to draw. Defaults to 1.
+     * @returns Random values drawn from normal distribution.
      */
-    double Sample() const;
+    std::vector<double> Sample(size_t size = 1) const;
 };
 
 #endif // _GAUSSIAN_H_

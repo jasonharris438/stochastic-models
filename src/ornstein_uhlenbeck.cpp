@@ -9,9 +9,9 @@ OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel(const double mu, const double alp
 OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel() :
    OrnsteinUhlenbeckModel(0.01, 0.01, 0.05) {}
 
-const double OrnsteinUhlenbeckModel::CoreEquation(const double x, const unsigned int t){
+const double OrnsteinUhlenbeckModel::CoreEquation(const double x, const double noise, const unsigned int t){
     double delta{std::exp(-alpha * t)};
-    const double solution = (x * delta) + (mu * (1 - delta)) + (t * sigma * (*dist).Sample());
+    const double solution = (x * delta) + (mu * (1 - delta)) + (t * sigma * noise);
     return solution;
 }
 
