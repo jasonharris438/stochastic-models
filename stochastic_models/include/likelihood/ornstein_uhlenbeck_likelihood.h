@@ -5,11 +5,12 @@
 class OrnsteinUhlenbeckLikelihood : public LikelihoodCalculatuor {
    private:
     double calculate_x_y(const std::vector<double>& data) const;
+    double calculate_x_x(const std::vector<double>& data) const;
     // double calculate_mu()
 
    public:
     OrnsteinUhlenbeckLikelihood();
-    const std::map<std::string, double>& calculate(
+    const std::map<std::string, double> calculate(
         const std::vector<double>& data) const override;
 };
 

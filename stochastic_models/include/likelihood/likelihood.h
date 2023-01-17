@@ -19,7 +19,7 @@ class LikelihoodCalculatuor {
      * @param data The data series to calculate the likelihood of.
      * @returns Const reference to mean of Gaussian Distribution.
      */
-    virtual const std::map<std::string, double>& calculate(
+    virtual const std::map<std::string, double> calculate(
         const std::vector<double>& data) const = 0;
 };
 
