@@ -1,6 +1,10 @@
 #IDE
 .vscode/
 
+# Misc
+build/
+CMakeFiles/
+
 # main.cpp file not required
 *main.cpp
 
