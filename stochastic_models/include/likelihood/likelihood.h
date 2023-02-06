@@ -3,13 +3,17 @@
 #include <map>
 #include <string>
 #include <vector>
-
 /**
- * Base likelihood calculator class.
+ * Abstract base likelihood calculator class.
  */
 class LikelihoodCalculatuor {
    protected:
-    const std::map<std::string, double> coefs;
+    /**
+     * @brief Empty pointer to a map that stores likelihood calculation
+     * components used in generating process parameters.
+     *
+     */
+    const std::map<std::string, const double>* components;
     LikelihoodCalculatuor();
 
    public:
@@ -19,8 +23,8 @@ class LikelihoodCalculatuor {
      * @param data The data series to calculate the likelihood of.
      * @returns Const reference to mean of Gaussian Distribution.
      */
-    virtual const std::map<std::string, double> calculate(
-        const std::vector<double>& data) const = 0;
+    virtual const std::map<std::string, const double> calculate(
+        const std::vector<double>& data) = 0;
+    ~LikelihoodCalculatuor();
 };
-
 #endif  // _LIKELIHOOD_H_

@@ -1,7 +1,6 @@
 #ifndef _GAUSSIAN_H_
 #define _GAUSSIAN_H_
 #include "core.h"
-
 /**
  * Gaussian distribution class. Takes two floats as inputs "mu" and "sigma" for
  * mean and standard deviation and implements several functions related
@@ -9,7 +8,9 @@
  */
 class GaussianDistribution : public CoreDistribution {
    private:
+    // Gaussian distribution mean value.
     const double mu;
+    // Gaussian distribution standard deviation value.
     const double sigma;
 
     /**
@@ -62,5 +63,4 @@ class GaussianDistribution : public CoreDistribution {
     std::vector<double> Sample(std::size_t size = 1) const override;
     ~GaussianDistribution(){};
 };
-
 #endif  // _GAUSSIAN_H_

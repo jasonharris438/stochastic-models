@@ -1,4 +1,6 @@
 #include "likelihood/likelihood.h"
-
-LikelihoodCalculatuor::LikelihoodCalculatuor()
-    : coefs(std::map<std::string, double>()){};
+LikelihoodCalculatuor::LikelihoodCalculatuor() { components = nullptr; };
+LikelihoodCalculatuor::~LikelihoodCalculatuor() {
+    delete components;
+    components = nullptr;
+};

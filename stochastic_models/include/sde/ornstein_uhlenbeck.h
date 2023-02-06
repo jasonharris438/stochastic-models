@@ -1,7 +1,6 @@
 #ifndef _ORNSTEIN_UHLENBECK_H_
 #define _ORNSTEIN_UHLENBECK_H_
 #include "sde/stochastic_model.h"
-
 class OrnsteinUhlenbeckModel : public StochasticModel {
    private:
     const double mu;
@@ -18,5 +17,4 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
                                  const unsigned int size) const override;
     ~OrnsteinUhlenbeckModel();
 };
-
 #endif  // _ORNSTEIN_UHLENBECK_H_

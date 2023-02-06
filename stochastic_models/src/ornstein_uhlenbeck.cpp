@@ -3,19 +3,15 @@
 #include <cmath>
 
 #include "distributions/gaussian.h"
-
 OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel()
     : OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel(0, 0, 1) {}
-
 OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel(const double mu,
                                                const double alpha,
                                                const double sigma)
     : mu(mu), alpha(alpha), sigma(sigma) {
     dist = new GaussianDistribution();
 }
-
 OrnsteinUhlenbeckModel::~OrnsteinUhlenbeckModel() {}
-
 std::vector<double> OrnsteinUhlenbeckModel::Simulate(
     const double start, const unsigned int size) const {
     const std::vector<double> distribution_draws = (*dist).Sample(size);
@@ -28,7 +24,6 @@ std::vector<double> OrnsteinUhlenbeckModel::Simulate(
 
     return vec;
 }
-
 const double OrnsteinUhlenbeckModel::CoreEquation(const double x,
                                                   const double noise,
                                                   const unsigned int t) const {

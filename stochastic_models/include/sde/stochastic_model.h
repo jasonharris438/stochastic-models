@@ -1,7 +1,6 @@
 #ifndef _STOCHASTIC_MODEL_H_
 #define _STOCHASTIC_MODEL_H_
 #include "distributions/gaussian.h"
-
 /**
  * Stochastic Model base class that handles functionality for fitting,
  * analysing, and simulating statistical models. Should be treated as an
@@ -37,5 +36,4 @@ class StochasticModel {
                                       const unsigned int t = 1) const = 0;
     virtual ~StochasticModel() = 0;
 };
-
 #endif  // _STOCHASTIC_MODEL_H_

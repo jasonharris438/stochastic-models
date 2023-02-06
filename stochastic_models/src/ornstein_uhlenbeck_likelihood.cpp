@@ -2,10 +2,10 @@
 
 #include <cmath>
 #include <iterator>
+#include <new>
 #include <numeric>
 
 #include "numeric_utils/helpers.h"
-
 OrnsteinUhlenbeckLikelihood::OrnsteinUhlenbeckLikelihood(){};
 const double OrnsteinUhlenbeckLikelihood::calculate_x_y(
     const std::vector<double>& data) const {
@@ -48,21 +48,53 @@ const double OrnsteinUhlenbeckLikelihood::calculate_x_xy(
 
     return std::inner_product(iter_x_start, iter_x_end, iter_y, 0.0);
 };
-const double OrnsteinUhlenbeckLikelihood::calculate_mu(
-    const std::vector<double>& data) const {
-    const double x_y{calculate_x_y(data)};
-    const double x_x{calculate_x_x(data)};
-    const double x_xx{calculate_x_xx(data)};
-    const double x_yy{calculate_x_yy(data)};
-    const double x_xy{calculate_x_xy(data)};
-    const int size_of{data.size()};
-
-    return ((x_y * x_xx) - (x_x * x_xy)) /
-           ((size_of * (x_xx - x_xy)) - (std::pow(x_x, 2) - (x_y * x_x)));
+void OrnsteinUhlenbeckLikelihood::preset_components(
+    const std::vector<double>& data) {
+    if (components == nullptr) {
+        components = new const std::map<std::string, const double>{
+            {"x_y", calculate_x_y(data)},   {"x_x", calculate_x_x(data)},
+            {"x_yy", calculate_x_yy(data)}, {"x_xx", calculate_x_xx(data)},
+            {"x_xy", calculate_x_xy(data)}, {"n", data.size()}};
+    } else {
+        throw std::bad_alloc();
+    }
 };
-const std::map<std::string, double> OrnsteinUhlenbeckLikelihood::calculate(
-    const std::vector<double>& data) const {
-    const double mu{calculate_mu(data)};
-    std::map<std::string, double> m{{"mu", mu}};
+const double OrnsteinUhlenbeckLikelihood::calculate_mu() const {
+    return ((components->at("x_y") * components->at("x_xx")) -
+            (components->at("x_x") * components->at("x_xy"))) /
+           ((components->at("n") *
+             (components->at("x_xx") - components->at("x_xy"))) -
+            (std::pow(components->at("x_x"), 2) -
+             (components->at("x_y") * components->at("x_x"))));
+};
+const double OrnsteinUhlenbeckLikelihood::calculate_alpha(
+    const double& mu) const {
+    return std::log(components->at("x_xx") - (2 * mu * components->at("x_x")) +
+                    (components->at("n") * (std::pow(mu, 2)))) -
+           std::log(components->at("x_xy") - (mu * components->at("x_x")) -
+                    (mu * components->at("x_y")) +
+                    (components->at("n") * (std::pow(mu, 2))));
+};
+const double OrnsteinUhlenbeckLikelihood::calculate_sigma(
+    const double& mu, const double& alpha) const {
+    const double exp_alpha{std::exp(-alpha)};
+    double sigma{
+        components->at("x_yy") - (2 * exp_alpha * components->at("x_xy")) +
+        ((std::pow(exp_alpha, 2)) * components->at("x_xx")) -
+        ((2 * mu * (1 - exp_alpha)) *
+         (components->at("x_y") - (exp_alpha * components->at("x_x")))) +
+        (components->at("n") * std::pow(mu, 2) * std::pow(1 - exp_alpha, 2))};
+    sigma *= (1 / components->at("n"));
+    sigma *= ((2 * exp_alpha) / (1 - std::pow(exp_alpha, 2)));
+    return sigma;
+};
+const std::map<std::string, const double>
+OrnsteinUhlenbeckLikelihood::calculate(const std::vector<double>& data) {
+    preset_components(data);
+    const double mu{};
+    const double alpha{calculate_alpha(mu)};
+    const double sigma{calculate_sigma(mu, alpha)};
+    std::map<std::string, const double> m{
+        {"mu", mu}, {"alpha", alpha}, {"sigma", sigma}};
     return m;
 };
