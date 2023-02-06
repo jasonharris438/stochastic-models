@@ -91,7 +91,7 @@ const double OrnsteinUhlenbeckLikelihood::calculate_sigma(
 const std::map<std::string, const double>
 OrnsteinUhlenbeckLikelihood::calculate(const std::vector<double>& data) {
     preset_components(data);
-    const double mu{};
+    const double mu{calculate_mu()};
     const double alpha{calculate_alpha(mu)};
     const double sigma{calculate_sigma(mu, alpha)};
     std::map<std::string, const double> m{
