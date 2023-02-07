@@ -22,8 +22,32 @@ add_subdirectory(stochastic_models)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        b796f7d44681514f58a683a3a71ff17c94edb0c1 # release-1.13.0
+)
+FetchContent_MakeAvailable(googletest)
+
 # add the executable.
 add_executable(run main.cpp)
 
 # link libraries to executable.
 target_link_libraries(run PUBLIC stochastic_models)
+
+enable_testing()
+
+add_executable(
+    tests
+    stochastic_models/tests/example_test.cpp
+    stochastic_models/tests/ornstein_uhlenbeck_likelihood_test.cpp
+)
+target_link_libraries(
+    tests
+    GTest::gtest_main
+    stochastic_models
+)
+
+include(GoogleTest)
+gtest_discover_tests(tests)
