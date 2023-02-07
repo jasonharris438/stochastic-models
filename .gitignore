@@ -1,9 +1,16 @@
+# OS Specific
+.DS_Store
+
 #IDE
 .vscode/
 
-# Misc
+# CMake
+_deps/
 build/
 CMakeFiles/
+Makefile
+CMakeCache.txt
+*.cmake
 
 # main.cpp file not required
 *main.cpp
