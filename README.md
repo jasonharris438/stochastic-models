@@ -3,7 +3,7 @@ A C++ library with statistical tools for stochastic models.
 
 ## **Models Implemented**
 ### Ornstein-Uhlenbeck (Mean Reverting) Model
-This assumes that the Ornstein--Uhlenbeck process takes the form
+This assumes that the Ornstein-Uhlenbeck process takes the form
 $$\mathrm{d}X(t) = \alpha(\mu-x(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
 with $\alpha$ the drift term and $\sigma$ diffusion term. The term $\mathrm{d}W(t)$ comprises the Brownian motion.
 
