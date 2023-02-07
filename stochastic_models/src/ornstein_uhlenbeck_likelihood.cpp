@@ -51,7 +51,7 @@ const double OrnsteinUhlenbeckLikelihood::calculate_x_xy(
 void OrnsteinUhlenbeckLikelihood::preset_components(
     const std::vector<double>& data) {
     if (components == nullptr) {
-        components = new const std::map<std::string, const double>{
+        components = new const std::unordered_map<std::string, const double>{
             {"x_y", calculate_x_y(data)},   {"x_x", calculate_x_x(data)},
             {"x_yy", calculate_x_yy(data)}, {"x_xx", calculate_x_xx(data)},
             {"x_xy", calculate_x_xy(data)}, {"n", data.size()}};
@@ -88,13 +88,13 @@ const double OrnsteinUhlenbeckLikelihood::calculate_sigma(
     sigma *= ((2 * exp_alpha) / (1 - std::pow(exp_alpha, 2)));
     return sigma;
 };
-const std::map<std::string, const double>
+const std::unordered_map<std::string, const double>
 OrnsteinUhlenbeckLikelihood::calculate(const std::vector<double>& data) {
     preset_components(data);
     const double mu{calculate_mu()};
     const double alpha{calculate_alpha(mu)};
     const double sigma{calculate_sigma(mu, alpha)};
-    std::map<std::string, const double> m{
+    std::unordered_map<std::string, const double> m{
         {"mu", mu}, {"alpha", alpha}, {"sigma", sigma}};
     return m;
 };

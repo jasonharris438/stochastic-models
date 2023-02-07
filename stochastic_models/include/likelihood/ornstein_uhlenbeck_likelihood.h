@@ -84,10 +84,10 @@ class OrnsteinUhlenbeckLikelihood : public LikelihoodCalculatuor {
     /**
      * @brief Calculates maximum likelihood values for all model parameters.
      *
-     * @return const std::map<std::string, const double> Map containing maximum
-     * likelihood model parmeters.
+     * @return const std::unordered_map<std::string, const double> unordered_map
+     * containing maximum likelihood model parmeters.
      */
-    const std::map<std::string, const double> calculate(
+    const std::unordered_map<std::string, const double> calculate(
         const std::vector<double>& data) override;
 };
 #endif  // _ORNSTEIN_UHLENBECK_LIKELIHOOD_H_
