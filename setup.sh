@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-version=3.24
+version=3.26
 build=1
 
 ## don't modify from here

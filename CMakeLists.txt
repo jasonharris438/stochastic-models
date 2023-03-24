@@ -35,10 +35,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 # add the executable.
-add_executable(run main.cpp)
+add_executable(stochastic-models main.cpp)
 
 # link libraries to executable.
-target_link_libraries(run PUBLIC stochastic_models GSL::gsl)
+target_link_libraries(stochastic-models PUBLIC stochastic_models GSL::gsl)
 
 enable_testing()
 
