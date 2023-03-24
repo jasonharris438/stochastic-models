@@ -46,11 +46,13 @@ add_executable(
     tests
     stochastic_models/tests/example_test.cpp
     stochastic_models/tests/ornstein_uhlenbeck_likelihood_test.cpp
+    stochastic_models/tests/hitting_time_test.cpp
 )
 target_link_libraries(
     tests
     GTest::gtest_main
     stochastic_models
+    GSL::gsl
 )
 
 include(GoogleTest)
