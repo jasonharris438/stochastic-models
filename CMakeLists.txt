@@ -22,6 +22,10 @@ add_subdirectory(stochastic_models)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Add GSL package.
+find_package(GSL REQUIRED)
+
+# Add googletest installation.
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -34,7 +38,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(run main.cpp)
 
 # link libraries to executable.
-target_link_libraries(run PUBLIC stochastic_models)
+target_link_libraries(run PUBLIC stochastic_models GSL::gsl)
 
 enable_testing()
 
