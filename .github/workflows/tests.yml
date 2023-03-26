@@ -17,6 +17,6 @@ jobs:
     - name: Create build files
       run: cmake .
     - name: Build application
-      run: cmake --build .
+      run: cmake --build . --target install
     - name: Run tests
       run: ./tests
