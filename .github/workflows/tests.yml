@@ -1,9 +1,7 @@
 name: Run tests
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
       
 on: [push]
+
 jobs:
   test:
     runs-on: ubuntu-20.04
