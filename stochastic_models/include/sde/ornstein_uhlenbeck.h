@@ -28,6 +28,17 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
     OrnsteinUhlenbeckModel(const double mu, const double alpha,
                            const double sigma);
     /**
+     * @brief Produces a simulation using the parameters mu, alpha, and sigma of
+     * size provided in the method arguments. Uses CoreEquation to produce the
+     * model equation and the model distribution to produce .Sample() values.
+     *
+     * @param start The value to start the simulation at.
+     * @param size The number of values to simulate.
+     * @return std::vector<double> A simulated model series.
+     */
+    std::vector<double> Simulate(const double start,
+                                 const unsigned int size) const override;
+    /**
      * @brief Uses the Euler–Maruyama method for the approximate numerical
      * solution of the Ornstein-Uhlenbeck process.
      *
@@ -39,16 +50,15 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
     const double CoreEquation(const double x, const double noise,
                               const unsigned int t = 1) const override;
     /**
-     * @brief Produces a simulation using the parameters mu, alpha, and sigma of
-     * size provided in the method arguments. Uses CoreEquation to produce the
-     * model equation and the model distribution to produce .Sample() values.
+     * @brief Implements the core components of the hitting time density
+     * function for the Ornstein-Uhlenbeck model.
      *
-     * @param start The value to start the simulation at.
-     * @param size The number of values to simulate.
-     * @return std::vector<double> A simulated model series.
+     * @param x The point at which to evaluate the hitting time density function
+     * core.
+     * @return const double The hitting time density function core evaluated at
+     * x.
      */
-    std::vector<double> Simulate(const double start,
-                                 const unsigned int size) const override;
+    const double HittingTimeDensityCore(const double x) const override;
     ~OrnsteinUhlenbeckModel();
 };
 #endif  // _ORNSTEIN_UHLENBECK_H_

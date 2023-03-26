@@ -3,12 +3,14 @@
 #include <stdio.h>
 
 #include "numeric_utils/integration.h"
+#include "sde/ornstein_uhlenbeck.h"
 double f(double x, void *p) {
     struct params *parameters = (struct params *)p;
     double alpha = parameters->alpha;
     double mu = parameters->mu;
     double sigma = parameters->sigma;
-    return exp(x * alpha * (x - 2 * mu) / (pow(sigma, 2)));
+    OrnsteinUhlenbeckModel model = OrnsteinUhlenbeckModel(mu, alpha, sigma);
+    return model.HittingTimeDensityCore(x);
 }
 double integration() {
     // https :  // www.gnu.org/software/gsl/doc/html/integration.html

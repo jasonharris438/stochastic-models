@@ -32,3 +32,7 @@ const double OrnsteinUhlenbeckModel::CoreEquation(const double x,
         (x * delta) + (mu * (1 - delta)) + (t * sigma * noise);
     return solution;
 }
+const double OrnsteinUhlenbeckModel::HittingTimeDensityCore(
+    const double x) const {
+    return exp(x * alpha * (x - 2 * mu) / (pow(sigma, 2)));
+}
