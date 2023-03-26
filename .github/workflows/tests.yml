@@ -6,17 +6,17 @@ runs:
 on: [push]
 jobs:
   test:
-  runs-on: ubuntu-20.04
-  container:
-    image: gcc:12
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Bootstrap environment
-      run: ./setup.sh
-    - name: Create build files
-      run: cmake .
-    - name: Build application
-      run: cmake --build .
-    - name: Run tests
-      run: ./tests
+    runs-on: ubuntu-20.04
+    container:
+      image: gcc:12
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Bootstrap environment
+        run: ./setup.sh
+      - name: Create build files
+        run: cmake .
+      - name: Build application
+        run: cmake --build .
+      - name: Run tests
+        run: ./tests
