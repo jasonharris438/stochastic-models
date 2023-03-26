@@ -1,6 +1,6 @@
 #ifndef _ORNSTEIN_UHLENBECK_H_
 #define _ORNSTEIN_UHLENBECK_H_
-#include "sde/stochastic_model.h"
+#include "stochastic_model.h"
 /**
  * @brief Handles fitting, analysing, and simulating specifically the
  * Ornstein-Uhlenbeck model specification.

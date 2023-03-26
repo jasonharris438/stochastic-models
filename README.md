@@ -38,3 +38,12 @@ OrnsteinUhlenbeckModel *model =
 // Simulate 5,000 instances with a start point of 0.5.
 const std::vector<double> vec = (*model).Simulate(0.5, 5000);
 ```
+## **To Build**
+(This is a component that I am still learning as I go with, so any suggestions on improvements or corrections are welcomed :pray:)
+There is one subdirectory to be linked ->> `stochastic_models` which contains all header files for the library.
+
+To build and install to an `install` directory, run the following:
+```
+$ cmake .
+$ cmake --build . --target install
+```
