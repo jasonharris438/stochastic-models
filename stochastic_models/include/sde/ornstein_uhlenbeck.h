@@ -1,6 +1,6 @@
 #ifndef _ORNSTEIN_UHLENBECK_H_
 #define _ORNSTEIN_UHLENBECK_H_
-#include "sde/stochastic_model.h"
+#include "stochastic_model.h"
 /**
  * @brief Handles fitting, analysing, and simulating specifically the
  * Ornstein-Uhlenbeck model specification.
@@ -28,17 +28,6 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
     OrnsteinUhlenbeckModel(const double mu, const double alpha,
                            const double sigma);
     /**
-     * @brief Uses the Euler–Maruyama method for the approximate numerical
-     * solution of the Ornstein-Uhlenbeck process.
-     *
-     * @param x The current value of the series.
-     * @param noise The random Gaussian noise to add to the series.
-     * @param t The time increment of a single step.
-     * @return const double The next value in the series.
-     */
-    const double CoreEquation(const double x, const double noise,
-                              const unsigned int t = 1) const override;
-    /**
      * @brief Produces a simulation using the parameters mu, alpha, and sigma of
      * size provided in the method arguments. Uses CoreEquation to produce the
      * model equation and the model distribution to produce .Sample() values.
@@ -49,6 +38,27 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
      */
     std::vector<double> Simulate(const double start,
                                  const unsigned int size) const override;
+    /**
+     * @brief Uses the Euler–Maruyama method for the approximate numerical
+     * solution of the Ornstein-Uhlenbeck process.
+     *
+     * @param x The current value of the series.
+     * @param noise The random Gaussian noise to add to the series.
+     * @param t The time increment of a single step.
+     * @return const double The next value in the series.
+     */
+    const double CoreEquation(const double& x, const double noise,
+                              const unsigned int t = 1) const override;
+    /**
+     * @brief Implements the core components of the hitting time density
+     * function for the Ornstein-Uhlenbeck model.
+     *
+     * @param x The point at which to evaluate the hitting time density function
+     * core.
+     * @return const double The hitting time density function core evaluated at
+     * x.
+     */
+    const double HittingTimeDensityCore(const double& x) const override;
     ~OrnsteinUhlenbeckModel();
 };
 #endif  // _ORNSTEIN_UHLENBECK_H_

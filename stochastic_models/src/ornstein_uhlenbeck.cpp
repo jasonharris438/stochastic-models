@@ -24,11 +24,15 @@ std::vector<double> OrnsteinUhlenbeckModel::Simulate(
 
     return vec;
 }
-const double OrnsteinUhlenbeckModel::CoreEquation(const double x,
+const double OrnsteinUhlenbeckModel::CoreEquation(const double& x,
                                                   const double noise,
                                                   const unsigned int t) const {
     double delta{std::exp(-alpha * t)};
     const double solution =
         (x * delta) + (mu * (1 - delta)) + (t * sigma * noise);
     return solution;
+}
+const double OrnsteinUhlenbeckModel::HittingTimeDensityCore(
+    const double& x) const {
+    return exp(x * alpha * (x - 2 * mu) / (pow(sigma, 2)));
 }

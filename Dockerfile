@@ -1,18 +1,49 @@
+#### Example of Multistage Build for Various C++ Projects ####
+#### Development Environment = builder.
+#### 3rd Party Application = installer,
+#### Production Environment = Final.
+
 # Parent image gcc:12.
-FROM gcc:12
+FROM gcc:12 as builder
 
-# Install GNU compiler tools, Cmake, and the GDB debugger.
-RUN apt-get -yqq update && \
-    apt-get -yqq install build-essential gdb libtool autoconf unzip wget
+# Copy source code.
+COPY stochastic_models ./stochastic_models
+COPY CMakeLists.txt ./
+COPY Config.cmake.in ./
+COPY setup.sh ./
 
-RUN apt remove --purge --auto-remove cmake
+# Run cmake setup commands.
+RUN chmod +x setup.sh
+RUN ./setup.sh
+
+# Build C++ code.
+RUN cmake .
+RUN cmake --build . --target install
+
+# Parent image gcc:12.
+FROM gcc:12 as installer
+
+# Copy source code.
+COPY --from=builder install ./install
+COPY setup.sh ./
+COPY subsequent-application/CMakeLists.txt ./
+COPY subsequent-application/main.cpp ./
+
+# Run cmake setup commands.
+RUN chmod +x setup.sh
+RUN ./setup.sh
+
+# Build C++ code.
+RUN cmake .
+RUN cmake --build .
+
+# Final image.
+FROM ubuntu:23.04 as Final
 
 # Set workdir.
 WORKDIR /usr/src/app
 
-COPY ./setup.sh ./
-RUN chmod +x setup.sh
+# Copy final build.
+COPY --from=installer another-application ./
 
-RUN ./setup.sh
-
-CMD ["/bin/bash"]
+CMD [ "./another-application" ]

@@ -8,6 +8,7 @@
 _deps/
 build/
 CMakeFiles/
+install/
 Makefile
 CMakeCache.txt
 *.cmake
