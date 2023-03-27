@@ -51,7 +51,7 @@ class GaussianDistribution : public CoreDistribution {
      * @param x the point at which to evaluate CDF.
      * @returns Gaussian CDF value evaluated at x.
      */
-    double Cdf(const double x) override;
+    const double Cdf(const double &x) override;
 
     /**
      * Draws a random sample from normal distribution. Parameterized by

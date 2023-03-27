@@ -9,7 +9,7 @@
  */
 class StochasticModel {
    protected:
-    const GaussianDistribution *dist;
+    const GaussianDistribution* dist;
 
    public:
     /**
@@ -32,7 +32,7 @@ class StochasticModel {
      * @param t The size of the time steps (models are typically discretized).
      * @returns Core equation evaluated at x.
      */
-    virtual const double CoreEquation(const double x, const double noise,
+    virtual const double CoreEquation(const double& x, const double noise,
                                       const unsigned int t = 1) const = 0;
     /**
      * @brief Implements the core components of the hitting time density
@@ -43,7 +43,7 @@ class StochasticModel {
      * @return const double The hitting time density function core evaluated at
      * x.
      */
-    virtual const double HittingTimeDensityCore(const double x) const = 0;
+    virtual const double HittingTimeDensityCore(const double& x) const = 0;
     virtual ~StochasticModel() = 0;
 };
 #endif  // _STOCHASTIC_MODEL_H_

@@ -1,7 +1,6 @@
 #ifndef _CORE_H_
 #define _CORE_H_
 #include <vector>
-
 /**
  * Base core distribution class.
  */
@@ -29,7 +28,7 @@ class CoreDistribution {
      * @param x the point at which to evaluate CDF.
      * @returns Gaussian CDF value evaluated at x.
      */
-    virtual double Cdf(const double x) = 0;
+    virtual const double Cdf(const double &x) = 0;
 
     /**
      * Draws a random sample from normal distribution. Parameterized by
@@ -41,5 +40,4 @@ class CoreDistribution {
     virtual std::vector<double> Sample(std::size_t size = 1) const = 0;
     virtual ~CoreDistribution() = 0;
 };
-
 #endif  // _GAUSSIAN_H_

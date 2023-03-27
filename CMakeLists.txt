@@ -80,7 +80,7 @@ enable_testing()
 
 add_executable(
     tests
-    stochastic_models/tests/example_test.cpp
+    stochastic_models/tests/gaussian_distribution_test.cpp
     stochastic_models/tests/ornstein_uhlenbeck_likelihood_test.cpp
     stochastic_models/tests/ornstein_uhlenbeck_test.cpp
     stochastic_models/tests/hitting_time_test.cpp

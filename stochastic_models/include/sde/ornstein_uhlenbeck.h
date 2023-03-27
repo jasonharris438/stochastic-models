@@ -47,7 +47,7 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
      * @param t The time increment of a single step.
      * @return const double The next value in the series.
      */
-    const double CoreEquation(const double x, const double noise,
+    const double CoreEquation(const double& x, const double noise,
                               const unsigned int t = 1) const override;
     /**
      * @brief Implements the core components of the hitting time density
@@ -58,7 +58,7 @@ class OrnsteinUhlenbeckModel : public StochasticModel {
      * @return const double The hitting time density function core evaluated at
      * x.
      */
-    const double HittingTimeDensityCore(const double x) const override;
+    const double HittingTimeDensityCore(const double& x) const override;
     ~OrnsteinUhlenbeckModel();
 };
 #endif  // _ORNSTEIN_UHLENBECK_H_
