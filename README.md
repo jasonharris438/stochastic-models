@@ -55,7 +55,7 @@ To access in the `main` module of another application a `CMakeLists.txt` can be 
 and `#include <StochasticModels/sde/ornstein_uhlenbeck.h>` for example to access the `OrnsteinUhlenbeckModel` interface.
 ```
 # Minimum version 3.26.
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.26)
 project("another-application" VERSION 0.1.0 DESCRIPTION "A project with external library")
 
 # provide the library installation folder, so CMake could find its config

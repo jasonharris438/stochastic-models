@@ -1,5 +1,5 @@
 # Minimum version 3.26.
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.26)
 
 # Set the project name and version.
 project(StochasticModels
