@@ -14,16 +14,6 @@
  */
 double integrate_hitting_time_density(double x, void* model);
 /**
- * @brief Implements the function @f[ F(x) @f] that is used in the optimal mean
- * reversion trading problem.
- *
- * @param x The point at which to perform integration of @f[ F(x) @f].
- * @param model A pointer to the model instance that is being used to
- * parameterize the integration.
- * @return double
- */
-double integrate_mean_reversion_f(double x, void* model);
-/**
  * @brief The hitting time density function @f[ \frac{S(x) - S(b)}{S(a) - S(b)}
  * @f].
  *
