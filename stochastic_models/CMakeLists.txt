@@ -4,6 +4,7 @@ src/ornstein_uhlenbeck.cpp
 src/core.cpp
 src/gaussian.cpp
 src/likelihood.cpp
+src/integration.cpp
 src/ornstein_uhlenbeck_likelihood.cpp
 src/helpers.cpp
 src/hitting_time_density.cpp)

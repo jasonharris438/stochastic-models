@@ -7,15 +7,11 @@
 GaussianDistribution::GaussianDistribution(const double mu, const double sigma)
     : mu(mu), sigma(sigma) {}
 GaussianDistribution::GaussianDistribution() : GaussianDistribution(0, 1.0) {}
-const double& GaussianDistribution::getMean()
-    const {  // Returns const reference to class mean.
-    const double& mu_ref = mu;
-    return mu_ref;
+const double GaussianDistribution::getMean() const {  // Returns class mean.
+    return mu;
 }
-const double& GaussianDistribution::getStd()
-    const {  // Returns const reference to class std.
-    const double& sigma_ref = sigma;
-    return sigma_ref;
+const double GaussianDistribution::getStd() const {  // Returns class std.
+    return sigma;
 }
 double GaussianDistribution::erfGaussianCdf(
     const float x) {  // Core calculation for cdf evaluated at x.
