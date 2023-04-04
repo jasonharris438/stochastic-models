@@ -5,7 +5,7 @@
  * @brief Handles fitting, analysing, and simulating specifically the
  * Ornstein-Uhlenbeck model specification.
  */
-class OrnsteinUhlenbeckModel : public StochasticModel {
+class OrnsteinUhlenbeckModel : public StochasticModel::StochasticModel {
    private:
     /**
      * @brief The mean of the Ornstein-Uhlenbeck model.

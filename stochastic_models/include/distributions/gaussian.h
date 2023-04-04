@@ -30,18 +30,18 @@ class GaussianDistribution : public CoreDistribution {
     GaussianDistribution(const double mu, const double sigma);
 
     /**
-     * Returns const reference to distribution mean.
+     * Returns distribution mean.
      *
-     * @returns Const reference to mean of Gaussian Distribution.
+     * @returns Const mean of Gaussian Distribution.
      */
-    const double &getMean() const override;
+    const double getMean() const override;
 
     /**
-     * Returns const reference to distribution standard deviation.
+     * Returns distribution standard deviation.
      *
-     * @returns Const reference to standard deviation of Gaussian Distribution.
+     * @returns Const standard deviation of Gaussian Distribution.
      */
-    const double &getStd() const override;
+    const double getStd() const override;
 
     /**
      * Uses private erfGaussianCdf method to produce the CDF of the Gaussian

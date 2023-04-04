@@ -7,18 +7,18 @@
 class CoreDistribution {
    public:
     /**
-     * Returns const reference to distribution mean.
+     * Returns distribution mean.
      *
-     * @returns Const reference to mean of Gaussian Distribution.
+     * @returns Const mean of Gaussian Distribution.
      */
-    virtual const double &getMean() const = 0;
+    virtual const double getMean() const = 0;
 
     /**
-     * Returns const reference to distribution standard deviation.
+     * Returns distribution standard deviation.
      *
-     * @returns Const reference to standard deviation of Gaussian Distribution.
+     * @returns Const standard deviation of Gaussian Distribution.
      */
-    virtual const double &getStd() const = 0;
+    virtual const double getStd() const = 0;
 
     /**
      * Uses private erfGaussianCdf method to produce the CDF of the Gaussian
