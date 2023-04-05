@@ -1,5 +1,5 @@
 # Stochastic Models
-A C++ library with statistical tools for stochastic models.
+A C++ shared library with statistical tools for stochastic models.
 
 ## **Models Implemented**
 ### Ornstein-Uhlenbeck (Mean Reverting) Model
@@ -48,7 +48,7 @@ $ cmake .
 $ cmake --build . --target install
 ```
 ## **To Use**
-It is possible to use this library statically within another application should it be
+It is possible to use this application as a shared library within another application should it be
 correctly linked (I've tested this).
 
 To access in the `main` module of another application a `CMakeLists.txt` can be produced
@@ -59,9 +59,10 @@ cmake_minimum_required(VERSION 3.26)
 project("another-application" VERSION 0.1.0 DESCRIPTION "A project with external library")
 
 # provide the library installation folder, so CMake could find its config
-set(CMAKE_PREFIX_PATH "/install")
+set(CMAKE_PREFIX_PATH "./install")
 # the rest will be taken care of by CMake
 find_package(StochasticModels CONFIG REQUIRED)
+find_package(GSL REQUIRED) # Add GSL package.
 
 # it is an application
 add_executable(${PROJECT_NAME} main.cpp)
@@ -73,5 +74,5 @@ target_sources(${PROJECT_NAME}
 )
 
 # linking to the library
-target_link_libraries(${PROJECT_NAME} PRIVATE StochasticModels)
+target_link_libraries(${PROJECT_NAME} PRIVATE StochasticModels GSL::gsl)
 ```
