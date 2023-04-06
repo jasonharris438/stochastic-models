@@ -1,5 +1,6 @@
 # Minimum version 3.26.
 cmake_minimum_required(VERSION 3.26)
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
 # Set the project name and version.
 project(StochasticModels
@@ -8,7 +9,7 @@ VERSION 0.0.1
 )
 
 # Add the library and sources.
-add_library(${PROJECT_NAME} STATIC .)
+add_library(${PROJECT_NAME} .)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 # Add subdirectory stochastic_models.
