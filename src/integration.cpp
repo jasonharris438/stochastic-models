@@ -1,10 +1,12 @@
-#include <iostream>
 #include "stochastic_models/numeric_utils/integration.h"
+
+#include <iostream>
 
 #include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-IntegrationState::IntegrationState(gsl_integration_workspace& w) : workspace(&w) {}
+IntegrationState::IntegrationState(gsl_integration_workspace& w)
+    : workspace(&w) {}
 IntegrationState::~IntegrationState() {
     if (workspace != nullptr) {
         gsl_integration_workspace_free(workspace);
@@ -26,8 +28,8 @@ const double adaptiveIntegration(ModelFunc fn, void* model, double& lower,
     gsl_error_handler_t* old_handler =
         gsl_set_error_handler(&custom_gsl_exception_handler);
 
-    int status = gsl_integration_qags(&F, lower, upper, 0, 1e-7, 1000, state.workspace,
-                                      &result, &error);
+    int status = gsl_integration_qags(&F, lower, upper, 0, 1e-7, 1000,
+                                      state.workspace, &result, &error);
 
     /* restore original handler */
     gsl_set_error_handler(old_handler);
@@ -56,8 +58,8 @@ const double semiInfiniteIntegrationUpper(ModelFunc fn, void* model,
     gsl_error_handler_t* old_handler =
         gsl_set_error_handler(&custom_gsl_exception_handler);
 
-    int status =
-        gsl_integration_qagiu(&F, lower, 0, 1e-7, 1000, state.workspace, &result, &error);
+    int status = gsl_integration_qagiu(&F, lower, 0, 1e-7, 1000,
+                                       state.workspace, &result, &error);
 
     /* restore original handler */
     gsl_set_error_handler(old_handler);

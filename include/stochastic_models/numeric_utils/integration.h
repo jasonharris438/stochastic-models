@@ -1,7 +1,8 @@
 #ifndef INTEGRATION_H
 #define INTEGRATION_H
-#include "stochastic_models/numeric_utils/types.h"
 #include <gsl/gsl_integration.h>
+
+#include "stochastic_models/numeric_utils/types.h"
 
 /**
  * @brief RAII wrapper for GSL integration workspace.
@@ -11,10 +12,10 @@
  * that memory is properly freed when the object goes out of scope,
  */
 class IntegrationState {
-    public:
-        gsl_integration_workspace* workspace;
-        IntegrationState(gsl_integration_workspace& w);
-        ~IntegrationState();
+   public:
+    gsl_integration_workspace* workspace;
+    IntegrationState(gsl_integration_workspace& w);
+    ~IntegrationState();
 };
 
 /**

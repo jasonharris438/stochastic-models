@@ -4,8 +4,8 @@
 
 #include <iostream>
 
-#include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/exceptions/errors.h"
+#include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 BrentSolverState::BrentSolverState() {
@@ -25,9 +25,9 @@ const double brentSolver(ModelFunc fn, void* model, double& lower,
 
     // Catch error if solver cannot be allocated.
     if (solver_state.fsolver == nullptr) {
-                std::cerr << "Error: failed to allocate memory for solver."
-                << std::endl;
-    throw NoMemoryError();
+        std::cerr << "Error: failed to allocate memory for solver."
+                  << std::endl;
+        throw NoMemoryError();
     }
 
     gsl_function F;

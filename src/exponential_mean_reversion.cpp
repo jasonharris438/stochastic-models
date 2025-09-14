@@ -3,10 +3,10 @@
  * @brief Source file for the ExponentialMeanReversion class.
  *
  */
-#include <iostream>
 #include "stochastic_models/trading/exponential_mean_reversion.h"
 
 #include <cmath>
+#include <iostream>
 #include <stdexcept>
 
 #include "stochastic_models/numeric_utils/differentiation.h"
@@ -33,11 +33,11 @@ const double ExponentialMeanReversion::F(
     ModelFunc fn = funcOptimalMeanReversionF;
     double lower = 0;
     double value{0.0};
-    try{
-    value = semiInfiniteIntegrationUpper(fn, params, lower);
-    }
-    catch(const std::runtime_error& e){
-        std::cout << "Exception " << e.what() << " caught in ExponentialMeanReversion::F." << std::endl;
+    try {
+        value = semiInfiniteIntegrationUpper(fn, params, lower);
+    } catch (const std::runtime_error& e) {
+        std::cout << "Exception " << e.what()
+                  << " caught in ExponentialMeanReversion::F." << std::endl;
         delete static_cast<OptimalMeanReversionParams*>(params);
         params = nullptr;
         temp_ptr = nullptr;
@@ -70,11 +70,11 @@ const double ExponentialMeanReversion::G(
     ModelFunc fn = funcOptimalMeanReversionG;
     double lower = 0;
     double value{0.0};
-    try{
-    value = semiInfiniteIntegrationUpper(fn, params, lower);
-    }
-    catch(const std::runtime_error& e){
-        std::cout << "Exception " << e.what() << " caught in ExponentialMeanReversion::G." << std::endl;
+    try {
+        value = semiInfiniteIntegrationUpper(fn, params, lower);
+    } catch (const std::runtime_error& e) {
+        std::cout << "Exception " << e.what()
+                  << " caught in ExponentialMeanReversion::G." << std::endl;
         delete static_cast<OptimalMeanReversionParams*>(params);
         params = nullptr;
         temp_ptr = nullptr;

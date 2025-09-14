@@ -84,13 +84,13 @@ const double optimalExitLevelExponential(const double mu, const double alpha,
         new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
 
     double value{0.0};
-    try{
-    // Calculate b*.
-    value =
-        tradingLevels.optimalExit(optimizer, model, hitting_time_kernel, r, c);
-    }
-    catch(const std::runtime_error& e){
-        std::cout << "Exception " << e.what() << " caught in optimalExitLevelExponential." << std::endl;
+    try {
+        // Calculate b*.
+        value = tradingLevels.optimalExit(optimizer, model, hitting_time_kernel,
+                                          r, c);
+    } catch (const std::runtime_error &e) {
+        std::cout << "Exception " << e.what()
+                  << " caught in optimalExitLevelExponential." << std::endl;
         delete model;
         delete hitting_time_kernel;
         delete optimizer;

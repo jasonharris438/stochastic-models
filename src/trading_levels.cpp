@@ -1,7 +1,7 @@
 #include "stochastic_models/trading/trading_levels.h"
 
 #include <algorithm>
-#include <iostream> 
+#include <iostream>
 
 #include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/solvers.h"
@@ -111,15 +111,16 @@ const double TradingLevels::optimalExit(
     ModelFunc fn = funcOptimalMeanReversionB;
 
     double value{0.0};
-    try{
-    value = brentSolver(fn, params, lower, upper);
-    }
-    catch(const std::runtime_error& e){
-        std::cout << "Exception " << e.what() << " caught in TradingLevels::optimalExit without stop loss." << std::endl;
+    try {
+        value = brentSolver(fn, params, lower, upper);
+    } catch (const std::runtime_error& e) {
+        std::cout << "Exception " << e.what()
+                  << " caught in TradingLevels::optimalExit without stop loss."
+                  << std::endl;
         delete static_cast<ExitLevelParams*>(params);
         params = nullptr;
-    temp_optimizer = nullptr;
-    temp_kernel = nullptr;
+        temp_optimizer = nullptr;
+        temp_kernel = nullptr;
         throw;
     }
     // Then cast the void pointer back to the original type and free the memory.
