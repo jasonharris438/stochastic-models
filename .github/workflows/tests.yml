@@ -2,23 +2,39 @@ name: Run tests
       
 on:
   push:
-    branches-ignore:    
-      - 'master'
+    branches-ignore:
+      # Ignore pushes to main as these have been tested on feature branch.
+      # WIP is an escape hatch for work in progress branches that are not yet testable.
+      - 'main'
+      - 'WIP/**'
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
     container:
-      image: gcc:12
+      image: ubuntu:latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-    - name: setup.sh permissions
-      run: chmod +x ./setup.sh
-    - name: Bootstrap environment
-      run: ./setup.sh
+      uses: actions/checkout@v4
+    - name: Install linux packages
+      run: apt-get update && apt-get install -yqq shellcheck clang-format
+    - name: check shell scripts
+      run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh
+    - name: script permissions
+      run: chmod +x ./setup-env.sh ./install-cmake.sh ./install-valgrind.sh
+    - name: lint code
+      run: clang-format --dry-run --Werror -style=file:.clang-format src/**.cpp include/stochastic_models/**/**.h tests/**.cpp
+    - name: Install dependencies
+      run: ./setup-env.sh
+    - name: Install cmake
+      run: ./install-cmake.sh
+    - name: Install valgrind
+      run: ./install-valgrind.sh
     - name: Create build files
       run: cmake .
     - name: Build application
       run: cmake --build . --target install
     - name: Run tests
-      run: ./tests
+      run: ./tests/unit_tests
+    - name: Run valgrind
+      run: valgrind -s --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/unit_tests

@@ -1,102 +1,93 @@
-# Minimum version 3.26.
-cmake_minimum_required(VERSION 3.26)
+# Minimum version 4.0.
+cmake_minimum_required(VERSION 4.0)
+
+# This is a shared library project.
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
 # Set the project name and version.
 project(StochasticModels
-DESCRIPTION "A package implementing fast statistical tools for stochastic calculus."
-VERSION 0.0.1
-)
+    DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
+    VERSION 0.1.3
+    LANGUAGES CXX)
 
-# Add the library and sources.
+# specify the C++ standard.
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Include the FetchContent module.
+include(FetchContent)
+
+# Fetch Boost 1.89.0
+FetchContent_Declare(
+    Boost
+    URL      https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.bz2
+    URL_HASH SHA256=85a33fa22621b4f314f8e85e1a5e2a9363d22e4f4992925d4bb3bc631b5a0c7a
+    EXCLUDE_FROM_ALL
+    )
+FetchContent_MakeAvailable(Boost)
+
+# Fetch nlohmann/json 3.12.0
+FetchContent_Declare(
+    json
+    URL         https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    URL_HASH    SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
+)
+FetchContent_MakeAvailable(json)
+option(JSON_ImplicitConversions OFF) # Recommended by nlohmann/json maintainers.
+
+# Add GSL package.
+find_package(GSL REQUIRED)
+include(GNUInstallDirs)
+
+# Add the main library.
 add_library(${PROJECT_NAME} .)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
-# Add subdirectory stochastic_models.
-add_subdirectory(stochastic_models)
-target_sources(${PROJECT_NAME} PRIVATE
-    $<TARGET_OBJECTS:stochastic_models>
-)
+# Add subdirectories.
+add_subdirectory(src)
+add_subdirectory(tests)
 
-include(GNUInstallDirs)
-
-install(DIRECTORY stochastic_models/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-    FILES_MATCHING PATTERN "*.h"
-    PATTERN "*_p.h" EXCLUDE
-)
-
-target_include_directories(${PROJECT_NAME}
-    PRIVATE
-        # where the library itself will look for its internal headers
-        stochastic_models/include
-    PUBLIC
-        # where top-level project will look for the library's public headers
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/stochastic_models/include>
-        # where external projects will look for the library's public headers
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+# create config file
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+INSTALL_DESTINATION cmake
 )
 
 # CMake sets this variable to a ``TRUE`` value when the
 # ``CMAKE_INSTALL_PREFIX`` has just been initialized to
 # its default value
 if(DEFINED CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    message(
+message(
         STATUS
         "CMAKE_INSTALL_PREFIX is not set\n"
         "Default value: ${CMAKE_INSTALL_PREFIX}\n"
         "Will set it to ${CMAKE_SOURCE_DIR}/install"
-    )
-    set(CMAKE_INSTALL_PREFIX
+        )
+        set(CMAKE_INSTALL_PREFIX
         "${CMAKE_SOURCE_DIR}/install"
         CACHE PATH "Where the library will be installed to" FORCE
-    )
+        )
 else()
     message(
         STATUS
         "CMAKE_INSTALL_PREFIX was already set\n"
         "Current value: ${CMAKE_INSTALL_PREFIX}"
-    )
+        )
 endif()
 
-# set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER stochatic_models/include)
-
-# specify the C++ standard.
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# Add GSL package.
-find_package(GSL REQUIRED)
-
-# Add googletest installation.
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        b796f7d44681514f58a683a3a71ff17c94edb0c1 # release-1.13.0
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.h"
 )
-FetchContent_MakeAvailable(googletest)
-
-enable_testing()
-
-add_executable(
-    tests
-    stochastic_models/tests/gaussian_distribution_test.cpp
-    stochastic_models/tests/ornstein_uhlenbeck_likelihood_test.cpp
-    stochastic_models/tests/ornstein_uhlenbeck_test.cpp
-    stochastic_models/tests/hitting_time_test.cpp
+install(DIRECTORY "${boost_SOURCE_DIR}/boost/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/boost"
+    FILES_MATCHING PATTERN "*.hpp"
 )
-target_link_libraries(
-    tests
-    GTest::gtest_main
-    stochastic_models
-    GSL::gsl
+install(DIRECTORY "${json_SOURCE_DIR}/include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
-include(GoogleTest)
-gtest_discover_tests(tests)
-
-# install the target and create export-set
 install(TARGETS ${PROJECT_NAME}
     EXPORT "${PROJECT_NAME}Targets"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -109,28 +100,4 @@ install(TARGETS ${PROJECT_NAME}
 install(EXPORT "${PROJECT_NAME}Targets"
     FILE "${PROJECT_NAME}Targets.cmake"
     DESTINATION cmake
-)
-
-include(CMakePackageConfigHelpers)
-
-# generate the version file for the config file
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    VERSION "${version}"
-    COMPATIBILITY AnyNewerVersion
-)
-# create config file
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    INSTALL_DESTINATION cmake
-)
-# install config files
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    DESTINATION cmake
-)
-# generate the export targets for the build tree
-export(EXPORT "${PROJECT_NAME}Targets"
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Targets.cmake"
 )

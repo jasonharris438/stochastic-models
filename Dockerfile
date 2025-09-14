@@ -3,47 +3,46 @@
 #### 3rd Party Application = installer,
 #### Production Environment = Final.
 
-# Parent image gcc:12.
-FROM gcc:12 as builder
+# Parent image ubuntu latest.
+FROM ubuntu:latest AS builder
 
-# Copy source code.
-COPY stochastic_models ./stochastic_models
-COPY CMakeLists.txt ./
-COPY Config.cmake.in ./
-COPY setup.sh ./
+# Install initial dependencies.
+COPY setup-env.sh ./
+RUN chmod +x setup-env.sh
+RUN ./setup-env.sh
+
+# Copy cmake setup script.
+COPY install-cmake.sh ./
 
 # Run cmake setup commands.
-RUN chmod +x setup.sh
-RUN ./setup.sh
+RUN chmod +x install-cmake.sh
+RUN ./install-cmake.sh
+
+# Set workdir.
+WORKDIR /usr/src/app
+
+# Copy source code.
+COPY src ./src
+COPY include ./include
+COPY tests ./tests
+COPY CMakeLists.txt ./
+COPY Config.cmake.in ./
 
 # Build C++ code.
 RUN cmake .
 RUN cmake --build . --target install
 
-# Parent image gcc:12.
-FROM gcc:12 as installer
-
-# Copy source code.
-COPY --from=builder install ./install
-COPY setup.sh ./
-COPY subsequent-application/CMakeLists.txt ./
-COPY subsequent-application/main.cpp ./
-
-# Run cmake setup commands.
-RUN chmod +x setup.sh
-RUN ./setup.sh
-
-# Build C++ code.
-RUN cmake .
-RUN cmake --build .
-
 # Final image.
-FROM ubuntu:23.04 as Final
+FROM ubuntu:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libc6 \
+    libgsl-dev
 
 # Set workdir.
 WORKDIR /usr/src/app
 
-# Copy final build.
-COPY --from=installer another-application ./
-
-CMD [ "./another-application" ]
+# Copy source code.
+COPY --from=builder /usr/src/app/install/include/boost /usr/local/lib
+COPY --from=builder /usr/src/app/install/include/stochastic_models /usr/local/lib
+COPY --from=builder /usr/src/app/src/libstochastic_models.so /usr/local/lib
