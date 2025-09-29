@@ -84,7 +84,7 @@ double funcOptimalMeanReversionG(double x, void* params);
  * @brief Concrete class that implements the optimal trading strategy for a mean
  * reverting model.
  */
-class OptimalMeanReversion : public OptimalTrading::OptimalTrading {
+class OptimalMeanReversion : public OptimalTrading {
    public:
     /**
      * @brief Construct a new OptimalMeanReversion object and return on heap

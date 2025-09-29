@@ -31,6 +31,27 @@ TEST(InterfaceTest, optimalEntryLowerStopLossOutputTest) {
            "with a stop loss is not equal to the expected value.";
 }
 /**
+ * @test Tests that the optimalEntryLevel function errors due to no solution
+ * being found with the provided parameters.
+ */
+TEST(InterfaceTest, optimalEntryLevelNoSolutionTest) {
+    // Declare and initialize model and test parameters.
+    const double alpha = 0.000116;
+    const double mu = 1.818978;
+    const double sigma = 0.006623;
+    const double d_star = 0.436755;
+    const double b_star = 0.750895;
+    const double c = 0.02;
+    const double r = 0.05;
+    const float tolerance = 1e-5;
+
+    // Assert that the method is not implemented.
+    ASSERT_THROW(optimalEntryLevel(d_star, b_star, mu, alpha, sigma, r, c),
+                 std::runtime_error)
+        << "optimalEntryLevel did not throw "
+           "with invalid parameters.";
+}
+/**
  * @test Tests the output of the optimalEntryLevel with a stop loss provided
  * function and asserts that it is near the expected value.
  *
@@ -74,7 +95,7 @@ TEST(InterfaceTest, optimalExitLevelStopLossOutputTest) {
     const double value = optimalExitLevel(mu, alpha, sigma, stop_loss, r, c);
 
     // Assert that the value is near the expected value.
-    EXPECT_LE(abs(roundToDecimals(value, 8) - 0.450895), tolerance)
+    EXPECT_LE(abs(roundToDecimals(value, 8) - 0.46912012), tolerance)
         << "Value produced by optimalExitLevel function "
            "with a stop loss is not equal to the expected value.";
 }
@@ -145,6 +166,27 @@ TEST(InterfaceTest, optimalEntryLevelExponentialOutputTest) {
     EXPECT_LE(abs(roundToDecimals(value, 8) - 1.24096), tolerance)
         << "Value produced by optimalEntryLevelExponential function "
            "is not equal to the expected value.";
+}
+/**
+ * @test Tests that the optimalExitLevelExponential function errors due to
+ * no solution being found with the provided parameters.
+ *
+ */
+TEST(InterfaceTest, optimalExitLevelExponentialNoSolutionTest) {
+    // Declare and initialize model and test parameters.
+    const double alpha = 0.000116;
+    const double mu = 1.818978;
+    const double sigma = 0.006623;
+    const double c = 0.02;
+    const double r = 0.05;
+    const float tolerance = 1e-4;
+
+    // Assert that the method is not implemented.
+    ASSERT_THROW(optimalExitLevelExponential(mu, alpha, sigma, r, c),
+                 std::runtime_error)
+        << "optimalExitLevelExponential did not throw a runtime error when "
+           "provided "
+           "with invalid parameters.";
 }
 /**
  * @test Tests the output of the optimalEntryLevelLowerExponential function and

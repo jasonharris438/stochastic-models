@@ -23,6 +23,8 @@ hitting_time_density.cpp
 optimal_mean_reversion.cpp
 exponential_mean_reversion.cpp
 trading_levels.cpp
+trading_levels_exponential.cpp
+trading_levels_params.cpp
 type_conversion.cpp
 interface.cpp)
 

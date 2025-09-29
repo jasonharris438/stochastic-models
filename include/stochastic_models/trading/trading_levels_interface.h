@@ -1,10 +1,8 @@
-#ifndef TRADING_LEVELS_H
-#define TRADING_LEVELS_H
+#ifndef TRADING_LEVELS_INTERFACE_H
+#define TRADING_LEVELS_INTERFACE_H
 #include <memory>
 
-#include "stochastic_models/trading/optimal_mean_reversion.h"
 #include "stochastic_models/trading/optimal_trading.h"
-#include "stochastic_models/trading/trading_levels_interface.h"
 
 /**
  * @brief Class for calculating the optimal trading levels.
@@ -16,33 +14,16 @@
  * @param hitting_time_kernel Pointer to the kernel to use in the function
  * to evaluate @f[ b* @f].
  */
-class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
-   private:
-    std::unique_ptr<OptimalMeanReversion> optimizer;
-    std::unique_ptr<StochasticModel> model;
-    std::unique_ptr<HittingTimeOrnsteinUhlenbeck> hitting_time_kernel;
-    // std::unique_ptr<TradingLevelsParams> params;
-
+class TradingLevels {
    public:
-    OrnsteinUhlenbeckTradingLevels(const double mu, const double alpha,
-                                   const double sigma);
-    const OptimalMeanReversion* getOptimizer() const;
-    const OptimalMeanReversion* newOptimizer() const;
-    const StochasticModel* getModel() const;
-    const StochasticModel* newModel() const;
-    const HittingTimeOrnsteinUhlenbeck* getHittingTimeKernel() const;
-    const HittingTimeOrnsteinUhlenbeck* newHittingTimeKernel() const;
-    /**
-     * @brief Calculates the hard lower bound constraint for an optimal entry
-     * level.
-     *
-     * This ensures that a reasonable and coherent bound is applied when
-     * calculating the optimal entry level.
-     *
-     * @return const double The hard lower bound constraint for the optimal
-     * entry level.
-     */
-    const double optimalEntryLowerBound() const;
+    virtual const OptimalTrading* getOptimizer() const = 0;
+    virtual const OptimalTrading* newOptimizer() const = 0;
+    virtual const StochasticModel* getModel() const = 0;
+    virtual const StochasticModel* newModel() const = 0;
+    virtual const HittingTimeOrnsteinUhlenbeck* getHittingTimeKernel()
+        const = 0;
+    virtual const HittingTimeOrnsteinUhlenbeck* newHittingTimeKernel()
+        const = 0;
     /**
      * @brief Calculates the hard lower bound constraint for an optimal exit
      * level.
@@ -57,7 +38,8 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @return const double The hard lower bound constraint for the optimal exit
      * level.
      */
-    const double optimalExitLowerBound(const double& r, const double& c) const;
+    virtual const double optimalExitLowerBound(const double& r,
+                                               const double& c) const = 0;
     /**
      * @brief Calculates the hard upper bound constraint for an optimal exit
      * level.
@@ -68,7 +50,7 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @return const double The hard upper bound constraint for the optimal exit
      * level.
      */
-    const double optimalExitUpperBound() const;
+    virtual const double optimalExitUpperBound() const = 0;
     /**
      * @brief Calculates the optimal exit level @f[ b* @f]
      * for an optimal trading strategy with a stop loss level.
@@ -80,18 +62,25 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @return const double The optimal trading exit level given a stop loss @f[
      b* @f].
      */
-    const double optimalExit(const double& stop_loss, const double& r,
-                             const double& c) const;
+    virtual const double optimalExit(const double& stop_loss, const double& r,
+                                     const double& c) const = 0;
     /**
      * @brief Calculates the optimal exit level @f[ b* @f]
      * for an optimal trading strategy.
      *
+     * @param optimizer Pointer to the OptimalTrading instance that is used to
+     * find @f[ b* @f] - the optimal exit level.
+     * @param model Pointer to the stochastic model to use in the function to
+     * evluate @f[ b* @f].
+     * @param hitting_time_kernel Pointer to the kernel to use in the function
+     * to evaluate @f[ b* @f].
      * @param r The discount rate to apply to the optimal mean reversion trading
      * problem.
      * @param c The cost of trading.
      * @return const double The optimal trading exit level @f[ b* @f].
      */
-    const double optimalExit(const double& r, const double& c) const;
+    virtual const double optimalExit(const double& r,
+                                     const double& c) const = 0;
     /**
      * @brief Calculates the optimal entry level @f[ d* @f]
      * for an optimal trading strategy when a stop loss level is provided.
@@ -103,12 +92,19 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @param c The cost of trading.
      * @return const double The optimal trading entry level @f[ d* @f].
      */
-    const double optimalEntry(const double& b_star, const double& stop_loss,
-                              const double& r, const double& c) const;
+    virtual const double optimalEntry(const double& b_star,
+                                      const double& stop_loss, const double& r,
+                                      const double& c) const = 0;
     /**
      * @brief Calculates the lower bound optimal entry level @f[ a* @f]
      * for an optimal trading strategy.
      *
+     * @param optimizer Pointer to the OptimalTrading instance that is used to
+     * find @f[ d* @f] - the optimal entry level.
+     * @param model Pointer to the stochastic model to use in the function to
+     * evluate @f[ b* @f].
+     * @param hitting_time_kernel Pointer to the kernel to use in the function
+     * to evaluate @f[ d* @f].
      * @param d_star The upper optimal entry level @f[ d* @f].
      * @param b_star The optimal exit level @f[ b* @f].
      * @param r The discount rate to apply to the optimal mean reversion trading
@@ -117,8 +113,10 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @return const double The lower bound optimal trading entry level @f[ a*
      * @f].
      */
-    const double optimalEntryLower(const double& d_star, const double& b_star,
-                                   const double& r, const double& c) const;
+    virtual const double optimalEntryLower(const double& d_star,
+                                           const double& b_star,
+                                           const double& r,
+                                           const double& c) const = 0;
     /**
      * @brief Calculates the lower bound optimal entry level @f[ a* @f]
      * for an optimal trading strategy when a stop loss level is provided.
@@ -132,9 +130,11 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @return const double The lower bound optimal trading entry level @f[ a*
      * @f].
      */
-    const double optimalEntryLower(const double& d_star, const double& b_star,
-                                   const double& stop_loss, const double& r,
-                                   const double& c) const;
+    virtual const double optimalEntryLower(const double& d_star,
+                                           const double& b_star,
+                                           const double& stop_loss,
+                                           const double& r,
+                                           const double& c) const = 0;
     /**
      * @brief Calculates the optimal entry level @f[ d* @f]
      * for an optimal trading strategy.
@@ -145,8 +145,8 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @param c The cost of trading.
      * @return const double The optimal trading entry level @f[ d* @f].
      */
-    const double optimalEntry(const double& b_star, const double& r,
-                              const double& c) const;
+    virtual const double optimalEntry(const double& b_star, const double& r,
+                                      const double& c) const = 0;
 };
 
-#endif  // TRADING_LEVELS_H
+#endif  // TRADING_LEVELS_INTERFACE_H

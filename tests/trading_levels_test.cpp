@@ -9,6 +9,8 @@
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/exponential_mean_reversion.h"
 #include "stochastic_models/trading/optimal_mean_reversion.h"
+#include "stochastic_models/trading/trading_levels_exponential.h"
+#include "stochastic_models/trading/trading_levels_params.h"
 /**
  * @test Tests the output of the TradingLevels::optimalExit method with a stop
  * loss provided and asserts that it is near the expected value.
@@ -24,24 +26,15 @@ TEST(TradingLevelsTest, exitLevelStopLossOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-5;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    OptimalMeanReversion *optimizer = new OptimalMeanReversion();
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
     // Calculate b*.
-    const double value = tradingLevels.optimalExit(
-        optimizer, model, hitting_time_kernel, stop_loss, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalExit(stop_loss, r, c);
 
     // Assert that the value is near the expected value.
-    EXPECT_LE(abs(roundToDecimals(value, 8) - 0.450895), tolerance)
-        << "Value produced by OptimalTradingLevelseanReversion::optimalExit "
+    EXPECT_LE(abs(roundToDecimals(value, 8) - 0.46912012), tolerance)
+        << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
            "with a stop loss provided is not equal to the expected value.";
 }
 /**
@@ -58,24 +51,15 @@ TEST(TradingLevelsTest, exitLevelOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-5;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    OptimalMeanReversion *optimizer = new OptimalMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
     // Calculate b*.
-    const double value =
-        tradingLevels.optimalExit(optimizer, model, hitting_time_kernel, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalExit(r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 0.466836), tolerance)
-        << "Value produced by OptimalTradingLevelseanReversion::optimalExit "
+        << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
            "is not equal to the expected value.";
 }
 /**
@@ -93,24 +77,16 @@ TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-4;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    ExponentialMeanReversion *optimizer = new ExponentialMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
     // Calculate b*.
-    const double value =
-        tradingLevels.optimalExit(optimizer, model, hitting_time_kernel, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalExit(r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 1.4093), tolerance)
-        << "Value produced by OptimalTradingLevelseanReversion::optimalExit "
+        << "Value produced by "
+           "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
            "with ExponentialMeanReversion optimizer is not equal to the "
            "expected value.";
 }
@@ -132,25 +108,17 @@ TEST(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-4;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    OptimalMeanReversion *optimizer = new OptimalMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
     // Calculate d*.
-    const double value = tradingLevels.optimalEntryLower(
-        optimizer, model, hitting_time_kernel, d_star, b_star, stop_loss, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value =
+        tradingLevels.optimalEntryLower(d_star, b_star, stop_loss, r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 0.118451), tolerance)
         << "Value produced by "
-           "OptimalTradingLevelseanReversion::optimalEntryLower "
+           "OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
            "is not equal to the expected value when a stop loss is provided.";
 }
 /**
@@ -169,24 +137,15 @@ TEST(TradingLevelsTest, entryLevelStopLossOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-4;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    OptimalMeanReversion *optimizer = new OptimalMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
     // Calculate d*.
-    const double value = tradingLevels.optimalEntry(
-        optimizer, model, hitting_time_kernel, b_star, stop_loss, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalEntry(b_star, stop_loss, r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 0.136755), tolerance)
-        << "Value produced by OptimalTradingLevelseanReversion::optimalEntry "
+        << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
            "is not equal to the expected value when a stop loss is provided.";
 }
 /**
@@ -204,25 +163,40 @@ TEST(TradingLevelsTest, entryLevelOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-4;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    OptimalMeanReversion *optimizer = new OptimalMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
     // Calculate d*.
-    const double value = tradingLevels.optimalEntry(
-        optimizer, model, hitting_time_kernel, b_star, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalEntry(b_star, r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 0.116948), tolerance)
-        << "Value produced by OptimalTradingLevelseanReversion::optimalEntry "
+        << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
            "is not equal to the expected value.";
+}
+/**
+ * @test Tests the output of the TradingLevels::optimalEntry method and asserts
+ * that it throws safely when the upper and lower bound values are invalid.
+ *
+ */
+TEST(TradingLevelsTest, entryLevelBoundsErrorTest) {
+    // Declare and initialize model and test parameters.
+    const double alpha = 8;
+    const double mu = 0.3;
+    const double sigma = 0.3;
+    const double b_star = -4.466836;
+    const double c = 0.02;
+    const double r = 0.05;
+    const float tolerance = 1e-4;
+
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
+
+    // Assert that the method is not implemented.
+    ASSERT_THROW(tradingLevels.optimalEntry(b_star, r, c),
+                 std::invalid_argument)
+        << "OrnsteinUhlenbeckTradingLevels::optimalEntry did not throw "
+           "with invalid upper and lower bound values.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalEntry method with an
@@ -240,24 +214,16 @@ TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-4;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    ExponentialMeanReversion *optimizer = new ExponentialMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
     // Calculate d*.
-    const double value = tradingLevels.optimalEntry(
-        optimizer, model, hitting_time_kernel, b_star, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalEntry(b_star, r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 1.24096), tolerance)
-        << "Value produced by OptimalTradingLevelseanReversion::optimalEntry "
+        << "Value produced by "
+           "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry "
            "with ExponentialMeanReversion optimizer is not equal to the "
            "expected value.";
 }
@@ -278,25 +244,16 @@ TEST(TradingLevelsTest, entryLevelLowerExponentialOutputTest) {
     const double r = 0.05;
     const float tolerance = 1e-4;
 
-    // Create core model, optimal mean reversion, and trading levels instances.
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(mu, alpha, sigma);
-    ExponentialMeanReversion *optimizer = new ExponentialMeanReversion();
-    HittingTimeOrnsteinUhlenbeck *hitting_time_kernel =
-        new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-    TradingLevels tradingLevels;
+    // Create trading levels instance to manage allocations.
+    OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
     // Calculate d*.
-    const double value = tradingLevels.optimalEntryLower(
-        optimizer, model, hitting_time_kernel, d_star, b_star, r, c);
-    delete model;
-    delete hitting_time_kernel;
-    delete optimizer;
+    const double value = tradingLevels.optimalEntryLower(d_star, b_star, r, c);
 
     // Assert that the value is near the expected value.
     EXPECT_LE(abs(roundToDecimals(value, 8) - 1.16016), tolerance)
         << "Value produced by "
-           "OptimalTradingLevelseanReversion::optimalEntryLower "
+           "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
            "with ExponentialMeanReversion optimizer is not equal to the "
            "expected value.";
 }

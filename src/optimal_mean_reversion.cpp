@@ -1,11 +1,12 @@
 #include "stochastic_models/trading/optimal_mean_reversion.h"
 
+#include <iostream>
 #include <stdexcept>
 
 #include "stochastic_models/numeric_utils/differentiation.h"
 #include "stochastic_models/numeric_utils/integration.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
-#include "stochastic_models/trading/trading_levels.h"
+#include "stochastic_models/trading/trading_levels_params.h"
 OptimalMeanReversionParams::~OptimalMeanReversionParams() {
     delete hitting_time_kernel;
     hitting_time_kernel = nullptr;
@@ -86,9 +87,21 @@ const double OptimalMeanReversion::G(
     // pointer as this is required by the GSL numerical integration function.
     void* params = new OptimalMeanReversionParams{temp_ptr, x, r};
     ModelFunc fn = funcOptimalMeanReversionG;
-    double lower = 0;
-    double value = semiInfiniteIntegrationUpper(fn, params, lower);
-
+    double value = 0.0;
+    try {
+        double lower = 0;
+        value = semiInfiniteIntegrationUpper(fn, params, lower);
+    } catch (const std::exception& e) {
+        std::cout << "Exception " << e.what()
+                  << " caught in OptimalMeanReversion::G." << std::endl;
+        struct OptimalMeanReversionParams* p =
+            static_cast<OptimalMeanReversionParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        temp_ptr = nullptr;
+        throw;
+    }
     // Then cast the void pointer back to the original type and free the memory.
     OptimalMeanReversionParams* ptr =
         static_cast<OptimalMeanReversionParams*>(params);
@@ -264,13 +277,27 @@ const double OptimalMeanReversion::instantaneousDifferential(
     // Adaptive differentiation function.
     void* params = new EntryLevelStopLossParams{
         temp_optimizer, temp_kernel, b_star, stop_loss, r, c};
-    double value = adaptiveCentralDifferentiation(fn, params, x_copied);
-    struct EntryLevelStopLossParams* p =
-        static_cast<EntryLevelStopLossParams*>(params);
-    delete p;
-    p = nullptr;
-    params = nullptr;
-    return value;
+
+    try {
+        double value = adaptiveCentralDifferentiation(fn, params, x_copied);
+        struct EntryLevelStopLossParams* p =
+            static_cast<EntryLevelStopLossParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        return value;
+    } catch (std::exception& e) {
+        std::cout
+            << "Exception " << e.what()
+            << " caught in OptimalMeanReversion::instantaneousDifferential."
+            << std::endl;
+        struct EntryLevelStopLossParams* p =
+            static_cast<EntryLevelStopLossParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        throw;
+    }
 }
 const double OptimalMeanReversion::instantaneousDifferential(
     ModelFunc fn, const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -289,12 +316,25 @@ const double OptimalMeanReversion::instantaneousDifferential(
     // Adaptive differentiation function.
     void* params =
         new EntryLevelParams{temp_optimizer, temp_kernel, b_star, r, c};
-    double value = adaptiveCentralDifferentiation(fn, params, x_copied);
-    struct EntryLevelParams* p = static_cast<EntryLevelParams*>(params);
-    delete p;
-    p = nullptr;
-    params = nullptr;
-    return value;
+
+    try {
+        double value = adaptiveCentralDifferentiation(fn, params, x_copied);
+        struct EntryLevelParams* p = static_cast<EntryLevelParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        return value;
+    } catch (std::exception& e) {
+        std::cout
+            << "Exception " << e.what()
+            << " caught in OptimalMeanReversion::instantaneousDifferential."
+            << std::endl;
+        struct EntryLevelParams* p = static_cast<EntryLevelParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        throw;
+    }
 }
 const double OptimalMeanReversion::instantaneousDifferential(
     ModelFunc fn, const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -311,10 +351,23 @@ const double OptimalMeanReversion::instantaneousDifferential(
 
     // Adaptive differentiation function.
     void* params = new ExitLevelParams{temp_optimizer, temp_kernel, r, c};
-    double value = adaptiveCentralDifferentiation(fn, params, x_copied);
-    struct ExitLevelParams* p = static_cast<ExitLevelParams*>(params);
-    delete p;
-    p = nullptr;
-    params = nullptr;
-    return value;
+
+    try {
+        double value = adaptiveCentralDifferentiation(fn, params, x_copied);
+        struct ExitLevelParams* p = static_cast<ExitLevelParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        return value;
+    } catch (std::exception& e) {
+        std::cout
+            << "Exception " << e.what()
+            << " caught in OptimalMeanReversion::instantaneousDifferential."
+            << std::endl;
+        struct ExitLevelParams* p = static_cast<ExitLevelParams*>(params);
+        delete p;
+        p = nullptr;
+        params = nullptr;
+        throw;
+    }
 }

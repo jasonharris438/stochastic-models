@@ -13,7 +13,7 @@
 #include "stochastic_models/numeric_utils/integration.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/optimal_mean_reversion.h"
-#include "stochastic_models/trading/trading_levels.h"
+#include "stochastic_models/trading/trading_levels_params.h"
 const ExponentialMeanReversion* ExponentialMeanReversion::clone() const {
     return new ExponentialMeanReversion(*this);
 }
@@ -35,7 +35,7 @@ const double ExponentialMeanReversion::F(
     double value{0.0};
     try {
         value = semiInfiniteIntegrationUpper(fn, params, lower);
-    } catch (const std::runtime_error& e) {
+    } catch (const std::exception& e) {
         std::cout << "Exception " << e.what()
                   << " caught in ExponentialMeanReversion::F." << std::endl;
         delete static_cast<OptimalMeanReversionParams*>(params);
@@ -72,7 +72,7 @@ const double ExponentialMeanReversion::G(
     double value{0.0};
     try {
         value = semiInfiniteIntegrationUpper(fn, params, lower);
-    } catch (const std::runtime_error& e) {
+    } catch (const std::exception& e) {
         std::cout << "Exception " << e.what()
                   << " caught in ExponentialMeanReversion::G." << std::endl;
         delete static_cast<OptimalMeanReversionParams*>(params);

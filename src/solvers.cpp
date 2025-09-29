@@ -21,6 +21,11 @@ BrentSolverState::~BrentSolverState() {
 
 const double brentSolver(ModelFunc fn, void* model, double& lower,
                          double& upper) {
+    if (lower >= upper) {
+        throw std::invalid_argument(
+            "Invalid interval: lower bound must be less than upper bound.");
+    }
+
     BrentSolverState solver_state;
 
     // Catch error if solver cannot be allocated.

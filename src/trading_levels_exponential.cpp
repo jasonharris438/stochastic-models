@@ -1,59 +1,66 @@
-#include "stochastic_models/trading/trading_levels.h"
+#include "stochastic_models/trading/trading_levels_exponential.h"
 
 #include <algorithm>
 #include <iostream>
 
 #include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/solvers.h"
-#include "stochastic_models/trading/optimal_mean_reversion.h"
 #include "stochastic_models/trading/trading_levels_params.h"
-OrnsteinUhlenbeckTradingLevels::OrnsteinUhlenbeckTradingLevels(
-    const double mu, const double alpha, const double sigma)
-    : optimizer(std::make_unique<OptimalMeanReversion>()),
+
+OrnsteinUhlenbeckTradingLevelsExponential::
+    OrnsteinUhlenbeckTradingLevelsExponential(const double mu,
+                                              const double alpha,
+                                              const double sigma)
+    : optimizer(std::make_unique<ExponentialMeanReversion>()),
       model(std::make_unique<OrnsteinUhlenbeckModel>(mu, alpha, sigma)),
       hitting_time_kernel(
           std::make_unique<HittingTimeOrnsteinUhlenbeck>(mu, alpha, sigma)) {}
-const OptimalMeanReversion* OrnsteinUhlenbeckTradingLevels::getOptimizer()
-    const {
+const ExponentialMeanReversion*
+OrnsteinUhlenbeckTradingLevelsExponential::getOptimizer() const {
     return optimizer.get();
 };
-const StochasticModel* OrnsteinUhlenbeckTradingLevels::getModel() const {
+const StochasticModel* OrnsteinUhlenbeckTradingLevelsExponential::getModel()
+    const {
     return model.get();
 };
 const HittingTimeOrnsteinUhlenbeck*
-OrnsteinUhlenbeckTradingLevels::getHittingTimeKernel() const {
+OrnsteinUhlenbeckTradingLevelsExponential::getHittingTimeKernel() const {
     return hitting_time_kernel.get();
 }
-const OptimalMeanReversion* OrnsteinUhlenbeckTradingLevels::newOptimizer()
-    const {
+const ExponentialMeanReversion*
+OrnsteinUhlenbeckTradingLevelsExponential::newOptimizer() const {
     return optimizer.get()->clone();
 };
-const StochasticModel* OrnsteinUhlenbeckTradingLevels::newModel() const {
+const StochasticModel* OrnsteinUhlenbeckTradingLevelsExponential::newModel()
+    const {
     return model.get()->clone();
 };
 const HittingTimeOrnsteinUhlenbeck*
-OrnsteinUhlenbeckTradingLevels::newHittingTimeKernel() const {
+OrnsteinUhlenbeckTradingLevelsExponential::newHittingTimeKernel() const {
     return hitting_time_kernel.get()->clone();
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalExitLowerBound(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalExitLowerBound(
     const double& r, const double& c) const {
     return std::max(getOptimizer()->L_star(getHittingTimeKernel(), r, c), c);
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalExitUpperBound() const {
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalExitUpperBound()
+    const {
     return upperSolverBound(getModel());
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalEntryLowerBound() const {
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLowerBound()
+    const {
     return lowerSolverBound(getModel());
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalExit(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalExit(
     const double& stop_loss, const double& r, const double& c) const {
     // We need deep copies of the model and optimizer pointers to initialise the
     // params instance. This is because GSL requires a pointer to void and we
     // cannot use smart pointers with much benefit here. So we create deep
     // copies and then free that memory in the destructor of the
     // ExitLevelStopLossParams struct.
-    void* params = new ExitLevelStopLossParams{
-        newOptimizer(), newHittingTimeKernel(), stop_loss, r, c};
+    void* params = new ExitLevelStopLossParams{getOptimizer()->clone(),
+                                               getHittingTimeKernel()->clone(),
+                                               stop_loss, r, c};
     ModelFunc fn = funcOptimalMeanReversionB;
     double value{0.0};
     try {
@@ -62,7 +69,8 @@ const double OrnsteinUhlenbeckTradingLevels::optimalExit(
         value = brentSolver(fn, params, lower, upper);
     } catch (const std::exception& e) {
         std::cout << "Exception " << e.what()
-                  << " caught in OrnsteinUhlenbeckTradingLevels::optimalExit "
+                  << " caught in "
+                     "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
                      "with stop loss."
                   << std::endl;
         delete static_cast<ExitLevelStopLossParams*>(params);
@@ -74,15 +82,15 @@ const double OrnsteinUhlenbeckTradingLevels::optimalExit(
     params = nullptr;
     return value;
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalExit(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalExit(
     const double& r, const double& c) const {
     // We need deep copies of the model and optimizer pointers to initialise the
     // params instance. This is because GSL requires a pointer to void and we
     // cannot use smart pointers with much benefit here. So we create deep
     // copies and then free that memory in the destructor of the ExitLevelParams
     // struct.
-    void* params =
-        new ExitLevelParams{newOptimizer(), newHittingTimeKernel(), r, c};
+    void* params = new ExitLevelParams{optimizer->clone(),
+                                       hitting_time_kernel->clone(), r, c};
     ModelFunc fn = funcOptimalMeanReversionB;
 
     double value{0.0};
@@ -92,8 +100,8 @@ const double OrnsteinUhlenbeckTradingLevels::optimalExit(
         value = brentSolver(fn, params, lower, upper);
     } catch (const std::exception& e) {
         std::cout << "Exception " << e.what()
-                  << " caught in OrnsteinUhlenbeckTradingLevels::optimalExit "
-                     "without stop loss."
+                  << " caught in "
+                     "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit."
                   << std::endl;
         delete static_cast<ExitLevelParams*>(params);
         params = nullptr;
@@ -104,7 +112,7 @@ const double OrnsteinUhlenbeckTradingLevels::optimalExit(
     params = nullptr;
     return value;
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower(
     const double& d_star, const double& b_star, const double& r,
     const double& c) const {
     // We need deep copies of the model and optimizer pointers to initialise the
@@ -124,10 +132,11 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
     } catch (const std::exception& e) {
         std::cout
             << "Exception " << e.what()
-            << " caught in OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
+            << " caught in "
+               "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
                "without stop loss."
             << std::endl;
-        delete static_cast<EntryLevelParams*>(params);
+        delete static_cast<ExitLevelParams*>(params);
         params = nullptr;
         throw;
     }
@@ -137,7 +146,7 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
     params = nullptr;
     return value;
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower(
     const double& d_star, const double& b_star, const double& stop_loss,
     const double& r, const double& c) const {
     // We need deep copies of the model and optimizer pointers to initialise the
@@ -156,7 +165,8 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
     } catch (const std::exception& e) {
         std::cout
             << "Exception " << e.what()
-            << " caught in OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
+            << " caught in "
+               "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
                "with stop loss."
             << std::endl;
         delete static_cast<EntryLevelStopLossParams*>(params);
@@ -168,14 +178,9 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
     params = nullptr;
     return value;
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalEntry(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry(
     const double& b_star, const double& stop_loss, const double& r,
     const double& c) const {
-    // We need deep copies of the model and optimizer pointers to initialise the
-    // params instance. This is because GSL requires a pointer to void and we
-    // cannot use smart pointers with much benefit here. So we create deep
-    // copies and then free that memory in the destructor of the
-    // EntryLevelStopLossParams struct.
     void* params = new EntryLevelStopLossParams{
         newOptimizer(), newHittingTimeKernel(), b_star, stop_loss, r, c};
     ModelFunc fn = funcOptimalMeanReversionStopLossD;
@@ -187,7 +192,8 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntry(
     } catch (const std::exception& e) {
         std::cout
             << "Exception " << e.what()
-            << " caught in OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
+            << " caught in "
+               "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
                "with stop loss."
             << std::endl;
         delete static_cast<EntryLevelStopLossParams*>(params);
@@ -199,7 +205,7 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntry(
     params = nullptr;
     return value;
 }
-const double OrnsteinUhlenbeckTradingLevels::optimalEntry(
+const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry(
     const double& b_star, const double& r, const double& c) const {
     // We need deep copies of the model and optimizer pointers to initialise the
     // params instance. This is because GSL requires a pointer to void and we
@@ -216,7 +222,8 @@ const double OrnsteinUhlenbeckTradingLevels::optimalEntry(
         value = brentSolver(fn, params, lower, upper);
     } catch (const std::exception& e) {
         std::cout << "Exception " << e.what()
-                  << " caught in OrnsteinUhlenbeckTradingLevels::optimalEntry "
+                  << " caught in "
+                     "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry "
                      "without stop loss."
                   << std::endl;
         delete static_cast<EntryLevelParams*>(params);

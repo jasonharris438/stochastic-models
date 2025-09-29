@@ -1,8 +1,8 @@
-#ifndef TRADING_LEVELS_H
-#define TRADING_LEVELS_H
+#ifndef TRADING_LEVELS_EXPONENTIAL_H
+#define TRADING_LEVELS_EXPONENTIAL_H
 #include <memory>
 
-#include "stochastic_models/trading/optimal_mean_reversion.h"
+#include "stochastic_models/trading/exponential_mean_reversion.h"
 #include "stochastic_models/trading/optimal_trading.h"
 #include "stochastic_models/trading/trading_levels_interface.h"
 
@@ -16,18 +16,19 @@
  * @param hitting_time_kernel Pointer to the kernel to use in the function
  * to evaluate @f[ b* @f].
  */
-class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
+class OrnsteinUhlenbeckTradingLevelsExponential : public TradingLevels {
    private:
-    std::unique_ptr<OptimalMeanReversion> optimizer;
+    std::unique_ptr<ExponentialMeanReversion> optimizer;
     std::unique_ptr<StochasticModel> model;
     std::unique_ptr<HittingTimeOrnsteinUhlenbeck> hitting_time_kernel;
     // std::unique_ptr<TradingLevelsParams> params;
 
    public:
-    OrnsteinUhlenbeckTradingLevels(const double mu, const double alpha,
-                                   const double sigma);
-    const OptimalMeanReversion* getOptimizer() const;
-    const OptimalMeanReversion* newOptimizer() const;
+    OrnsteinUhlenbeckTradingLevelsExponential(const double mu,
+                                              const double alpha,
+                                              const double sigma);
+    const ExponentialMeanReversion* getOptimizer() const;
+    const ExponentialMeanReversion* newOptimizer() const;
     const StochasticModel* getModel() const;
     const StochasticModel* newModel() const;
     const HittingTimeOrnsteinUhlenbeck* getHittingTimeKernel() const;
@@ -86,6 +87,12 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @brief Calculates the optimal exit level @f[ b* @f]
      * for an optimal trading strategy.
      *
+     * @param optimizer Pointer to the OptimalTrading instance that is used to
+     * find @f[ b* @f] - the optimal exit level.
+     * @param model Pointer to the stochastic model to use in the function to
+     * evluate @f[ b* @f].
+     * @param hitting_time_kernel Pointer to the kernel to use in the function
+     * to evaluate @f[ b* @f].
      * @param r The discount rate to apply to the optimal mean reversion trading
      * problem.
      * @param c The cost of trading.
@@ -109,6 +116,12 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
      * @brief Calculates the lower bound optimal entry level @f[ a* @f]
      * for an optimal trading strategy.
      *
+     * @param optimizer Pointer to the OptimalTrading instance that is used to
+     * find @f[ d* @f] - the optimal entry level.
+     * @param model Pointer to the stochastic model to use in the function to
+     * evluate @f[ b* @f].
+     * @param hitting_time_kernel Pointer to the kernel to use in the function
+     * to evaluate @f[ d* @f].
      * @param d_star The upper optimal entry level @f[ d* @f].
      * @param b_star The optimal exit level @f[ b* @f].
      * @param r The discount rate to apply to the optimal mean reversion trading
@@ -149,4 +162,4 @@ class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
                               const double& c) const;
 };
 
-#endif  // TRADING_LEVELS_H
+#endif  // TRADING_LEVELS_EXPONENTIAL_H
