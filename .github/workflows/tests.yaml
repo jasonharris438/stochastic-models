@@ -1,5 +1,6 @@
 name: Run checks
-      
+
+on:
   pull_request:
     types:
       - opened
