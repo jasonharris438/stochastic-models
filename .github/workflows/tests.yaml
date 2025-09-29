@@ -1,12 +1,17 @@
-name: Run tests
+name: Run checks
       
-on:
-  push:
-    branches-ignore:
-      # Ignore pushes to main as these have been tested on feature branch.
-      # WIP is an escape hatch for work in progress branches that are not yet testable.
-      - 'main'
-      - 'WIP/**'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+# Cancel previous runs if the PR is updated before completion.
+concurrency:
+  group: ${{ github.ref }}-check
+  cancel-in-progress: true
+
 jobs:
   test:
     timeout-minutes: 60
@@ -38,3 +43,4 @@ jobs:
       run: ./tests/unit_tests
     - name: Run valgrind
       run: valgrind -s --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/unit_tests
+
