@@ -1,5 +1,5 @@
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef KCA_H
+#define KCA_H
 
 #include "stochastic_models/kalman_filter/states.h"
 
@@ -56,4 +56,4 @@ class KineticComponents {
     const std::vector<double> getStateVector() const;
     const std::vector<double> getStandardDevVector() const;
 };
-#endif  // FILTER_H
+#endif  // KCA_H

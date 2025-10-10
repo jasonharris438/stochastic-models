@@ -1,5 +1,5 @@
-#ifndef STOCHASTIC_models_H
-#define STOCHASTIC_models_H
+#ifndef OPTIMAL_TRADING_LEVELS_H
+#define OPTIMAL_TRADING_LEVELS_H
 
 /**
  * @brief Calculate the optimal trading level exit value when a stop loss is
@@ -125,4 +125,4 @@ const double optimalEntryLevel(const double b_star, const double mu,
                                const double alpha, const double sigma,
                                const double r, const double c);
 
-#endif  // STOCHASTIC_models_H
+#endif  // OPTIMAL_TRADING_LEVELS_H
