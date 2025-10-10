@@ -7,7 +7,7 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 # Set the project name and version.
 project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
-    VERSION 0.1.3
+    VERSION 0.1.5
     LANGUAGES CXX)
 
 # specify the C++ standard.
@@ -49,8 +49,8 @@ add_subdirectory(tests)
 
 # create config file
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-INSTALL_DESTINATION cmake
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
 
 # CMake sets this variable to a ``TRUE`` value when the
@@ -99,5 +99,5 @@ install(TARGETS ${PROJECT_NAME}
 # generate and install export file
 install(EXPORT "${PROJECT_NAME}Targets"
     FILE "${PROJECT_NAME}Targets.cmake"
-    DESTINATION cmake
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )

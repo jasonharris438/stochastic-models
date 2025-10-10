@@ -69,9 +69,11 @@ Controllers and types that handle orchestrating calculating optimal trading leve
 
 ## Examples
 I am still working on providing a clean and concise API. Only certain services are `PUBLIC` to enforce correct usage of the library's core modules:
+
+Outputs an optimal exit level given the parameters of an Ornstein-Uhlenbeck process:
 ```
 #include <iostream>
-#include "interface/stochastic_models.h"
+#include "entrypoints/optimal_trading_levels.h"
 
 // Declare and initialize model parameters.
 const double alpha = 8;
@@ -86,21 +88,22 @@ const double value = optimalExitLevel(mu, alpha, sigma, r, c);
 /// Output value.
 std::cout << "Optimal exit level ~0.46683583 (" << value << ")" << std::endl;
 ```
-**TODO:** Useage of the simulation tool that uses the Euler–Maruyama method for the approximate numerical solution:
+
+Outputs the maximum likelihood estimate of an Ornstein-Uhlenbeck process parameters given a vector of data:
 ```
 #include <iostream>
-#include "interface/stochastic_models.h"
+#include "entrypoints/ou_model.h"
 
-// Declare and initialize model parameters.
-const double alpha = 8;
-const double mu = 0.3;
-const double sigma = 0.3;
-const int size = 5000;
-const double x0 = 0.5;
+const float tolerance = 1e-5;
+// Vector of data.
+const std::vector<double> test_vec{0.5, 0.25, 0.5, 0.75, 1.5, 0.5};
 
-// New model instance with mu, alpha, sigma parameters.
-const std::vector<double> vec simulations =
-    simulateOrnsteinUhlenbeck(x0, size, mu, alpha, sigma);
+// Likelihood estimates.
+const std::unordered_map<std::string, const double> likelihood =
+    ornsteinUhlenbeckMaximumLikelihood(test_vec);
+
+// Approx 0.58333333.
+std::cout << likelihood.at("mu");
 ```
 ## **To Build**
 There is one subdirectory to be linked ->> `stochastic_models` which contains all header files for the library.
@@ -124,46 +127,45 @@ correctly linked. The `.so` file created in the `src` directory is the most effi
 To access in the `main` module of another application a `CMakeLists.txt` can be produced
 and `#include <stochastic_models/sde/ornstein_uhlenbeck.h>` for example to access the `OrnsteinUhlenbeckModel` interface.
 ```
-# Minimum version 3.30.
-cmake_minimum_required(VERSION 3.30)
-project("another-application" VERSION 0.1.0 DESCRIPTION "A project with external library")
+cmake_minimum_required(VERSION 4.0)
+project(another-application VERSION 0.1.0 DESCRIPTION "A project with external library" LANGUAGES CXX)
 
-# provide the library installation folder, so CMake could find its config
-set(CMAKE_PREFIX_PATH "./install")
-# the rest will be taken care of by CMake
-find_package(stochastic_models CONFIG REQUIRED)
-find_package(GSL REQUIRED) # Add GSL package.
+# Add the subdirectory to build the library as a subproject to follow how stochastic-models is built.
+add_subdirectory(stochastic-models)
 
-# it is an application
+# Require GSL for linking (ensure it's installed prior on your system).
+find_package(GSL REQUIRED)
+
+# Create the executable and link it to the subdirectory project.
 add_executable(${PROJECT_NAME} main.cpp)
-target_include_directories(${PROJECT_NAME} PUBLIC include/stochastic_models)
-
-target_sources(${PROJECT_NAME}
-    PRIVATE
-        main.cpp
-)
-
-# linking to the library
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/stochastic-models/include")
 target_link_libraries(${PROJECT_NAME} PRIVATE stochastic_models GSL::gsl)
+
+# At time of writing I used the C++20 standard.
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
 ```
+
 Your `main.cpp` could look like:
 ```
-#include <stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h>
-#include <stochastic_models/sde/ornstein_uhlenbeck.h>
+#include <stochastic_models/entrypoints/ou_model.h>
 
 #include <iostream>
 int main() {
-    OrnsteinUhlenbeckModel *model =
-        new OrnsteinUhlenbeckModel(0.5, 0.01, 0.0067);
-    const std::vector<double> vec = (*model).Simulate(0.5, 5000);
+    const std::vector<double> vec = simulateOrnsteinUhlenbeck(0.5, 0.01, 0.067, 0, 50, 1);
 
-    OrnsteinUhlenbeckLikelihood *likelihood = new OrnsteinUhlenbeckLikelihood();
     const std::unordered_map<std::string, const double> m =
-        likelihood->calculate(vec);
+        ornsteinUhlenbeckMaximumLikelihood(vec);
+
     for (const auto &elem : m) {
         std::cout << elem.first << " " << elem.second << std::endl;
     }
-    delete model;
     return 0;
 }
+```
+
+Then run 
+```
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 ```

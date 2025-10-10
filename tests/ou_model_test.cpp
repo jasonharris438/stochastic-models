@@ -7,6 +7,29 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 
 /**
+ * @test Tests the output of the simulateOrnsteinUhlenbeck function and asserts
+ * that it is of the correct size.
+ */
+TEST(OuModelTest, simulateOrnsteinUhlenbeckOutputTest) {
+    // Declare and initialize model and test parameters.
+    double mu = 0.5;
+    double alpha = 0.01;
+    double sigma = 0.0067;
+    double start = 0.0;
+    unsigned int size = 20;
+    unsigned int t = 1;
+
+    // Simulate the Ornstein-Uhlenbeck process.
+    const std::vector<double> series =
+        simulateOrnsteinUhlenbeck(mu, alpha, sigma, start, size, t);
+
+    // Assert that the series is of the correct size.
+    EXPECT_EQ(series.size(), size)
+        << "The size of the series returned by "
+           "simulateOrnsteinUhlenbeck is not equal to the expected size.";
+}
+
+/**
  * @test Tests the output of the hittingTimeDensityOrnsteinUhlenbeck function
  * and asserts that it is near the expected value.
  *

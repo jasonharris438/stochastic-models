@@ -1,5 +1,5 @@
-#ifndef KCA_H
-#define KCA_H
+#ifndef KCA_FILTER_H
+#define KCA_FILTER_H
 #include <string>
 #include <vector>
 
@@ -37,4 +37,4 @@ const std::string getUpdatedKcaState(const std::string state,
                                      const double observation,
                                      const double innovation_sigma);
 
-#endif  // KCA_H
+#endif  // KCA_FILTER_H

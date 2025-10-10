@@ -46,11 +46,12 @@ const double OrnsteinUhlenbeckModel::getUnconditionalVariance() const {
 }
 std::vector<double> OrnsteinUhlenbeckModel::Simulate(
     const double start, const unsigned int& size, const unsigned int& t) const {
-    const std::vector<double> distribution_draws = (*dist).sample(size);
+    const std::vector<double> distribution_draws = (*dist).sample(size - 1);
     std::vector<double> vec = {start};
 
-    for (unsigned int n{}; n < size; n++) {
-        const double sample = coreEquation(vec[n], distribution_draws[n], t);
+    for (const unsigned int& val : distribution_draws) {
+        const double& last = vec.back();
+        const double sample = coreEquation(last, val, t);
         vec.push_back(sample);
     }
 

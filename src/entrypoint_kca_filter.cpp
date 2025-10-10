@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "stochastic_models/entrypoints/kca.h"
+#include "stochastic_models/entrypoints/kca_filter.h"
 #include "stochastic_models/kalman_filter/adapters.h"
 #include "stochastic_models/kalman_filter/kca.h"
 

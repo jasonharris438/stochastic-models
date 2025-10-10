@@ -37,10 +37,10 @@ PRIVATE
 "${PROJECT_SOURCE_DIR}/include"
 PUBLIC
 # where top-level project will look for the library's public headers
-$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/stochastic_models/interface>
+$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/stochastic_models/entrypoints>
 $<BUILD_INTERFACE:${boost_SOURCE_DIR}>
 # where external projects will look for the library's public headers
-$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/interface>
+$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/entrypointse>
 )
 
 target_link_libraries(

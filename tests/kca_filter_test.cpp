@@ -1,8 +1,8 @@
+#include "stochastic_models/entrypoints/kca_filter.h"
+
 #include <gtest/gtest.h>
 
 #include <cstdlib>
-
-#include "stochastic_models/entrypoints/kca.h"
 
 /**
  * @test Tests that the getInitializedKcaState function correctly initialises
