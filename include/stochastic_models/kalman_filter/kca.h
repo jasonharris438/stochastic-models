@@ -2,6 +2,7 @@
 #define FILTER_H
 
 #include "stochastic_models/kalman_filter/states.h"
+
 /**
  * @brief Class to expose an interface to use the Kinetic components analysis
  * implementation of the kalman filter to users of this library.

@@ -24,7 +24,9 @@ add_executable(
     ornstein_uhlenbeck_test.cpp
     hitting_time_test.cpp
     trading_levels_test.cpp
-    interface_test.cpp
+    kca_filter_test.cpp
+    ou_model_test.cpp
+    optimal_trading_levels_test.cpp
     utils_test.cpp)
 
 

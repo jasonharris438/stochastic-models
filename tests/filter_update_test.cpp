@@ -1,7 +1,7 @@
 
 #include <gtest/gtest.h>
 
-#include "stochastic_models/kalman_filter/filter.h"
+#include "stochastic_models/kalman_filter/kca.h"
 /**
  * @brief Test that the KineticComponents initialiseFilter sets a
  * KinetiComponents instance to the correct initial state. Members are private,
