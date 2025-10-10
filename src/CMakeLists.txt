@@ -40,7 +40,7 @@ PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/stochastic_models/entrypoints>
 $<BUILD_INTERFACE:${boost_SOURCE_DIR}>
 # where external projects will look for the library's public headers
-$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/entrypointse>
+$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/entrypoints>
 )
 
 target_link_libraries(
