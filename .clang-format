@@ -1,5 +1,54 @@
-BasedOnStyle: Google
-IndentWidth: 4
-TabWidth: 4
+# The objective is to model for modern C++ that follows LLVM style.
+
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# Whitespaces, indentation, and lines.
+IndentWidth: 2
+TabWidth: 2
 UseTab: Never
+ContinuationIndentWidth: 4
 ColumnLimit: 80
+
+# Brace & parenthesess.
+BreakBeforeBraces: Attach
+SpaceBeforeParens: ControlStatements
+
+# Pointer alignment.
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# Includes and comments.
+SortIncludes: true
+IncludeBlocks: Regroup
+ReflowComments: Always
+
+# Single line statements.
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+
+# Templates.
+AlwaysBreakTemplateDeclarations: Yes
+
+# Packing function params/args.
+BinPackParameters: OnePerLine
+BinPackArguments: true
+
+# Namespace and switch indentation.
+NamespaceIndentation: All
+IndentCaseLabels: true
+
+# Other settings.
+SpacesInAngles: Never
+SpacesInParentheses: false
+SpaceInEmptyBraces: Never
+SpaceBeforeSquareBrackets: false
+KeepEmptyLines:
+  AtEndOfFile: true
+SortUsingDeclarations: LexicographicNumeric
+AlwaysBreakBeforeMultilineStrings: false
+InsertTrailingCommas: None
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveAssignments: None
