@@ -1,12 +1,11 @@
 #ifndef HELPERS_H
 #define HELPERS_H
+#include "stochastic_models/sde/stochastic_model.h"
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_roots.h>
-
 #include <vector>
-
-#include "stochastic_models/sde/stochastic_model.h"
 /**
  * @brief Checks the status of the integration routine and throws a runtime
  * error exception if the status is not zero.
@@ -14,8 +13,9 @@
  * @param status Reference to the status returned by the integration routine.
  * @param ignore_codes Vector of error codes to ignore.
  */
-void check_function_status(const int& status,
-                           const std::vector<int> ignore_codes);
+void check_function_status(
+    const int& status, const std::vector<int> ignore_codes
+);
 
 /**
  * @brief Squares all values in a vector in-place.
@@ -48,4 +48,4 @@ const double upperSolverBound(const StochasticModel* model);
  * levels.
  */
 const double lowerSolverBound(const StochasticModel* model);
-#endif  // HELPERS_H
+#endif // HELPERS_H

@@ -1,31 +1,31 @@
 #include "stochastic_models/numeric_utils/differentiation.h"
 
-#include <gsl/gsl_deriv.h>
-
 #include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
-const double adaptiveCentralDifferentiation(ModelFunc fn, void* model,
-                                            double& x) {
-    double result, error;
 
-    gsl_function F;
-    F.function = *fn;
-    F.params = model;
+#include <gsl/gsl_deriv.h>
+const double
+adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x) {
+  double result, error;
 
-    // Set custom error handler.
-    gsl_error_handler_t* old_handler =
-        gsl_set_error_handler(&custom_gsl_exception_handler);
+  gsl_function F;
+  F.function = *fn;
+  F.params = model;
 
-    int status = gsl_deriv_central(&F, x, 1e-5, &result, &error);
+  // Set custom error handler.
+  gsl_error_handler_t* old_handler =
+      gsl_set_error_handler(&custom_gsl_exception_handler);
 
-    // No codes to ignore.
-    const std::vector<int> ignore_codes = {};
-    check_function_status(status, ignore_codes);
+  int status = gsl_deriv_central(&F, x, 1e-5, &result, &error);
 
-    // Restore original handler.
-    gsl_set_error_handler(old_handler);
+  // No codes to ignore.
+  const std::vector<int> ignore_codes = {};
+  check_function_status(status, ignore_codes);
 
-    const double value = result;
+  // Restore original handler.
+  gsl_set_error_handler(old_handler);
 
-    return value;
+  const double value = result;
+
+  return value;
 }

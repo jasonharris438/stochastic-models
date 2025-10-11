@@ -13,9 +13,14 @@
  * @param c The transaction cost.
  * @return const double The optimal trading level exit value.
  */
-const double optimalExitLevel(const double mu, const double alpha,
-                              const double sigma, const double stop_loss,
-                              const double r, const double c);
+const double optimalExitLevel(
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double stop_loss,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the optimal trading level exit value.
  *
@@ -26,9 +31,13 @@ const double optimalExitLevel(const double mu, const double alpha,
  * @param c The transaction cost.
  * @return const double The optimal trading level exit value.
  */
-const double optimalExitLevel(const double mu, const double alpha,
-                              const double sigma, const double r,
-                              const double c);
+const double optimalExitLevel(
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the optimal trading level exit value for an exponential
  * stochatic model.
@@ -40,9 +49,13 @@ const double optimalExitLevel(const double mu, const double alpha,
  * @param c The transaction cost.
  * @return const double The optimal trading level exit value.
  */
-const double optimalExitLevelExponential(const double mu, const double alpha,
-                                         const double sigma, const double r,
-                                         const double c);
+const double optimalExitLevelExponential(
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the lower bound of the optimal trading entry interval for an
  * exponential stochastic model.
@@ -57,8 +70,14 @@ const double optimalExitLevelExponential(const double mu, const double alpha,
  * @return const double The optimal trading level entry value.
  */
 const double optimalEntryLevelLowerExponential(
-    const double d_star, const double b_star, const double mu,
-    const double alpha, const double sigma, const double r, const double c);
+    const double d_star,
+    const double b_star,
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the lower bound of the optimal trading entry interval when a
  * stop loss is provided.
@@ -73,10 +92,16 @@ const double optimalEntryLevelLowerExponential(
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.
  */
-const double optimalEntryLevelLower(const double d_star, const double b_star,
-                                    const double mu, const double alpha,
-                                    const double sigma, const double stop_loss,
-                                    const double r, const double c);
+const double optimalEntryLevelLower(
+    const double d_star,
+    const double b_star,
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double stop_loss,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the optimal trading level entry value for an exponential
  * stochatsic model.
@@ -89,10 +114,14 @@ const double optimalEntryLevelLower(const double d_star, const double b_star,
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.
  */
-const double optimalEntryLevelExponential(const double b_star, const double mu,
-                                          const double alpha,
-                                          const double sigma, const double r,
-                                          const double c);
+const double optimalEntryLevelExponential(
+    const double b_star,
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the optimal trading level entry value when a stop loss is
  * provided.
@@ -106,10 +135,15 @@ const double optimalEntryLevelExponential(const double b_star, const double mu,
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.
  */
-const double optimalEntryLevel(const double b_star, const double mu,
-                               const double alpha, const double sigma,
-                               const double stop_loss, const double r,
-                               const double c);
+const double optimalEntryLevel(
+    const double b_star,
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double stop_loss,
+    const double r,
+    const double c
+);
 /**
  * @brief Calculate the optimal trading level entry value.
  *
@@ -121,8 +155,13 @@ const double optimalEntryLevel(const double b_star, const double mu,
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.
  */
-const double optimalEntryLevel(const double b_star, const double mu,
-                               const double alpha, const double sigma,
-                               const double r, const double c);
+const double optimalEntryLevel(
+    const double b_star,
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double r,
+    const double c
+);
 
-#endif  // OPTIMAL_TRADING_LEVELS_H
+#endif // OPTIMAL_TRADING_LEVELS_H

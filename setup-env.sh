@@ -1,14 +1,17 @@
 #! /usr/bin/env bash
 
+set -euo pipefail
+IFS=$'\n\t'
+
 # Install packages required by gcc.
 apt-get update && apt-get install -y --no-install-recommends \
-    bzip2 \
-    make \
-    ca-certificates \
-    libc6 \
-    libssl-dev \
-    gcc-14 \
-    g++-14
+	bzip2 \
+	make \
+	ca-certificates \
+	libc6 \
+	libssl-dev \
+	gcc-14 \
+	g++-14
 
 # Update default links.
 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100

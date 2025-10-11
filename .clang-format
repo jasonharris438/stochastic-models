@@ -43,7 +43,6 @@ IndentCaseLabels: true
 # Other settings.
 SpacesInAngles: Never
 SpacesInParentheses: false
-SpaceInEmptyBraces: Never
 SpaceBeforeSquareBrackets: false
 KeepEmptyLines:
   AtEndOfFile: true

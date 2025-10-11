@@ -7,4 +7,4 @@
  *
  */
 typedef double (*ModelFunc)(double x, void* model);
-#endif  // TYPES_H
+#endif // TYPES_H

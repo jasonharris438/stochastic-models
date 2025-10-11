@@ -1,8 +1,8 @@
 #ifndef INTEGRATION_H
 #define INTEGRATION_H
-#include <gsl/gsl_integration.h>
-
 #include "stochastic_models/numeric_utils/types.h"
+
+#include <gsl/gsl_integration.h>
 
 /**
  * @brief RAII wrapper for GSL integration workspace.
@@ -12,10 +12,10 @@
  * that memory is properly freed when the object goes out of scope,
  */
 class IntegrationState {
-   public:
-    gsl_integration_workspace* workspace;
-    IntegrationState(gsl_integration_workspace& w);
-    ~IntegrationState();
+public:
+  gsl_integration_workspace* workspace;
+  IntegrationState(gsl_integration_workspace& w);
+  ~IntegrationState();
 };
 
 /**
@@ -28,8 +28,8 @@ class IntegrationState {
  * @param upper A reference to the upper bound of the integration interval.
  * @return const double. The value of the integral of F.
  */
-const double adaptiveIntegration(ModelFunc fn, void* model, double& lower,
-                                 double& upper);
+const double
+adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper);
 /**
  * @brief Integrates the function f over a semi-infinite interval [lower, +inf).
  *
@@ -39,6 +39,6 @@ const double adaptiveIntegration(ModelFunc fn, void* model, double& lower,
  * @param lower A reference to the lower bound of the integration interval.
  * @return const double. The value of the integral of F.
  */
-const double semiInfiniteIntegrationUpper(ModelFunc fn, void* model,
-                                          double& lower);
-#endif  // INTEGRATION_H
+const double
+semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower);
+#endif // INTEGRATION_H

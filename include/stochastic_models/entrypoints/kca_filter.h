@@ -16,9 +16,12 @@
  * @return const std::string The JSON string containing the initialized KCA
  * state.
  */
-const std::string getInitializedKcaState(const std::vector<double> data_series,
-                                         const double h, const double q,
-                                         const std::string system_dimensions);
+const std::string getInitializedKcaState(
+    const std::vector<double> data_series,
+    const double h,
+    const double q,
+    const std::string system_dimensions
+);
 /**
  * @brief Takes a current kinetic components state and returns a JSON string
  * containing a single step update of the state and the value of the observation
@@ -32,9 +35,11 @@ const std::string getInitializedKcaState(const std::vector<double> data_series,
  * data.
  * @return const std::string The JSON string containing the updated KCA state.
  */
-const std::string getUpdatedKcaState(const std::string state,
-                                     const std::string system_dimensions,
-                                     const double observation,
-                                     const double innovation_sigma);
+const std::string getUpdatedKcaState(
+    const std::string state,
+    const std::string system_dimensions,
+    const double observation,
+    const double innovation_sigma
+);
 
-#endif  // KCA_FILTER_H
+#endif // KCA_FILTER_H

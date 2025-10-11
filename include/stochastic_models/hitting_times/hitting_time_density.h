@@ -27,6 +27,7 @@ double integrateHittingTimeDensity(double x, void* model);
  * @return const double. The value of the hitting time density function at @f[
  * x@f].
  */
-const double hittingTimeDensity(double& x, ModelFunc fn, void* model,
-                                double& first, double& second);
-#endif  // HITTING_TIME_DENSITY_H
+const double hittingTimeDensity(
+    double& x, ModelFunc fn, void* model, double& first, double& second
+);
+#endif // HITTING_TIME_DENSITY_H

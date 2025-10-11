@@ -17,8 +17,13 @@
  * @return std::vector<double> A simulated Ornstein-Uhlenbeck process series.
  */
 const std::vector<double> simulateOrnsteinUhlenbeck(
-    const double& mu, const double& alpha, const double& sigma,
-    const double start, const unsigned int& size, const unsigned int& t);
+    const double& mu,
+    const double& alpha,
+    const double& sigma,
+    const double start,
+    const unsigned int& size,
+    const unsigned int& t
+);
 
 /**
  * @brief Calculates the probability of hitting the level first before second
@@ -33,10 +38,14 @@ const std::vector<double> simulateOrnsteinUhlenbeck(
  * @return const double The probability of hitting the level first before
  * second.
  */
-const double hittingTimeDensityOrnsteinUhlenbeck(double x, const double mu,
-                                                 const double alpha,
-                                                 const double sigma,
-                                                 double first, double second);
+const double hittingTimeDensityOrnsteinUhlenbeck(
+    double x,
+    const double mu,
+    const double alpha,
+    const double sigma,
+    double first,
+    double second
+);
 /**
  * @brief Calculate the maximum likelihood estimates of the
  * Ornstein-Uhlenbeck model parameters using the series in vec.
@@ -49,4 +58,4 @@ const double hittingTimeDensityOrnsteinUhlenbeck(double x, const double mu,
 const std::unordered_map<std::string, const double>
 ornsteinUhlenbeckMaximumLikelihood(const std::vector<double> vec);
 
-#endif  // OU_MODEL_H
+#endif // OU_MODEL_H

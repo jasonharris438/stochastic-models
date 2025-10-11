@@ -17,55 +17,33 @@ The codebase now features a more modular architecture, some numerical utilities,
 
 Please feel free to open issues, submit pull requests, or reach out with suggestions. My goal is to develop this into a robust, well-tested library that could be valuable to the broader quantitative finance and stochastic modeling community.
 
-## **Models Implemented**
-### Ornstein-Uhlenbeck (Mean Reverting) Model
+## **Procedures Implemented**
+
+### Maximum Likelihood Estimation of Stochastic Processes
+**Ornstein-Uhlenbeck (Mean Reverting) Model**
 This assumes that the Ornstein-Uhlenbeck process takes the form
 $$\mathrm{d}X(t) = \alpha(\mu-x(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
 with $\alpha$ the drift term and $\sigma$ diffusion term. The term $\mathrm{d}W(t)$ comprises the Brownian motion.
 
-### General Stochastic Differential Equation (SDE) Model
+
+**General Stochastic Differential Equation (SDE) Model**
 This assumes that the SDE process takes the form
 $$\mathrm{d}X(t) = \mu(X,t)\mathrm{d}t + \sigma(X,t) \mathrm{d}W(t), $$
 with $\mu(X,t)$ the drift term and $\sigma(X,t)$ diffusion term. The term $\mathrm{d}W(t)$ comprises the Brownian motion.
 
-
 ### Kinetic Components Analysis
 A kalman-filter model adapted to capture the instantaneous first and second derivatives of a stochastic process. It is based on the Kinetic Components Analysis paper by López de Prado (2016) with the ability to produce estimates given a generic stochastic process characterised by a stochastic differential equation.
 
-I have done my best to implement what I have read and understood from various public sources detailing the KCA method and 
+I have done my best to implement what I have read and understood from various public sources detailing the KCA method and have added the default fit of a stochastic differential equation as a slight modification. This should reduce the error of the estimates to some extent.
 
 **Citation:** López de Prado, Marcos and López de Prado, Marcos and Rebonato, Riccardo, Kinetic Component Analysis (June 5, 2016). Journal of Investing, Vol. 25, No. 3, 2016.
 
-### Implementation
+### Optimal Trading Levels for Mean-Reverting Assets
 The library is modularised and each component serves a specific purpose in using SDEs in mathematical analysis of trading and markets.
 
 Code modules (i.e. `hitting_times`) provide implementations of analysis outlined in the book 'Optimal Mean Reversion Trading: Mathematical Analysis and Practical Applications' by Tim Leung and Xin Li (2015).
 
 **Citation:** Leung, T., & Li, X. (2015). Optimal Mean Reversion Trading: Mathematical Analysis and Practical Applications.
-
-#### Distributions
-Core classical statistical distributions used to derive analysis of data consumed by this library.
-
-#### Exceptions
-Custom exceptions to indicate specific error cases thrown while performing internal routines.
-
-#### Hitting Times
-Logic to calculate internal components of trading hitting time levels from Leung & Li (2015).
-
-#### Kalman Filter
-Handles all kinetic components related calculations.
-
-#### Likelihood
-Methodology to calculate maximum likelihood parameters of SDE models used in this library.
-
-#### Numeric Utils
-Contains generic numeric algorithms and 3rd party library functionality used throughout the package.
-
-#### SDE
-Handles estimating moments of and simulating SDE series.
-
-#### Trading Levels
-Controllers and types that handle orchestrating calculating optimal trading levels.
 
 ## Examples
 I am still working on providing a clean and concise API. Only certain services are `PUBLIC` to enforce correct usage of the library's core modules:
@@ -121,6 +99,11 @@ $ cmake --build . --target install
 - [`find_package`](https://cmake.org/cmake/help/latest/module/FindBoost.html#examples) method not used due to the header-only libraries being accessible without needing to build the project.
 
 ## **To Use**
+
+**_The procedures mentioned above can be accessed in a complete and safe way through the `entrypoints` module. This module provides a simple set of functions orchestrating the underlying models and calculations._**
+
+These can be imported in your application as shown below.
+
 It is possible to use this application as a shared library within another application should it be
 correctly linked. The `.so` file created in the `src` directory is the most efficient way to use this in another project. The `../install/include` directory is also required. The linker must be able to locate these files to build the application.
 

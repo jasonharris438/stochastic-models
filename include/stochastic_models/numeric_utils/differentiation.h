@@ -12,6 +12,6 @@
  * @param x The point at which to perform differentiation.
  * @return const double. The value of the integral of @f[ F(x;r) @f].
  */
-const double adaptiveCentralDifferentiation(ModelFunc fn, void* model,
-                                            double& x);
-#endif  // DIFFERENTIATION_H
+const double
+adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x);
+#endif // DIFFERENTIATION_H

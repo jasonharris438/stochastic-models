@@ -23,13 +23,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Install linux packages
-      run: apt-get update && apt-get install -yqq shellcheck clang-format
+      run: ./setup-linters.sh
     - name: check shell scripts
       run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh
     - name: script permissions
       run: chmod +x ./setup-env.sh ./install-cmake.sh ./install-valgrind.sh
     - name: lint code
-      run: clang-format --dry-run --Werror -style=file:.clang-format src/**.cpp include/stochastic_models/**/**.h tests/**.cpp
+      run: clang-format-20 --dry-run --Werror -style=file:.clang-format src/**.cpp include/stochastic_models/**/**.h tests/**.cpp
     - name: Install dependencies
       run: ./setup-env.sh
     - name: Install cmake

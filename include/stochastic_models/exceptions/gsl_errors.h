@@ -10,7 +10,8 @@
  * @param line The line number at which the error occurred.
  * @param gsl_errno The GSL error number.
  */
-void custom_gsl_exception_handler(const char* reason, const char* file,
-                                  int line, int gsl_errno);
+void custom_gsl_exception_handler(
+    const char* reason, const char* file, int line, int gsl_errno
+);
 
-#endif  // GSL_ERRORS_H
+#endif // GSL_ERRORS_H

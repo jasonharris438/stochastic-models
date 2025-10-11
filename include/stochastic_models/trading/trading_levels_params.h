@@ -14,13 +14,13 @@
  * @param c The cost of trading.
  */
 struct ExitLevelStopLossParams {
-    const OptimalTrading* optimizer;
-    const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
-    const double& stop_loss;
-    const double& r;
-    const double& c;
+  const OptimalTrading* optimizer;
+  const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
+  const double& stop_loss;
+  const double& r;
+  const double& c;
 
-    ~ExitLevelStopLossParams();
+  ~ExitLevelStopLossParams();
 };
 /**
  * @brief Optimal mean reversion trading model parameters for finding the
@@ -34,12 +34,12 @@ struct ExitLevelStopLossParams {
  * @param c The cost of trading.
  */
 struct ExitLevelParams {
-    const OptimalTrading* optimizer;
-    const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
-    const double& r;
-    const double& c;
+  const OptimalTrading* optimizer;
+  const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
+  const double& r;
+  const double& c;
 
-    ~ExitLevelParams();
+  ~ExitLevelParams();
 };
 /**
  * @brief Optimal mean reversion trading model parameters for finding the
@@ -55,14 +55,14 @@ struct ExitLevelParams {
  * @param c The cost of trading.
  */
 struct EntryLevelStopLossParams {
-    const OptimalTrading* optimizer;
-    const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
-    const double& b_star;
-    const double& stop_loss;
-    const double& r;
-    const double& c;
+  const OptimalTrading* optimizer;
+  const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
+  const double& b_star;
+  const double& stop_loss;
+  const double& r;
+  const double& c;
 
-    ~EntryLevelStopLossParams();
+  ~EntryLevelStopLossParams();
 };
 /**
  * @brief Optimal mean reversion trading model parameters for finding the
@@ -77,13 +77,13 @@ struct EntryLevelStopLossParams {
  * @param c The cost of trading.
  */
 struct EntryLevelParams {
-    const OptimalTrading* optimizer;
-    const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
-    const double& b_star;
-    const double& r;
-    const double& c;
+  const OptimalTrading* optimizer;
+  const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
+  const double& b_star;
+  const double& r;
+  const double& c;
 
-    ~EntryLevelParams();
+  ~EntryLevelParams();
 };
 /**
  * @brief Function to evaluate the optimal entry level function @f[ a @f] in the
@@ -151,4 +151,4 @@ double funcOptimalMeanReversionStopLossB(double x, void* params);
  * point x.
  */
 double funcOptimalMeanReversionB(double x, void* params);
-#endif  // TRADING_LEVELS_PARAMS_H
+#endif // TRADING_LEVELS_PARAMS_H

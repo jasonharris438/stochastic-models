@@ -30,30 +30,31 @@
  * @param observation_offset The offset to apply to the observation value.
  */
 class KineticComponents {
-   private:
-    KcaStates filter_state;
+private:
+  KcaStates filter_state;
 
-   public:
-    KineticComponents(const FilterSystemDimensions &dimensions);
-    void setFilterState(const KcaStates &state);
-    const KcaStates getFilterState() const;
-    const std::vector<double> getCurrentState() const;
-    const bool &isInitialised() const;
-    const bool &isPriorStateValid() const;
-    void initialiseFilter(const std::vector<double> &data_series,
-                          const double &h, const double &q);
-    /**
-     * @brief Updates the state of the kalman filter prior predicted state mean
-     * and covariance.
-     *
-     * The filter_state member attribute state is updated with new values for
-     * the predicted state mean and covariance.
-     */
-    void updatePriors();
-    void updatePosteriors(const double &observation,
-                          const double &innovation_sigma);
+public:
+  KineticComponents(const FilterSystemDimensions& dimensions);
+  void setFilterState(const KcaStates& state);
+  const KcaStates getFilterState() const;
+  const std::vector<double> getCurrentState() const;
+  const bool& isInitialised() const;
+  const bool& isPriorStateValid() const;
+  void initialiseFilter(
+      const std::vector<double>& data_series, const double& h, const double& q
+  );
+  /**
+   * @brief Updates the state of the kalman filter prior predicted state mean
+   * and covariance.
+   *
+   * The filter_state member attribute state is updated with new values for
+   * the predicted state mean and covariance.
+   */
+  void updatePriors();
+  void
+  updatePosteriors(const double& observation, const double& innovation_sigma);
 
-    const std::vector<double> getStateVector() const;
-    const std::vector<double> getStandardDevVector() const;
+  const std::vector<double> getStateVector() const;
+  const std::vector<double> getStandardDevVector() const;
 };
-#endif  // KCA_H
+#endif // KCA_H
