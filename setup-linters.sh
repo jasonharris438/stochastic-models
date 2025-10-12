@@ -71,7 +71,7 @@ install_clang_format_version() {
 
 	local pkg_name="clang-format-$CLANG_FORMAT_VER"
 
-    clang_formats=$(apt list --installed 2>/dev/null | grep clang-format | awk -F/ '{print $1}')
+	clang_formats=$(apt list --installed 2>/dev/null | grep clang-format | awk -F/ '{print $1}')
 
 	if printf '%s' "$clang_formats" | grep -q "$pkg_name"; then
 		log "$pkg_name already installed."
@@ -85,7 +85,7 @@ install_clang_format_version() {
 apt-get update -qq
 install_shellcheck
 
-clang_format_version=20
-install_clang_format_version -c "$clang_format_version"
+clang_format_version="20"
+install_clang_format_version --clang-format-version "$clang_format_version"
 
 log "All requested linters installed"
