@@ -22,10 +22,10 @@ DerivePointerAlignment: false
 # Includes and comments.
 SortIncludes: true
 IncludeBlocks: Regroup
-ReflowComments: Always
+ReflowComments: true
 
 # Single line statements.
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 
@@ -33,7 +33,7 @@ AllowShortFunctionsOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes
 
 # Packing function params/args.
-BinPackParameters: OnePerLine
+BinPackParameters: false
 BinPackArguments: true
 
 # Namespace and switch indentation.
@@ -41,12 +41,12 @@ NamespaceIndentation: All
 IndentCaseLabels: true
 
 # Other settings.
-SpacesInAngles: Never
+SpacesInAngles: false
 SpacesInParentheses: false
 SpaceBeforeSquareBrackets: false
 KeepEmptyLines:
   AtEndOfFile: true
-SortUsingDeclarations: LexicographicNumeric
+SortUsingDeclarations: true
 AlwaysBreakBeforeMultilineStrings: false
 InsertTrailingCommas: None
 AlignAfterOpenBracket: BlockIndent
