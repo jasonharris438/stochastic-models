@@ -71,9 +71,8 @@ install_clang_format_version() {
 
 	local pkg_name="clang-format-$CLANG_FORMAT_VER"
 
-	clang_formats=$(apt list --installed 2>/dev/null | grep clang-format | awk -F/ '{print $1}')
-
-	if printf '%s' "$clang_formats" | grep -q "$pkg_name"; then
+	installed_packages=$(apt list --installed 2>/dev/null | awk -F/ '{print $1}')
+	if printf '%s' "$installed_packages" | grep -q "$pkg_name"; then
 		log "$pkg_name already installed."
 		return
 	fi
