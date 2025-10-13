@@ -176,19 +176,19 @@ const double OptimalMeanReversion::d(
 ) const {
   ModelFunc funcG = funcIntegrateG;
   ModelFunc funcV = valueFuncStopLoss;
+
   const double vPrimeD = instantaneousDifferential(
       funcV, hitting_time_kernel, value, b_star, stop_loss, r, c
   );
-  const double result =
-      (OptimalMeanReversion::G(hitting_time_kernel, value, r, c) *
-       (vPrimeD - 1)) -
-      (instantaneousDifferential(
-           funcG, hitting_time_kernel, value, b_star, r, c
-       ) *
-       (OptimalMeanReversion::V(
-            hitting_time_kernel, value, b_star, stop_loss, r, c
-        ) -
-        value - c));
+  const double g = OptimalMeanReversion::G(hitting_time_kernel, value, r, c);
+  const double differential = instantaneousDifferential(
+      funcG, hitting_time_kernel, value, b_star, r, c
+  );
+  const double v = OptimalMeanReversion::V(
+      hitting_time_kernel, value, b_star, stop_loss, r, c
+  );
+
+  const double result = (g * (vPrimeD - 1)) - (differential * (v - value - c));
 
   return result;
 }
@@ -242,16 +242,14 @@ const double OptimalMeanReversion::a(
   const double vPrimeA = instantaneousDifferential(
       funcV, hitting_time_kernel, value, b_star, stop_loss, r, c
   );
-  const double result =
-      (OptimalMeanReversion::F(hitting_time_kernel, value, r, c) *
-       (vPrimeA - 1)) -
-      (instantaneousDifferential(
-           funcF, hitting_time_kernel, value, b_star, r, c
-       ) *
-       (OptimalMeanReversion::V(
-            hitting_time_kernel, value, b_star, stop_loss, r, c
-        ) -
-        value - c));
+  const double f = OptimalMeanReversion::F(hitting_time_kernel, value, r, c);
+  const double differential = instantaneousDifferential(
+      funcF, hitting_time_kernel, value, b_star, r, c
+  );
+  const double v = OptimalMeanReversion::V(
+      hitting_time_kernel, value, b_star, stop_loss, r, c
+  );
+  const double result = (f * (vPrimeA - 1)) - (differential * (v - value - c));
 
   return result;
 }
