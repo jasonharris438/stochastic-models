@@ -31,3 +31,9 @@ class SingularityError final : public std::runtime_error {
 public:
   SingularityError(const std::string& msg) : std::runtime_error{msg} {}
 };
+
+class InvalidNumberObservationsError final : public std::logic_error {
+public:
+  InvalidNumberObservationsError(const std::string& msg)
+      : std::logic_error{msg} {}
+};

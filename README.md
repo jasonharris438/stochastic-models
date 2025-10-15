@@ -31,6 +31,40 @@ This assumes that the SDE process takes the form
 $$\mathrm{d}X(t) = \mu(X,t)\mathrm{d}t + \sigma(X,t) \mathrm{d}W(t), $$
 with $\mu(X,t)$ the drift term and $\sigma(X,t)$ diffusion term. The term $\mathrm{d}W(t)$ comprises the Brownian motion.
 
+### Online Updating of MLE Parameters
+
+A method to update model parameters as new data arrives is implemented using a simple corrected sums of squares approach. This is based on the Welford (1962) method for calculating variance in a numerically stable way.
+
+**Citation:** Welford, B. P. (1962). Note on a Method for Calculating Corrected Sums of Squares and Products. Technometrics, 4(3), 419–420.
+
+This method drops the assumption that parameters are time-varying and requires the client to maintain a stateful representation of the current model parameters.
+
+**For the linear model of the form $$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$**
+
+The likelihood function being optimized is:
+
+$$\mathcal{L}(\mu,\sigma)=-\frac{n\log{2\pi}}{2}-n\log{\hat{\sigma}}-\frac{1}{2\hat{\sigma}^2}\sum^n_{i=1}{(X_t-X_{t-1}e^{\mu})^2}$$
+
+When a new observation $X_t$ arrives, the `GeneralLinearUpdater` performs the following update steps:
+
+**1. Update $\mu$ parameter:** Accumulate numerator and denominator for the MLE solution:
+$$\text{numerator}_{\text{new}} = X_{t-1} \cdot X_t + \text{numerator}_{\text{old}}$$
+$$\text{denominator}_{\text{new}} = X_{t-1}^2 + \text{denominator}_{\text{old}}$$
+$$\hat{\mu} = \log\left(\frac{\text{numerator}}{\text{denominator}}\right)$$
+
+**2. Update $\sigma$ parameter:** Compute prediction error and update variance accumulator using Welford's correction:
+$$\epsilon_t = X_t - e^{\hat{\mu}} \cdot X_{t-1}$$
+$$S_{\text{new}} = S_{\text{old}} + \frac{n-1}{n} \cdot \epsilon_t^2$$
+$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n}}$$
+
+**3. Update state:** $(n-1) \leftarrow n$ and $X_{\text{last}} \leftarrow X_t$
+
+**For the Ornstein-Uhlenbeck model of the form $$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$**
+
+The likelihood function being optimized is:
+$$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{n\log{2\pi}}{2}-n\log{\hat{\sigma}}-\frac{1}{2\hat{\sigma}^2}\sum^n_{i=1}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
+
+
 ### Kinetic Components Analysis
 A kalman-filter model adapted to capture the instantaneous first and second derivatives of a stochastic process. It is based on the Kinetic Components Analysis paper by López de Prado (2016) with the ability to produce estimates given a generic stochastic process characterised by a stochastic differential equation.
 

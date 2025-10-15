@@ -7,7 +7,7 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 # Set the project name and version.
 project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
-    VERSION 0.1.5
+    VERSION 0.2.0
     LANGUAGES CXX)
 
 # specify the C++ standard.
