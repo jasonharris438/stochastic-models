@@ -1,8 +1,8 @@
 #include "stochastic_models/likelihood/likelihood.h"
-LikelihoodCalculatuor::LikelihoodCalculatuor() {
+LikelihoodCalculator::LikelihoodCalculator() {
   components = nullptr;
 };
-LikelihoodCalculatuor::~LikelihoodCalculatuor() {
+LikelihoodCalculator::~LikelihoodCalculator() {
   delete components;
   components = nullptr;
 };

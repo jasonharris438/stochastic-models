@@ -1,14 +1,20 @@
 #ifndef GENERAL_LINEAR_LIKELIHOOD_H
 #define GENERAL_LINEAR_LIKELIHOOD_H
-#include "stochastic_models/likelihood/likelihood.h"
+#include <cstdint>
+#include <vector>
+
+struct GeneralLinearParameters {
+  double mu;
+  double sigma;
+};
 
 /**
  * @brief Handles calculating maxmimum likelihood parameters specifically under
  * General Linear SDE process assumptions for a data series.
  *
  */
-class GeneralLinearLikelihood : public LikelihoodCalculatuor {
-public:
+class GeneralLinearLikelihood {
+private:
   /**
    * @brief Calculates the inner product of the lead and lag of the data
    * series in `data`.
@@ -28,6 +34,7 @@ public:
    */
   const double calculateLagSquared(const std::vector<double>& data) const;
 
+public:
   /**
    * @brief Calculates the kernel value for the sigma parameter of the data
    * series in `data`.
@@ -36,7 +43,7 @@ public:
    * @return const double The kernel value for the sigma parameter.
    */
   const double calculateSigmaKernel(
-      const u_int32_t& n_observations, const double& sigma
+      const uint32_t& n_observations, const double& sigma
   ) const;
 
   /**
@@ -61,9 +68,11 @@ public:
    * @return const std::unordered_map<std::string, const double> The maximum
    * likelihood value for model parameters.
    */
-  const std::unordered_map<std::string, const double>
-  calculate(const std::vector<double>& data) override;
   const double
   calculateConditionalVariance(const double& sigma, const double& mu) const;
 };
+
+const GeneralLinearParameters
+calculateGeneralLinearParameters(const std::vector<double>& data);
+
 #endif // GENERAL_LINEAR_LIKELIHOOD_H

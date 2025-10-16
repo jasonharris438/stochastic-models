@@ -20,11 +20,10 @@ const double GeneralLinearLikelihood::calculateLeadLagInnerProduct(
 const double GeneralLinearLikelihood::calculateLagSquared(
     const std::vector<double>& data
 ) const {
-  std::vector<double> new_vec(data);
-  valuesSquared(new_vec);
-  std::vector<double>::const_iterator iter = new_vec.cbegin();
+  const std::vector<double> squared = valuesSquared(data);
+  std::vector<double>::const_iterator iter = squared.cbegin();
   std::advance(iter, 1);
-  return std::reduce(iter, new_vec.cend(), 0.0);
+  return std::reduce(iter, squared.cend(), 0.0);
 };
 const double GeneralLinearLikelihood::calculateSigmaKernel(
     const u_int32_t& n_observations, const double& sigma
@@ -55,17 +54,15 @@ const double GeneralLinearLikelihood::calculateSigma(
     return squared_diff_accumulated;
   }
 };
-const std::unordered_map<std::string, const double>
-GeneralLinearLikelihood::calculate(const std::vector<double>& data) {
-  const double mu{calculateMu(data)};
-  const double sigma{calculateSigma(data, mu)};
-
-  std::unordered_map<std::string, const double> m{{"mu", mu}, {"sigma", sigma}};
-
-  return m;
-};
 const double GeneralLinearLikelihood::calculateConditionalVariance(
     const double& sigma, const double& mu
 ) const {
   return (2 * sigma * mu) / (std::exp(2 * mu) - std::exp(mu));
 };
+const GeneralLinearParameters
+calculateGeneralLinearParameters(const std::vector<double>& data) {
+  GeneralLinearLikelihood likelihood;
+  const double mu = likelihood.calculateMu(data);
+  const double sigma = likelihood.calculateSigma(data, mu);
+  return GeneralLinearParameters{mu, sigma};
+}

@@ -68,7 +68,7 @@ TEST(GeneralLinearOnlineTest, UpdateSigmaTest) {
   // Calculate the new sigma value.
   const double actual = updater.updateSigma(new_observation);
 
-    std::cout << "Actual: " << actual << std::endl;
+  std::cout << "Actual: " << actual << std::endl;
   const double expected = 45.6394;
   EXPECT_LE(abs(roundToDecimals(actual, 8) - expected), tolerance)
       << "GeneralLinearUpdater updateSigma method returning invalid value.";

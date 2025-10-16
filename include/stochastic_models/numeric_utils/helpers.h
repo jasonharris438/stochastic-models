@@ -18,11 +18,12 @@ void check_function_status(
 );
 
 /**
- * @brief Squares all values in a vector in-place.
+ * @brief Returns a vector of the squares of the values in the input vector.
  *
  * @param vec Vector of values to be squared.
+ * @return const std::vector<double> Vector of squared values.
  */
-void valuesSquared(std::vector<double>& vec);
+const std::vector<double> valuesSquared(const std::vector<double>& vec);
 /**
  * @brief Rounds a value to a given number of decimals.
  *

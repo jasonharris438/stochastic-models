@@ -41,10 +41,12 @@ void check_function_status(
     }
   }
 }
-void valuesSquared(std::vector<double>& vec) {
-  for (double& item : vec) {
-    item *= item;
-  }
+const std::vector<double> valuesSquared(const std::vector<double>& vec) {
+  std::vector<double> squared(vec.size());
+  std::transform(vec.begin(), vec.end(), squared.begin(), [](double x) {
+    return x * x;
+  });
+  return squared;
 }
 const double roundToDecimals(const double& value, const int& decimals) {
   const double factor = std::pow(10, decimals);
