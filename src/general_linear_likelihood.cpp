@@ -5,6 +5,16 @@
 
 #include <cmath>
 #include <numeric>
+
+GeneralLinearLikelihoodComponents::GeneralLinearLikelihoodComponents(
+    const double lag_squared,
+    const double lead_lag_inner_product,
+    const double sigma_kernel,
+    const uint32_t n_obs
+)
+    : lag_squared(lag_squared), lead_lag_inner_product(lead_lag_inner_product),
+      sigma_kernel(sigma_kernel), n_obs(n_obs) {}
+
 const double GeneralLinearLikelihood::calculateLeadLagInnerProduct(
     const std::vector<double>& data
 ) const {
@@ -59,10 +69,23 @@ const double GeneralLinearLikelihood::calculateConditionalVariance(
 ) const {
   return (2 * sigma * mu) / (std::exp(2 * mu) - std::exp(mu));
 };
-const GeneralLinearParameters
-calculateGeneralLinearParameters(const std::vector<double>& data) {
-  GeneralLinearLikelihood likelihood;
-  const double mu = likelihood.calculateMu(data);
-  const double sigma = likelihood.calculateSigma(data, mu);
+const GeneralLinearParameters GeneralLinearLikelihood::calculateParameters(
+    const std::vector<double>& data
+) const {
+  const double mu = calculateMu(data);
+  const double sigma = calculateSigma(data, mu);
   return GeneralLinearParameters{mu, sigma};
+}
+
+const GeneralLinearLikelihoodComponents
+GeneralLinearLikelihood::calculateComponents(
+    const std::vector<double>& data, const GeneralLinearParameters& params
+) const {
+  const double lead_lag_inner_product = calculateLeadLagInnerProduct(data);
+  const double lag_squared = calculateLagSquared(data);
+  const uint32_t n_obs = static_cast<uint32_t>(data.size());
+  const double sigma_kernel_value = calculateSigmaKernel(n_obs, params.sigma);
+  return GeneralLinearLikelihoodComponents{
+      lag_squared, lead_lag_inner_product, sigma_kernel_value, n_obs
+  };
 }

@@ -184,18 +184,18 @@ const double& FilterGeneralSde::getConditionalVariance() const {
 void FilterGeneralSde::initializeLikelihoodState(
     const std::vector<double>& data_series
 ) {
-  const std::unordered_map<std::string, const double> likelihood_values =
-      likelihood.calculate(data_series);
-  mu = likelihood_values.at("mu");
-  sigma = likelihood_values.at("sigma");
+  const GeneralLinearParameters likelihood_values =
+      likelihood.calculateParameters(data_series);
+  const GeneralLinearLikelihoodComponents components =
+      likelihood.calculateComponents(data_series, likelihood_values);
+
+  mu = likelihood_values.mu;
+  sigma = likelihood_values.sigma;
   conditional_variance = likelihood.calculateConditionalVariance(sigma, mu);
-
-  u_int32_t n_obs = static_cast<u_int32_t>(data_series.size());
-
-  n_observations = n_obs;
-  mu_numerator = likelihood.calculateLeadLagInnerProduct(data_series);
-  mu_denominator = likelihood.calculateLagSquared(data_series);
-  sigma_kernel_value = likelihood.calculateSigmaKernel(n_obs, sigma);
+  mu_numerator = components.lead_lag_inner_product;
+  mu_denominator = components.lag_squared;
+  sigma_kernel_value = components.sigma_kernel;
+  n_observations = components.n_obs;
 }
 
 // Type that contains internal dimensions of a Kalman Filter system.

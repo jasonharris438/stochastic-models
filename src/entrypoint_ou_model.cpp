@@ -59,10 +59,13 @@ const std::unordered_map<std::string, const double>
 ornsteinUhlenbeckMaximumLikelihood(const std::vector<double> vec) {
   // Generate likelihood calculator and generate estimate of mu, alpha,
   // and sigma.
-  OrnsteinUhlenbeckLikelihood* likelihood = new OrnsteinUhlenbeckLikelihood();
-  const std::unordered_map<std::string, const double> params{
-      likelihood->calculate(vec)
+  OrnsteinUhlenbeckLikelihood likelihood = OrnsteinUhlenbeckLikelihood();
+  const OrnsteinUhlenbeckParameters parameters =
+      likelihood.calculateParameters(vec);
+  const std::unordered_map<std::string, const double> key_value_pairs{
+      {"mu", parameters.mu},
+      {"alpha", parameters.alpha},
+      {"sigma", parameters.sigma}
   };
-  delete likelihood;
-  return params;
+  return key_value_pairs;
 }

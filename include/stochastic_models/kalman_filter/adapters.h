@@ -1,3 +1,6 @@
+#ifndef ADAPTERS_H
+#define ADAPTERS_H
+
 #include "stochastic_models/kalman_filter/states.h"
 #include "stochastic_models/kalman_filter/type_conversion.h"
 
@@ -51,3 +54,5 @@ public:
    */
   const FilterSystemDimensions deserialize(const std::string& state) const;
 };
+
+#endif // ADAPTERS_H

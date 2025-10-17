@@ -18,7 +18,6 @@ hitting_time_ornstein_uhlenbeck.cpp
 integration.cpp
 kca.cpp
 linalg.cpp
-likelihood.cpp
 ornstein_uhlenbeck_likelihood.cpp
 ornstein_uhlenbeck_online.cpp
 optimal_mean_reversion.cpp

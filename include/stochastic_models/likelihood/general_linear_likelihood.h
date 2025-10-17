@@ -8,6 +8,21 @@ struct GeneralLinearParameters {
   double sigma;
 };
 
+class GeneralLinearLikelihoodComponents {
+public:
+  const double lag_squared;
+  const double lead_lag_inner_product;
+  const double sigma_kernel;
+  const uint32_t n_obs;
+
+  GeneralLinearLikelihoodComponents(
+      const double lag_squared,
+      const double lead_lag_inner_product,
+      const double sigma_kernel,
+      const uint32_t n_obs
+  );
+};
+
 /**
  * @brief Handles calculating maxmimum likelihood parameters specifically under
  * General Linear SDE process assumptions for a data series.
@@ -70,9 +85,22 @@ public:
    */
   const double
   calculateConditionalVariance(const double& sigma, const double& mu) const;
-};
 
-const GeneralLinearParameters
-calculateGeneralLinearParameters(const std::vector<double>& data);
+  /**
+   * @brief Calculates the likelihood equation components from data series
+   * and model parameters.
+   *
+   * @param data Data series used to calculate.
+   * @param params The model parameters calculated from the data series.
+   * @return const GeneralLinearLikelihoodComponents The likelihood equation
+   * components.
+   */
+  const GeneralLinearLikelihoodComponents calculateComponents(
+      const std::vector<double>& data, const GeneralLinearParameters& params
+  ) const;
+
+  const GeneralLinearParameters
+  calculateParameters(const std::vector<double>& data) const;
+};
 
 #endif // GENERAL_LINEAR_LIKELIHOOD_H

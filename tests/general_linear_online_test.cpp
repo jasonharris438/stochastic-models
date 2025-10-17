@@ -23,8 +23,12 @@ TEST(GeneralLinearOnlineTest, UpdateMuTest) {
 
   // Calculate expected value tracking components.
   const GeneralLinearLikelihood likelihood;
-  const double mu_numerator = likelihood.calculateLeadLagInnerProduct(test_vec);
-  const double mu_denominator = likelihood.calculateLagSquared(test_vec);
+  const GeneralLinearParameters params =
+      likelihood.calculateParameters(test_vec);
+  const GeneralLinearLikelihoodComponents components =
+      likelihood.calculateComponents(test_vec, params);
+  const double mu_numerator = components.lead_lag_inner_product;
+  const double mu_denominator = components.lag_squared;
 
   GeneralLinearUpdater updater(
       mu_numerator, mu_denominator, sigma_state, initial_observation, n_obs
@@ -57,8 +61,12 @@ TEST(GeneralLinearOnlineTest, UpdateSigmaTest) {
 
   // Calculate expected value tracking components.
   const GeneralLinearLikelihood likelihood;
-  const double mu_numerator = likelihood.calculateLeadLagInnerProduct(test_vec);
-  const double mu_denominator = likelihood.calculateLagSquared(test_vec);
+  const GeneralLinearParameters params =
+      likelihood.calculateParameters(test_vec);
+  const GeneralLinearLikelihoodComponents components =
+      likelihood.calculateComponents(test_vec, params);
+  const double mu_numerator = components.lead_lag_inner_product;
+  const double mu_denominator = components.lag_squared;
 
   // Initialise the updater with valid values.
   GeneralLinearUpdater updater(

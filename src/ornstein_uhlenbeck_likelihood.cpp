@@ -68,7 +68,7 @@ OrnsteinUhlenbeckLikelihood::calculateComponents(
   return OrnsteinUhlenbeckLikelihoodComponents{
       calculateLeadSum(data),           calculateLagSum(data),
       calculateLeadSumSquared(data),    calculateLagSumSquared(data),
-      calculateLeadLagSumProduct(data), static_cast<int>(data.size())
+      calculateLeadLagSumProduct(data), static_cast<uint32_t>(data.size())
   };
 };
 const double OrnsteinUhlenbeckLikelihood::calculateMu(
@@ -107,12 +107,14 @@ const double OrnsteinUhlenbeckLikelihood::calculateSigma(
        (components.lead_sum - (exp_alpha * components.lag_sum))) +
       (components.n_obs * std::pow(mu, 2) * std::pow(1 - exp_alpha, 2))
   };
-  sigma *= (1 / components.n_obs);
+  sigma *= (1.0 / components.n_obs);
   sigma *= ((2 * exp_alpha) / (1 - std::pow(exp_alpha, 2)));
   return sigma;
 };
 const OrnsteinUhlenbeckParameters
-calculateOrnsteinUhlenbeckParameters(const std::vector<double>& data) {
+OrnsteinUhlenbeckLikelihood::calculateParameters(
+    const std::vector<double>& data
+) {
   OrnsteinUhlenbeckLikelihood ou_likelihood;
   OrnsteinUhlenbeckLikelihoodComponents components =
       ou_likelihood.calculateComponents(data);

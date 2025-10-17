@@ -127,9 +127,9 @@ public:
       const double& mu,
       const double& alpha
   ) const;
-};
 
-const OrnsteinUhlenbeckParameters
-calculateOrnsteinUhlenbeckParameters(const std::vector<double>& data);
+  const OrnsteinUhlenbeckParameters
+  calculateParameters(const std::vector<double>& data);
+};
 
 #endif // ORNSTEIN_UHLENBECK_LIKELIHOOD_H
