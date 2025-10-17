@@ -1,5 +1,5 @@
-#ifndef EXPONENTIAL_MEAN_REVERSION_H
-#define EXPONENTIAL_MEAN_REVERSION_H
+#ifndef STOCHASTIC_MODELS_TRADING_EXPONENTIAL_MEAN_REVERSION_H
+#define STOCHASTIC_MODELS_TRADING_EXPONENTIAL_MEAN_REVERSION_H
 #include "stochastic_models/sde/stochastic_model.h"
 #include "stochastic_models/trading/optimal_trading.h"
 
@@ -314,4 +314,4 @@ public:
     const double& r,
     const double& c) const override;
 };
-#endif // EXPONENTIAL_MEAN_REVERSION_H
+#endif // STOCHASTIC_MODELS_TRADING_EXPONENTIAL_MEAN_REVERSION_H

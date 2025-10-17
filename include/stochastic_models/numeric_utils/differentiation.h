@@ -1,5 +1,5 @@
-#ifndef DIFFERENTIATION_H
-#define DIFFERENTIATION_H
+#ifndef STOCHASTIC_MODELS_NUMERIC_UTILS_DIFFERENTIATION_H
+#define STOCHASTIC_MODELS_NUMERIC_UTILS_DIFFERENTIATION_H
 #include "stochastic_models/numeric_utils/types.h"
 /**
  * @brief Computes the numerical derivative of the function @f[ F(x;r) @f] at
@@ -14,4 +14,4 @@
  */
 const double
 adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x);
-#endif // DIFFERENTIATION_H
+#endif // STOCHASTIC_MODELS_NUMERIC_UTILS_DIFFERENTIATION_H

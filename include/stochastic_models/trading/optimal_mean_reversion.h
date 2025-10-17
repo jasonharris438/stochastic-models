@@ -1,5 +1,5 @@
-#ifndef OPTIMAL_MEAN_REVERSION_H
-#define OPTIMAL_MEAN_REVERSION_H
+#ifndef STOCHASTIC_MODELS_TRADING_OPTIMAL_MEAN_REVERSION_H
+#define STOCHASTIC_MODELS_TRADING_OPTIMAL_MEAN_REVERSION_H
 #include "stochastic_models/hitting_times/hitting_time_ornstein_uhlenbeck.h"
 #include "stochastic_models/sde/stochastic_model.h"
 #include "stochastic_models/trading/optimal_trading.h"
@@ -391,4 +391,4 @@ public:
     const double& r,
     const double& c) const override;
 };
-#endif // OPTIMAL_MEAN_REVERSION_H
+#endif // STOCHASTIC_MODELS_TRADING_OPTIMAL_MEAN_REVERSION_H

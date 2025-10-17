@@ -1,5 +1,5 @@
-#ifndef GENERAL_SDE_H
-#define GENERAL_SDE_H
+#ifndef STOCHASTIC_MODELS_ENTRYPOINTS_GENERAL_SDE_H
+#define STOCHASTIC_MODELS_ENTRYPOINTS_GENERAL_SDE_H
 
 #include <vector>
 
@@ -29,4 +29,4 @@ const std::vector<double> updateGeneralLinearSDE(
     const int n_obs
 );
 
-#endif // GENERAL_SDE_H
+#endif // STOCHASTIC_MODELS_ENTRYPOINTS_GENERAL_SDE_H

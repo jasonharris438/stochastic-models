@@ -1,5 +1,5 @@
-#ifndef SOLVER_H
-#define SOLVER_H
+#ifndef STOCHASTIC_MODELS_NUMERIC_UTILS_SOLVERS_H
+#define STOCHASTIC_MODELS_NUMERIC_UTILS_SOLVERS_H
 #include "stochastic_models/numeric_utils/types.h"
 
 #include <gsl/gsl_roots.h>
@@ -41,4 +41,4 @@ public:
  */
 const double
 brentSolver(ModelFunc fn, void* model, double& lower, double& upper);
-#endif // SOLVER_H
+#endif // STOCHASTIC_MODELS_NUMERIC_UTILS_SOLVERS_H

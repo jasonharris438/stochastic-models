@@ -1,5 +1,5 @@
-#ifndef TYPE_CONVERSION_H
-#define TYPE_CONVERSION_H
+#ifndef STOCHASTIC_MODELS_KALMAN_FILTER_TYPE_CONVERSION_H
+#define STOCHASTIC_MODELS_KALMAN_FILTER_TYPE_CONVERSION_H
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -57,4 +57,4 @@ void add_scalar_to_vector(
     boost::numeric::ublas::vector<double>& boost_vector, const double& scalar
 );
 
-#endif // TYPE_CONVERSION_H
+#endif // STOCHASTIC_MODELS_KALMAN_FILTER_TYPE_CONVERSION_H

@@ -1,5 +1,5 @@
-#ifndef STOCHASTIC_MODEL_H
-#define STOCHASTIC_MODEL_H
+#ifndef STOCHASTIC_MODELS_SDE_STOCHASTIC_MODEL_H
+#define STOCHASTIC_MODELS_SDE_STOCHASTIC_MODEL_H
 #include "stochastic_models/distributions/gaussian.h"
 /**
  * Stochastic Model base class that handles functionality for fitting,
@@ -60,4 +60,4 @@ public:
 
   virtual ~StochasticModel() = 0;
 };
-#endif // STOCHASTIC_MODEL_H
+#endif // STOCHASTIC_MODELS_SDE_STOCHASTIC_MODEL_H

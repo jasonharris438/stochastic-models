@@ -1,5 +1,5 @@
-#ifndef TRADING_LEVELS_INTERFACE_H
-#define TRADING_LEVELS_INTERFACE_H
+#ifndef STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_INTERFACE_H
+#define STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_INTERFACE_H
 #include "stochastic_models/trading/optimal_trading.h"
 
 #include <memory>
@@ -155,4 +155,4 @@ public:
   ) const = 0;
 };
 
-#endif // TRADING_LEVELS_INTERFACE_H
+#endif // STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_INTERFACE_H

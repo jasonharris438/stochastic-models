@@ -1,5 +1,5 @@
-#ifndef GENERAL_LINEAR_H
-#define GENERAL_LINEAR_H
+#ifndef STOCHASTIC_MODELS_SDE_GENERAL_LINEAR_H
+#define STOCHASTIC_MODELS_SDE_GENERAL_LINEAR_H
 #include "stochastic_models/sde/stochastic_model.h"
 /**
  * @brief General Linear Model class that handles fitting, evaluating, and
@@ -79,4 +79,4 @@ public:
   ) const override;
   ~GeneralLinearModel() override;
 };
-#endif // GENERAL_LINEAR_H
+#endif // STOCHASTIC_MODELS_SDE_GENERAL_LINEAR_H

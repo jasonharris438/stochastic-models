@@ -1,5 +1,5 @@
-#ifndef GAUSSIAN_H
-#define GAUSSIAN_H
+#ifndef STOCHASTIC_MODELS_DISTRIBUTIONS_GAUSSIAN_H
+#define STOCHASTIC_MODELS_DISTRIBUTIONS_GAUSSIAN_H
 #include "stochastic_models/distributions/core.h"
 /**
  * Gaussian distribution class. Takes two floats as inputs "mu" and "sigma" for
@@ -63,4 +63,4 @@ public:
   std::vector<double> sample(const std::size_t& size = 1) const override;
   ~GaussianDistribution() override;
 };
-#endif // GAUSSIAN_H
+#endif // STOCHASTIC_MODELS_DISTRIBUTIONS_GAUSSIAN_H

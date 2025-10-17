@@ -1,5 +1,5 @@
-#ifndef GSL_ERRORS_H
-#define GSL_ERRORS_H
+#ifndef STOCHASTIC_MODELS_EXCEPTIONS_GSL_ERRORS_H
+#define STOCHASTIC_MODELS_EXCEPTIONS_GSL_ERRORS_H
 
 /**
  * @brief Custom error handler for GSL errors. Does not call abort() after
@@ -14,4 +14,4 @@ void custom_gsl_exception_handler(
     const char* reason, const char* file, int line, int gsl_errno
 );
 
-#endif // GSL_ERRORS_H
+#endif // STOCHASTIC_MODELS_EXCEPTIONS_GSL_ERRORS_H

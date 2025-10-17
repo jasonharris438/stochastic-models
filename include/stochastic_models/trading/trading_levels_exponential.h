@@ -1,5 +1,5 @@
-#ifndef TRADING_LEVELS_EXPONENTIAL_H
-#define TRADING_LEVELS_EXPONENTIAL_H
+#ifndef STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_EXPONENTIAL_H
+#define STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_EXPONENTIAL_H
 #include "stochastic_models/trading/exponential_mean_reversion.h"
 #include "stochastic_models/trading/optimal_trading.h"
 #include "stochastic_models/trading/trading_levels_interface.h"
@@ -174,4 +174,4 @@ public:
   optimalEntry(const double& b_star, const double& r, const double& c) const;
 };
 
-#endif // TRADING_LEVELS_EXPONENTIAL_H
+#endif // STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_EXPONENTIAL_H

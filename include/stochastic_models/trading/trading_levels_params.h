@@ -1,5 +1,5 @@
-#ifndef TRADING_LEVELS_PARAMS_H
-#define TRADING_LEVELS_PARAMS_H
+#ifndef STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_PARAMS_H
+#define STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_PARAMS_H
 #include "stochastic_models/trading/optimal_trading.h"
 
 /**
@@ -151,4 +151,4 @@ double funcOptimalMeanReversionStopLossB(double x, void* params);
  * point x.
  */
 double funcOptimalMeanReversionB(double x, void* params);
-#endif // TRADING_LEVELS_PARAMS_H
+#endif // STOCHASTIC_MODELS_TRADING_TRADING_LEVELS_PARAMS_H

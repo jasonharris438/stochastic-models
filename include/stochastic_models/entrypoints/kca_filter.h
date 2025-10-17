@@ -1,5 +1,5 @@
-#ifndef KCA_FILTER_H
-#define KCA_FILTER_H
+#ifndef STOCHASTIC_MODELS_ENTRYPOINTS_KCA_FILTER_H
+#define STOCHASTIC_MODELS_ENTRYPOINTS_KCA_FILTER_H
 #include <string>
 #include <vector>
 
@@ -42,4 +42,4 @@ const std::string getUpdatedKcaState(
     const double innovation_sigma
 );
 
-#endif // KCA_FILTER_H
+#endif // STOCHASTIC_MODELS_ENTRYPOINTS_KCA_FILTER_H

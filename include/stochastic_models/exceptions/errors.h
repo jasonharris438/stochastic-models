@@ -1,6 +1,12 @@
 #include <stdexcept>
 #include <string>
 
+#ifndef STOCHASTIC_MODELS_EXCEPTIONS_ERRORS_H
+#define STOCHASTIC_MODELS_EXCEPTIONS_ERRORS_H
+
+#include <stdexcept>
+#include <string>
+
 class IntegrationMaxIterationError final : public std::runtime_error {
 public:
   IntegrationMaxIterationError(const std::string& msg)
@@ -37,3 +43,4 @@ public:
   InvalidNumberObservationsError(const std::string& msg)
       : std::logic_error{msg} {}
 };
+#endif // STOCHASTIC_MODELS_EXCEPTIONS_ERRORS_H

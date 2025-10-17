@@ -1,5 +1,5 @@
-#ifndef LINALG_H
-#define LINALG_H
+#ifndef STOCHASTIC_MODELS_NUMERIC_UTILS_LINALG_H
+#define STOCHASTIC_MODELS_NUMERIC_UTILS_LINALG_H
 #include <boost/numeric/ublas/matrix.hpp>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_matrix.h>
@@ -68,4 +68,4 @@ public:
   invertMatrix(const boost::numeric::ublas::matrix<double>& boost_matrix) const;
 };
 
-#endif // LINALG_H
+#endif // STOCHASTIC_MODELS_NUMERIC_UTILS_LINALG_H

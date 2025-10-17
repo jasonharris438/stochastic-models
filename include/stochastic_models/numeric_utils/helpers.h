@@ -1,5 +1,5 @@
-#ifndef HELPERS_H
-#define HELPERS_H
+#ifndef STOCHASTIC_MODELS_NUMERIC_UTILS_HELPERS_H
+#define STOCHASTIC_MODELS_NUMERIC_UTILS_HELPERS_H
 #include "stochastic_models/sde/stochastic_model.h"
 
 #include <gsl/gsl_errno.h>
@@ -49,4 +49,4 @@ const double upperSolverBound(const StochasticModel* model);
  * levels.
  */
 const double lowerSolverBound(const StochasticModel* model);
-#endif // HELPERS_H
+#endif // STOCHASTIC_MODELS_NUMERIC_UTILS_HELPERS_H

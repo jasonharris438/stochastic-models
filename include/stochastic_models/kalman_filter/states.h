@@ -1,5 +1,5 @@
-#ifndef STATES_H
-#define STATES_H
+#ifndef STOCHASTIC_MODELS_KALMAN_FILTER_STATES_H
+#define STOCHASTIC_MODELS_KALMAN_FILTER_STATES_H
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
 
 #include <boost/numeric/ublas/matrix.hpp>
@@ -755,4 +755,4 @@ public:
    */
   void setTransitionMatrix(std::vector<std::vector<double>>& transition_matrix);
 };
-#endif // STATES_H
+#endif // STOCHASTIC_MODELS_KALMAN_FILTER_STATES_H

@@ -1,5 +1,5 @@
-#ifndef CORE_H
-#define CORE_H
+#ifndef STOCHASTIC_MODELS_DISTRIBUTIONS_CORE_H
+#define STOCHASTIC_MODELS_DISTRIBUTIONS_CORE_H
 #include <vector>
 /**
  * Base core distribution class.
@@ -40,4 +40,4 @@ public:
   virtual std::vector<double> sample(const std::size_t& size = 1) const = 0;
   virtual ~CoreDistribution() = 0;
 };
-#endif // CORE_H
+#endif // STOCHASTIC_MODELS_DISTRIBUTIONS_CORE_H

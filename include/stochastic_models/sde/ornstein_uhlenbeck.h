@@ -1,5 +1,5 @@
-#ifndef ORNSTEIN_UHLENBECK_H
-#define ORNSTEIN_UHLENBECK_H
+#ifndef STOCHASTIC_MODELS_SDE_ORNSTEIN_UHLENBECK_H
+#define STOCHASTIC_MODELS_SDE_ORNSTEIN_UHLENBECK_H
 #include "stochastic_models/sde/stochastic_model.h"
 
 /**
@@ -76,4 +76,4 @@ public:
 
   ~OrnsteinUhlenbeckModel() override;
 };
-#endif // ORNSTEIN_UHLENBECK_H
+#endif // STOCHASTIC_MODELS_SDE_ORNSTEIN_UHLENBECK_H

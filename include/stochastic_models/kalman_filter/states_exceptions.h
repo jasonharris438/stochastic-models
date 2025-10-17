@@ -1,5 +1,5 @@
-#ifndef STATES_EXCEPTIONS_H
-#define STATES_EXCEPTIONS_H
+#ifndef STOCHASTIC_MODELS_KALMAN_FILTER_STATES_EXCEPTIONS_H
+#define STOCHASTIC_MODELS_KALMAN_FILTER_STATES_EXCEPTIONS_H
 
 #include <stdexcept>
 #include <string>
@@ -15,4 +15,4 @@ class json_parse_error : public std::runtime_error {
 public:
   explicit json_parse_error(const std::string& message);
 };
-#endif // STATES_EXCEPTIONS_H
+#endif // STOCHASTIC_MODELS_KALMAN_FILTER_STATES_EXCEPTIONS_H

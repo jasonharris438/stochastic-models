@@ -1,5 +1,5 @@
-#ifndef OU_MODEL_H
-#define OU_MODEL_H
+#ifndef STOCHASTIC_MODELS_ENTRYPOINTS_OU_MODEL_H
+#define STOCHASTIC_MODELS_ENTRYPOINTS_OU_MODEL_H
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -58,4 +58,4 @@ const double hittingTimeDensityOrnsteinUhlenbeck(
 const std::unordered_map<std::string, const double>
 ornsteinUhlenbeckMaximumLikelihood(const std::vector<double> vec);
 
-#endif // OU_MODEL_H
+#endif // STOCHASTIC_MODELS_ENTRYPOINTS_OU_MODEL_H

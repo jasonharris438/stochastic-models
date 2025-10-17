@@ -1,5 +1,5 @@
-#ifndef GENERAL_LINEAR_ONLINE_H
-#define GENERAL_LINEAR_ONLINE_H
+#ifndef STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_ONLINE_H
+#define STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_ONLINE_H
 
 /**
  * @brief General Linear Model Updater class that handles online updating of
@@ -118,4 +118,4 @@ public:
    */
   void internalStateUpdate(const int n_obs_new, const double new_observation);
 };
-#endif // GENERAL_LINEAR_ONLINE_H
+#endif // STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_ONLINE_H

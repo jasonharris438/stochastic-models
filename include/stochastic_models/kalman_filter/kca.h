@@ -1,5 +1,5 @@
-#ifndef KCA_H
-#define KCA_H
+#ifndef STOCHASTIC_MODELS_KALMAN_FILTER_KCA_H
+#define STOCHASTIC_MODELS_KALMAN_FILTER_KCA_H
 
 #include "stochastic_models/kalman_filter/states.h"
 
@@ -57,4 +57,4 @@ public:
   const std::vector<double> getStateVector() const;
   const std::vector<double> getStandardDevVector() const;
 };
-#endif // KCA_H
+#endif // STOCHASTIC_MODELS_KALMAN_FILTER_KCA_H

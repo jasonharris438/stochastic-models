@@ -1,5 +1,5 @@
-#ifndef HITTING_TIME_ORNSTEIN_UHLENBECK_H
-#define HITTING_TIME_ORNSTEIN_UHLENBECK_H
+#ifndef STOCHASTIC_MODELS_HITTING_TIMES_HITTING_TIME_ORNSTEIN_UHLENBECK_H
+#define STOCHASTIC_MODELS_HITTING_TIMES_HITTING_TIME_ORNSTEIN_UHLENBECK_H
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 /**
  * Hitting time kernel class that handles internals for calculating the
@@ -69,4 +69,4 @@ public:
   const double optimalTradingLCore(const double& r, const double& c) const;
   ~HittingTimeOrnsteinUhlenbeck() = default;
 };
-#endif // HITTING_TIME_ORNSTEIN_UHLENBECK_H
+#endif // STOCHASTIC_MODELS_HITTING_TIMES_HITTING_TIME_ORNSTEIN_UHLENBECK_H

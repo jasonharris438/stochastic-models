@@ -1,5 +1,5 @@
-#ifndef INTEGRATION_H
-#define INTEGRATION_H
+#ifndef STOCHASTIC_MODELS_NUMERIC_UTILS_INTEGRATION_H
+#define STOCHASTIC_MODELS_NUMERIC_UTILS_INTEGRATION_H
 #include "stochastic_models/numeric_utils/types.h"
 
 #include <gsl/gsl_integration.h>
@@ -41,4 +41,4 @@ adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper);
  */
 const double
 semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower);
-#endif // INTEGRATION_H
+#endif // STOCHASTIC_MODELS_NUMERIC_UTILS_INTEGRATION_H

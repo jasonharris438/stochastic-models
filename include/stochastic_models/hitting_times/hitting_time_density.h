@@ -1,5 +1,5 @@
-#ifndef HITTING_TIME_DENSITY_H
-#define HITTING_TIME_DENSITY_H
+#ifndef STOCHASTIC_MODELS_HITTING_TIMES_HITTING_TIME_DENSITY_H
+#define STOCHASTIC_MODELS_HITTING_TIMES_HITTING_TIME_DENSITY_H
 #include "stochastic_models/numeric_utils/types.h"
 
 /**
@@ -30,4 +30,4 @@ double integrateHittingTimeDensity(double x, void* model);
 const double hittingTimeDensity(
     double& x, ModelFunc fn, void* model, double& first, double& second
 );
-#endif // HITTING_TIME_DENSITY_H
+#endif // STOCHASTIC_MODELS_HITTING_TIMES_HITTING_TIME_DENSITY_H
