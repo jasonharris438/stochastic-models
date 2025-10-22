@@ -79,16 +79,53 @@ public:
    */
   const double
   calculateLeadLagSumProduct(const std::vector<double>& data) const;
+  /**
+   * @brief Incrementally update the sum of the lead series.
+   *
+   * @param lead_sum Current accumulated lead sum.
+   * @param new_observation The new time t observation to add.
+   * @return const double Updated lead sum.
+   */
   const double
   updateLeadSum(const double& lead_sum, const double& new_observation) const;
+  /**
+   * @brief Incrementally update the sum of the lag series.
+   *
+   * @param lag_sum Current accumulated lag sum.
+   * @param last_observation The new time t-1 observation to add.
+   * @return const double Updated lag sum.
+   */
   const double
   updateLagSum(const double& lag_sum, const double& last_observation) const;
+  /**
+   * @brief Incrementally update the sum of squares of the lead series.
+   *
+   * @param lead_sum_squared Current accumulated lead sum of squares.
+   * @param new_observation The new time t observation to add.
+   * @return const double Updated lead sum of squares.
+   */
   const double updateLeadSumSquared(
       const double& lead_sum_squared, const double& new_observation
   ) const;
+  /**
+   * @brief Incrementally update the sum of squares of the lag series.
+   *
+   * @param lag_sum_squared Current accumulated lag sum of squares.
+   * @param last_observation The new time t-1 observation to add.
+   * @return const double Updated lag sum of squares.
+   */
   const double updateLagSumSquared(
       const double& lag_sum_squared, const double& last_observation
   ) const;
+  /**
+   * @brief Incrementally update the sum of the products of the lead and lag
+   * series.
+   *
+   * @param lead_lag_sum_product Current accumulated lead-lag sum product.
+   * @param new_observation The new time t observation to add.
+   * @param last_observation The new time t-1 observation to add.
+   * @return const double Updated lead-lag sum product.
+   */
   const double updateLeadLagSumProduct(
       const double& lead_lag_sum_product,
       const double& new_observation,
