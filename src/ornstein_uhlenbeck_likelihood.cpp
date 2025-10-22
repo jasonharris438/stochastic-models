@@ -7,33 +7,22 @@
 #include <new>
 #include <numeric>
 
-OrnsteinUhlenbeckLikelihoodComponents::OrnsteinUhlenbeckLikelihoodComponents(
-    const double lead_sum,
-    const double lag_sum,
-    const double lead_sum_squared,
-    const double lag_sum_squared,
-    const double lead_lag_sum_product,
-    const uint32_t n_obs
-)
-    : lead_sum(lead_sum), lag_sum(lag_sum), lead_sum_squared(lead_sum_squared),
-      lag_sum_squared(lag_sum_squared),
-      lead_lag_sum_product(lead_lag_sum_product), n_obs(n_obs) {}
-
-const double OrnsteinUhlenbeckLikelihood::calculateLeadSum(
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadSum(
     const std::vector<double>& data
 ) const {
   std::vector<double>::const_iterator iter = data.cbegin();
   std::advance(iter, 1);
   return std::reduce(iter, data.cend(), 0.0);
 };
-const double OrnsteinUhlenbeckLikelihood::calculateLagSum(
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLagSum(
     const std::vector<double>& data
 ) const {
   std::vector<double>::const_iterator iter = data.cend();
   std::advance(iter, -1);
   return std::reduce(data.cbegin(), iter, 0.0);
 };
-const double OrnsteinUhlenbeckLikelihood::calculateLeadSumSquared(
+const double
+OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadSumSquared(
     const std::vector<double>& data
 ) const {
   const std::vector<double> squared = valuesSquared(data);
@@ -41,7 +30,8 @@ const double OrnsteinUhlenbeckLikelihood::calculateLeadSumSquared(
   std::advance(iter, 1);
   return std::reduce(iter, squared.cend(), 0.0);
 };
-const double OrnsteinUhlenbeckLikelihood::calculateLagSumSquared(
+const double
+OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLagSumSquared(
     const std::vector<double>& data
 ) const {
   const std::vector<double> squared = valuesSquared(data);
@@ -49,7 +39,8 @@ const double OrnsteinUhlenbeckLikelihood::calculateLagSumSquared(
   std::advance(iter, -1);
   return std::reduce(squared.cbegin(), iter, 0.0);
 };
-const double OrnsteinUhlenbeckLikelihood::calculateLeadLagSumProduct(
+const double
+OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadLagSumProduct(
     const std::vector<double>& data
 ) const {
   std::vector<double>::const_iterator iter_lead = data.cbegin();
@@ -61,17 +52,71 @@ const double OrnsteinUhlenbeckLikelihood::calculateLeadLagSumProduct(
 
   return std::inner_product(iter_lag_start, iter_lag_end, iter_lead, 0.0);
 };
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::updateLeadSum(
+    const double& lead_sum, const double& new_observation
+) const {
+  return lead_sum + new_observation;
+};
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::updateLagSum(
+    const double& lag_sum, const double& last_observation
+) const {
+  return lag_sum + last_observation;
+};
+const double
+OrnsteinUhlenbeckLikelihoodComponentCalculator::updateLeadSumSquared(
+    const double& lead_sum_squared, const double& new_observation
+) const {
+  return lead_sum_squared + std::pow(new_observation, 2);
+};
+const double
+OrnsteinUhlenbeckLikelihoodComponentCalculator::updateLagSumSquared(
+    const double& lag_sum_squared, const double& last_observation
+) const {
+  return lag_sum_squared + std::pow(last_observation, 2);
+};
+const double
+OrnsteinUhlenbeckLikelihoodComponentCalculator::updateLeadLagSumProduct(
+    const double& lead_lag_sum_product,
+    const double& new_observation,
+    const double& last_observation
+) const {
+  return lead_lag_sum_product + (last_observation * new_observation);
+};
 OrnsteinUhlenbeckLikelihoodComponents
 OrnsteinUhlenbeckLikelihood::calculateComponents(
     const std::vector<double>& data
-) {
+) const {
   return OrnsteinUhlenbeckLikelihoodComponents{
-      calculateLeadSum(data),           calculateLagSum(data),
-      calculateLeadSumSquared(data),    calculateLagSumSquared(data),
-      calculateLeadLagSumProduct(data), static_cast<uint32_t>(data.size())
+      component_calculator.calculateLeadSum(data),
+      component_calculator.calculateLagSum(data),
+      component_calculator.calculateLeadSumSquared(data),
+      component_calculator.calculateLagSumSquared(data),
+      component_calculator.calculateLeadLagSumProduct(data),
+      static_cast<uint32_t>(data.size())
   };
 };
-const double OrnsteinUhlenbeckLikelihood::calculateMu(
+const OrnsteinUhlenbeckLikelihoodComponents
+OrnsteinUhlenbeckLikelihood::updateComponents(
+    const OrnsteinUhlenbeckLikelihoodComponents& components,
+    const double& new_observation,
+    const double& last_observation
+) const {
+  return OrnsteinUhlenbeckLikelihoodComponents{
+      component_calculator.updateLeadSum(components.lead_sum, new_observation),
+      component_calculator.updateLagSum(components.lag_sum, last_observation),
+      component_calculator.updateLeadSumSquared(
+          components.lead_sum_squared, new_observation
+      ),
+      component_calculator.updateLagSumSquared(
+          components.lag_sum_squared, last_observation
+      ),
+      component_calculator.updateLeadLagSumProduct(
+          components.lead_lag_sum_product, new_observation, last_observation
+      ),
+      components.n_obs + 1
+  };
+}
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateMu(
     const OrnsteinUhlenbeckLikelihoodComponents& components
 ) const {
   return ((components.lead_sum * components.lag_sum_squared) -
@@ -81,7 +126,7 @@ const double OrnsteinUhlenbeckLikelihood::calculateMu(
           (std::pow(components.lag_sum, 2) -
            (components.lead_sum * components.lag_sum)));
 };
-const double OrnsteinUhlenbeckLikelihood::calculateAlpha(
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateAlpha(
     const OrnsteinUhlenbeckLikelihoodComponents& components, const double& mu
 ) const {
   return std::log(
@@ -93,7 +138,7 @@ const double OrnsteinUhlenbeckLikelihood::calculateAlpha(
              (mu * components.lead_sum) + (components.n_obs * (std::pow(mu, 2)))
          );
 };
-const double OrnsteinUhlenbeckLikelihood::calculateSigma(
+const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateSigma(
     const OrnsteinUhlenbeckLikelihoodComponents& components,
     const double& mu,
     const double& alpha
@@ -113,13 +158,11 @@ const double OrnsteinUhlenbeckLikelihood::calculateSigma(
 };
 const OrnsteinUhlenbeckParameters
 OrnsteinUhlenbeckLikelihood::calculateParameters(
-    const std::vector<double>& data
-) {
-  OrnsteinUhlenbeckLikelihood ou_likelihood;
-  OrnsteinUhlenbeckLikelihoodComponents components =
-      ou_likelihood.calculateComponents(data);
-  const double mu = ou_likelihood.calculateMu(components);
-  const double alpha = ou_likelihood.calculateAlpha(components, mu);
-  const double sigma = ou_likelihood.calculateSigma(components, mu, alpha);
+    const OrnsteinUhlenbeckLikelihoodComponents& components
+) const {
+  const double mu = component_calculator.calculateMu(components);
+  const double alpha = component_calculator.calculateAlpha(components, mu);
+  const double sigma =
+      component_calculator.calculateSigma(components, mu, alpha);
   return OrnsteinUhlenbeckParameters{mu, alpha, sigma};
 };

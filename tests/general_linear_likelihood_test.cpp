@@ -13,8 +13,11 @@ TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
                                      1159.6, 1153.6, 1138.3, 1124.6, 1122.6,
                                      1134.,  1132.5, 1139.8, 1133.6, 1124.5};
   // Generate likelihood calculator and generate estimates.
-  GeneralLinearLikelihood likelihood;
-  GeneralLinearParameters params = likelihood.calculateParameters(test_vec);
+  const GeneralLinearLikelihood likelihood;
+  const GeneralLinearLikelihoodComponents components =
+      likelihood.calculateComponents(test_vec);
+  const GeneralLinearParameters params =
+      likelihood.calculateParameters(components);
 
   // Expect equality for mu value.
   EXPECT_LE(abs(roundToDecimals(params.mu, 8) + 0.00143647), tolerance)

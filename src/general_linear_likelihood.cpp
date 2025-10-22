@@ -1,21 +1,24 @@
 
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
 
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <cmath>
 #include <numeric>
 
-GeneralLinearLikelihoodComponents::GeneralLinearLikelihoodComponents(
-    const double lag_squared,
-    const double lead_lag_inner_product,
-    const double sigma_kernel,
-    const uint32_t n_obs
-)
-    : lag_squared(lag_squared), lead_lag_inner_product(lead_lag_inner_product),
-      sigma_kernel(sigma_kernel), n_obs(n_obs) {}
+const double GeneralLinearLikelihoodComponentCalculator::calculateSeriesMean(
+    const double& numerator, const double& denominator
+) const {
+  if (denominator == 0 || numerator == 0) {
+    return 0.0;
+  } else {
+    return numerator / denominator;
+  }
+}
 
-const double GeneralLinearLikelihood::calculateLeadLagInnerProduct(
+const double
+GeneralLinearLikelihoodComponentCalculator::calculateLeadLagInnerProduct(
     const std::vector<double>& data
 ) const {
   std::vector<double>::const_iterator iter_y = data.cbegin();
@@ -27,7 +30,7 @@ const double GeneralLinearLikelihood::calculateLeadLagInnerProduct(
 
   return std::inner_product(iter_x_start, iter_x_end, iter_y, 0.0);
 };
-const double GeneralLinearLikelihood::calculateLagSquared(
+const double GeneralLinearLikelihoodComponentCalculator::calculateLagSquared(
     const std::vector<double>& data
 ) const {
   const std::vector<double> squared = valuesSquared(data);
@@ -35,57 +38,138 @@ const double GeneralLinearLikelihood::calculateLagSquared(
   std::advance(iter, 1);
   return std::reduce(iter, squared.cend(), 0.0);
 };
-const double GeneralLinearLikelihood::calculateSigmaKernel(
-    const u_int32_t& n_observations, const double& sigma
-) const {
-  return std::pow(sigma * n_observations, 2);
-}
-const double
-GeneralLinearLikelihood::calculateMu(const std::vector<double>& data) const {
-  return std::log(
-      calculateLeadLagInnerProduct(data) / calculateLagSquared(data)
-  );
-};
-const double GeneralLinearLikelihood::calculateSigma(
+const double GeneralLinearLikelihoodComponentCalculator::calculateSquaredError(
     const std::vector<double>& data, const double& mu
 ) const {
-  const double exp_mu = std::exp(mu);
+  const double exp_mean = std::exp(mu);
   double squared_diff_accumulated = 0.0;
-
-  if (data.size() > 0) {
+  if (data.size() > 1) {
     for (size_t idx_lead = 1; idx_lead < data.size(); idx_lead++) {
       size_t idx_lag = idx_lead - 1;
-      const double lag_factored = data.at(idx_lag) * exp_mu;
+      const double lag_factored = data.at(idx_lag) * exp_mean;
 
       squared_diff_accumulated += std::pow(data.at(idx_lead) - lag_factored, 2);
     }
-    return std::sqrt(squared_diff_accumulated / data.size());
   } else {
-    return squared_diff_accumulated;
+    throw InvalidNumberObservationsError(
+        "Number of observations must be greater than 1."
+    );
   }
+  return squared_diff_accumulated;
 };
-const double GeneralLinearLikelihood::calculateConditionalVariance(
-    const double& sigma, const double& mu
+const double
+GeneralLinearLikelihoodComponentCalculator::updateLeadLagInnerProduct(
+    const double& lead_lag_inner_product,
+    const double& new_observation,
+    const double& last_observation
 ) const {
-  return (2 * sigma * mu) / (std::exp(2 * mu) - std::exp(mu));
+  return lead_lag_inner_product + (last_observation * new_observation);
+}
+const double GeneralLinearLikelihoodComponentCalculator::updateLagSquared(
+    const double& lag_squared, const double& last_observation
+) const {
+  return lag_squared + std::pow(last_observation, 2);
+}
+const double GeneralLinearLikelihoodComponentCalculator::updateSquaredError(
+    const double& squared_error,
+    const double& new_observation,
+    const double& last_observation,
+    const double& mean,
+    const uint32_t& n_observations
+) const {
+  const double n_observations_new = n_observations + 1.0;
+  const double n_observations_ratio = n_observations / n_observations_new;
+  return squared_error +
+         (n_observations_ratio *
+          std::pow(new_observation - mean * last_observation, 2));
+}
+const double GeneralLinearLikelihoodComponentCalculator::calculateSigmaKernel(
+    const GeneralLinearLikelihoodComponents& components,
+    const GeneralLinearParameters& parameters
+) const {
+  return std::pow(parameters.sigma * components.n_obs, 2);
+}
+const double GeneralLinearLikelihoodComponentCalculator::calculateMu(
+    const GeneralLinearLikelihoodComponents& components
+) const {
+  return std::log(calculateSeriesMean(
+      components.lead_lag_inner_product, components.lag_squared
+  ));
+};
+const double GeneralLinearLikelihoodComponentCalculator::calculateSigma(
+    const GeneralLinearLikelihoodComponents& components, const double& mu
+) const {
+  const double sigma =
+      (components.squared_error != 0.0 && components.n_obs > 0)
+          ? std::sqrt(components.squared_error / components.n_obs)
+          : 0.0;
+  return sigma;
+};
+const double
+GeneralLinearLikelihoodComponentCalculator::calculateConditionalVariance(
+    const GeneralLinearParameters& parameters
+) const {
+  return (2 * parameters.sigma * parameters.mu) /
+         (std::exp(2 * parameters.mu) - std::exp(parameters.mu));
 };
 const GeneralLinearParameters GeneralLinearLikelihood::calculateParameters(
-    const std::vector<double>& data
+    const GeneralLinearLikelihoodComponents& components
 ) const {
-  const double mu = calculateMu(data);
-  const double sigma = calculateSigma(data, mu);
+  const double mu = component_calculator.calculateMu(components);
+  const double sigma = component_calculator.calculateSigma(components, mu);
   return GeneralLinearParameters{mu, sigma};
 }
 
 const GeneralLinearLikelihoodComponents
 GeneralLinearLikelihood::calculateComponents(
-    const std::vector<double>& data, const GeneralLinearParameters& params
+    const std::vector<double>& data
 ) const {
-  const double lead_lag_inner_product = calculateLeadLagInnerProduct(data);
-  const double lag_squared = calculateLagSquared(data);
   const uint32_t n_obs = static_cast<uint32_t>(data.size());
-  const double sigma_kernel_value = calculateSigmaKernel(n_obs, params.sigma);
+  const double lead_lag_inner_product =
+      component_calculator.calculateLeadLagInnerProduct(data);
+  const double lag_squared = component_calculator.calculateLagSquared(data);
   return GeneralLinearLikelihoodComponents{
-      lag_squared, lead_lag_inner_product, sigma_kernel_value, n_obs
+      lag_squared, lead_lag_inner_product,
+      component_calculator.calculateSquaredError(
+          data, std::log(component_calculator.calculateSeriesMean(
+                    lead_lag_inner_product, lag_squared
+                ))
+      ),
+      n_obs
+  };
+}
+const double GeneralLinearLikelihood::calculateConditionalVariance(
+    const GeneralLinearParameters& parameters
+) const {
+  return component_calculator.calculateConditionalVariance(parameters);
+}
+const double GeneralLinearLikelihood::calculateSigmaKernel(
+    const GeneralLinearLikelihoodComponents& components,
+    const GeneralLinearParameters& parameters
+) const {
+  return component_calculator.calculateSigmaKernel(components, parameters);
+}
+const GeneralLinearLikelihoodComponents
+GeneralLinearLikelihood::updateComponents(
+    const GeneralLinearLikelihoodComponents& components,
+    const double& new_observation,
+    const double& last_observation
+) const {
+  const double lag_squared = component_calculator.updateLagSquared(
+      components.lag_squared, last_observation
+  );
+  const double lead_lag_inner_product =
+      component_calculator.updateLeadLagInnerProduct(
+          components.lead_lag_inner_product, new_observation, last_observation
+      );
+  const double mean = component_calculator.calculateSeriesMean(
+      lead_lag_inner_product, lag_squared
+  );
+  const double squared_error = component_calculator.updateSquaredError(
+      components.squared_error, new_observation, last_observation, mean,
+      components.n_obs
+  );
+  return GeneralLinearLikelihoodComponents{
+      lag_squared, lead_lag_inner_product, squared_error, components.n_obs + 1
   };
 }

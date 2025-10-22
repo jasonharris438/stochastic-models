@@ -9,6 +9,7 @@
 #include "stochastic_models/hitting_times/hitting_time_density.h"
 #include "stochastic_models/hitting_times/hitting_time_ornstein_uhlenbeck.h"
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
+#include "stochastic_models/likelihood/ornstein_uhlenbeck_online.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 
 const std::vector<double> simulateOrnsteinUhlenbeck(
@@ -60,12 +61,42 @@ ornsteinUhlenbeckMaximumLikelihood(const std::vector<double> vec) {
   // Generate likelihood calculator and generate estimate of mu, alpha,
   // and sigma.
   OrnsteinUhlenbeckLikelihood likelihood = OrnsteinUhlenbeckLikelihood();
+  const OrnsteinUhlenbeckLikelihoodComponents components =
+      likelihood.calculateComponents(vec);
   const OrnsteinUhlenbeckParameters parameters =
-      likelihood.calculateParameters(vec);
+      likelihood.calculateParameters(components);
   const std::unordered_map<std::string, const double> key_value_pairs{
       {"mu", parameters.mu},
       {"alpha", parameters.alpha},
       {"sigma", parameters.sigma}
   };
   return key_value_pairs;
+}
+
+const std::vector<double> updateOuModel(
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const double lead_sum,
+    const double lag_sum,
+    const double lead_sum_squared,
+    const double lag_sum_squared,
+    const double lead_lag_sum_product,
+    const uint32_t n_obs,
+    const double new_observation,
+    const double last_observation
+
+) {
+  OrnsteinUhlenbeckUpdater updater(
+      OrnsteinUhlenbeckLikelihoodComponents{
+          lead_sum, lag_sum, lead_sum_squared, lag_sum_squared,
+          lead_lag_sum_product, n_obs
+      },
+      OrnsteinUhlenbeckParameters{mu, alpha, sigma}
+  );
+
+  const OrnsteinUhlenbeckParameters params =
+      updater.updateState(new_observation, last_observation);
+
+  return {params.mu, params.alpha, params.sigma};
 }

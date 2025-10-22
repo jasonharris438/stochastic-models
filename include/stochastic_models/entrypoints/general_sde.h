@@ -1,6 +1,7 @@
 #ifndef STOCHASTIC_MODELS_ENTRYPOINTS_GENERAL_SDE_H
 #define STOCHASTIC_MODELS_ENTRYPOINTS_GENERAL_SDE_H
 
+#include <cstdint>
 #include <vector>
 
 /**
@@ -20,13 +21,15 @@
  * @return const std::vector<double> A vector containing the updated mu and
  * sigma values.
  */
-const std::vector<double> updateGeneralLinearSDE(
-    const double observation,
-    const double mu_numerator,
-    const double mu_denominator,
-    const double sigma_state_value,
+const std::vector<double> updateGeneralLinearSDEModel(
+    const double mu,
+    const double sigma,
+    const double new_observation,
     const double last_observation,
-    const int n_obs
+    const double lag_squared,
+    const double lead_lag_inner_product,
+    const double squared_error,
+    const uint32_t n_obs
 );
 
 #endif // STOCHASTIC_MODELS_ENTRYPOINTS_GENERAL_SDE_H

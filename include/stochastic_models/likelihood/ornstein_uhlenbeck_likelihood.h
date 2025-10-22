@@ -10,32 +10,17 @@ struct OrnsteinUhlenbeckParameters {
   double sigma;
 };
 
-class OrnsteinUhlenbeckLikelihoodComponents {
-public:
-  const double lead_sum;
-  const double lag_sum;
-  const double lead_sum_squared;
-  const double lag_sum_squared;
-  const double lead_lag_sum_product;
-  const uint32_t n_obs;
-
-  OrnsteinUhlenbeckLikelihoodComponents(
-      const double lead_sum,
-      const double lag_sum,
-      const double lead_sum_squared,
-      const double lag_sum_squared,
-      const double lead_lag_sum_product,
-      const uint32_t n_obs
-  );
+struct OrnsteinUhlenbeckLikelihoodComponents {
+  double lead_sum;
+  double lag_sum;
+  double lead_sum_squared;
+  double lag_sum_squared;
+  double lead_lag_sum_product;
+  uint32_t n_obs;
 };
 
-/**
- * @brief Handles calculating maxmimum likelihood parameters specifically under
- * Ornstein-Uhlenbeck processes assumptions for a data series.
- *
- */
-class OrnsteinUhlenbeckLikelihood {
-private:
+class OrnsteinUhlenbeckLikelihoodComponentCalculator {
+public:
   /**
    * @brief Calculates the sum of the lead series used in likelihood
    * calculations.
@@ -77,16 +62,21 @@ private:
    */
   const double
   calculateLeadLagSumProduct(const std::vector<double>& data) const;
-
-public:
-  /**
-   * @brief Calculates likelihood equation components from data parameters and
-   * stores in components member.
-   *
-   * @param data Data series used to calculate maximum likelihood parameters.
-   */
-  OrnsteinUhlenbeckLikelihoodComponents
-  calculateComponents(const std::vector<double>& data);
+  const double
+  updateLeadSum(const double& lead_sum, const double& new_observation) const;
+  const double
+  updateLagSum(const double& lag_sum, const double& last_observation) const;
+  const double updateLeadSumSquared(
+      const double& lead_sum_squared, const double& new_observation
+  ) const;
+  const double updateLagSumSquared(
+      const double& lag_sum_squared, const double& last_observation
+  ) const;
+  const double updateLeadLagSumProduct(
+      const double& lead_lag_sum_product,
+      const double& new_observation,
+      const double& last_observation
+  ) const;
   /**
    * @brief Calculates the maxmimum likelihood value for the model parameter
    * mu using the values in the components member.
@@ -127,9 +117,39 @@ public:
       const double& mu,
       const double& alpha
   ) const;
+};
 
-  const OrnsteinUhlenbeckParameters
-  calculateParameters(const std::vector<double>& data);
+/**
+ * @brief Handles calculating maxmimum likelihood parameters specifically under
+ * Ornstein-Uhlenbeck processes assumptions for a data series.
+ *
+ */
+class OrnsteinUhlenbeckLikelihood {
+private:
+  /**
+   * @brief Component calculator instance to use when calculating likelihood
+   * components from a data series.
+   */
+  OrnsteinUhlenbeckLikelihoodComponentCalculator component_calculator;
+
+public:
+  /**
+   * @brief Calculates the internal likelihood equation components from a data
+   * series.
+   *
+   * @param data Data series used to calculate maximum likelihood parameters.
+   */
+  OrnsteinUhlenbeckLikelihoodComponents
+  calculateComponents(const std::vector<double>& data) const;
+
+  const OrnsteinUhlenbeckParameters calculateParameters(
+      const OrnsteinUhlenbeckLikelihoodComponents& components
+  ) const;
+  const OrnsteinUhlenbeckLikelihoodComponents updateComponents(
+      const OrnsteinUhlenbeckLikelihoodComponents& components,
+      const double& new_observation,
+      const double& last_observation
+  ) const;
 };
 
 #endif // STOCHASTIC_MODELS_LIKELIHOOD_ORNSTEIN_UHLENBECK_LIKELIHOOD_H

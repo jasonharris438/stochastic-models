@@ -10,20 +10,25 @@
 
 #include <cmath>
 
-const std::vector<double> updateGeneralLinearSDE(
-    const double observation,
-    const double mu_numerator,
-    const double mu_denominator,
-    const double sigma_state_value,
+const std::vector<double> updateGeneralLinearSDEModel(
+    const double mu,
+    const double sigma,
+    const double new_observation,
     const double last_observation,
-    const int n_obs
+    const double lag_squared,
+    const double lead_lag_inner_product,
+    const double squared_error,
+    const uint32_t n_obs
 ) {
   GeneralLinearUpdater updater(
-      mu_numerator, mu_denominator, sigma_state_value, last_observation, n_obs
+      GeneralLinearLikelihoodComponents{
+          lag_squared, lead_lag_inner_product, squared_error, n_obs
+      },
+      GeneralLinearParameters{mu, sigma}
   );
 
-  const double mu = updater.updateMu(observation);
-
-  return {mu, updater.updateSigma(observation)};
+  const GeneralLinearParameters params =
+      updater.updateState(new_observation, last_observation);
+  return {params.mu, params.sigma};
 }
 

@@ -8,28 +8,17 @@ struct GeneralLinearParameters {
   double sigma;
 };
 
-class GeneralLinearLikelihoodComponents {
-public:
-  const double lag_squared;
-  const double lead_lag_inner_product;
-  const double sigma_kernel;
-  const uint32_t n_obs;
-
-  GeneralLinearLikelihoodComponents(
-      const double lag_squared,
-      const double lead_lag_inner_product,
-      const double sigma_kernel,
-      const uint32_t n_obs
-  );
+struct GeneralLinearLikelihoodComponents {
+  double lag_squared;
+  double lead_lag_inner_product;
+  double squared_error;
+  uint32_t n_obs;
 };
 
-/**
- * @brief Handles calculating maxmimum likelihood parameters specifically under
- * General Linear SDE process assumptions for a data series.
- *
- */
-class GeneralLinearLikelihood {
-private:
+class GeneralLinearLikelihoodComponentCalculator {
+public:
+  const double
+  calculateSeriesMean(const double& numerator, const double& denominator) const;
   /**
    * @brief Calculates the inner product of the lead and lag of the data
    * series in `data`.
@@ -48,8 +37,9 @@ private:
    * series.
    */
   const double calculateLagSquared(const std::vector<double>& data) const;
-
-public:
+  const double calculateSquaredError(
+      const std::vector<double>& data, const double& mu
+  ) const;
   /**
    * @brief Calculates the kernel value for the sigma parameter of the data
    * series in `data`.
@@ -58,23 +48,40 @@ public:
    * @return const double The kernel value for the sigma parameter.
    */
   const double calculateSigmaKernel(
-      const uint32_t& n_observations, const double& sigma
+      const GeneralLinearLikelihoodComponents& components,
+      const GeneralLinearParameters& parameters
+  ) const;
+
+  const double updateLeadLagInnerProduct(
+      const double& lead_lag_inner_product,
+      const double& new_observation,
+      const double& last_observation
+  ) const;
+  const double updateLagSquared(
+      const double& lag_squared, const double& last_observation
+  ) const;
+  const double updateSquaredError(
+      const double& squared_error,
+      const double& new_observation,
+      const double& last_observation,
+      const double& mean,
+      const uint32_t& n_observations
   ) const;
 
   /**
    * @brief Calculates the `mu` parameter for the data series in `data`.
-   * @param data Data series used to calculate.
    * @return const double The `mu` parameter for the data series.
    */
-  const double calculateMu(const std::vector<double>& data) const;
+  const double
+  calculateMu(const GeneralLinearLikelihoodComponents& components) const;
   /**
    * @brief Calculates the `sigma` parameter for the data series in `data`.
-   * @param data Data series used to calculate.
    * @param mu The `mu` parameter for the data series.
    * @return const double The `sigma` parameter for the data series.
    */
-  const double
-  calculateSigma(const std::vector<double>& data, const double& mu) const;
+  const double calculateSigma(
+      const GeneralLinearLikelihoodComponents& components, const double& mu
+  ) const;
   /**
    * @brief Calculates the maxmimum likelihood values for all model
    * parameters.
@@ -84,23 +91,47 @@ public:
    * likelihood value for model parameters.
    */
   const double
-  calculateConditionalVariance(const double& sigma, const double& mu) const;
+  calculateConditionalVariance(const GeneralLinearParameters& parameters) const;
+};
 
+/**
+ * @brief Handles calculating maxmimum likelihood parameters specifically under
+ * General Linear SDE process assumptions for a data series.
+ *
+ */
+class GeneralLinearLikelihood {
+private:
+  /**
+   * @brief Component calculator instance to use when calculating likelihood
+   * components from a data series.
+   */
+  GeneralLinearLikelihoodComponentCalculator component_calculator;
+
+public:
   /**
    * @brief Calculates the likelihood equation components from data series
    * and model parameters.
    *
    * @param data Data series used to calculate.
-   * @param params The model parameters calculated from the data series.
    * @return const GeneralLinearLikelihoodComponents The likelihood equation
    * components.
    */
-  const GeneralLinearLikelihoodComponents calculateComponents(
-      const std::vector<double>& data, const GeneralLinearParameters& params
+  const GeneralLinearLikelihoodComponents
+  calculateComponents(const std::vector<double>& data) const;
+  const GeneralLinearLikelihoodComponents updateComponents(
+      const GeneralLinearLikelihoodComponents& components,
+      const double& new_observation,
+      const double& last_observation
   ) const;
-
-  const GeneralLinearParameters
-  calculateParameters(const std::vector<double>& data) const;
+  const GeneralLinearParameters calculateParameters(
+      const GeneralLinearLikelihoodComponents& components
+  ) const;
+  const double
+  calculateConditionalVariance(const GeneralLinearParameters& parameters) const;
+  const double calculateSigmaKernel(
+      const GeneralLinearLikelihoodComponents& components,
+      const GeneralLinearParameters& parameters
+  ) const;
 };
 
 #endif // STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_LIKELIHOOD_H

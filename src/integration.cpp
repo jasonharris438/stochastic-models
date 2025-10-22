@@ -3,8 +3,6 @@
 #include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <iostream>
-
 IntegrationState::IntegrationState(gsl_integration_workspace& w)
     : workspace(&w) {}
 IntegrationState::~IntegrationState() {

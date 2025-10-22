@@ -3,14 +3,23 @@
 #include <cmath>
 
 OrnsteinUhlenbeckUpdater::OrnsteinUhlenbeckUpdater(
-    const double lead_series_sum,
-    const double lag_series_sum,
-    const double lead_sum_of_squares,
-    const double lag_sum_of_squares,
-    const double last_observation,
-    const int n_obs
+    const OrnsteinUhlenbeckLikelihoodComponents components,
+    const OrnsteinUhlenbeckParameters parameters
 )
-    : lead_series_sum(lead_series_sum), lag_series_sum(lag_series_sum),
-      lead_sum_of_squares(lead_sum_of_squares),
-      lag_sum_of_squares(lag_sum_of_squares),
-      last_observation(last_observation), n_obs(n_obs) {}
+    : components(components), parameters(parameters),
+      likelihood(OrnsteinUhlenbeckLikelihood()) {}
+
+const OrnsteinUhlenbeckParameters
+OrnsteinUhlenbeckUpdater::getParameters() const {
+  return parameters;
+}
+
+const OrnsteinUhlenbeckParameters OrnsteinUhlenbeckUpdater::updateState(
+    const double& new_observation, const double& last_observation
+) {
+  components = likelihood.updateComponents(
+      components, new_observation, last_observation
+  );
+  parameters = likelihood.calculateParameters(components);
+  return parameters;
+}

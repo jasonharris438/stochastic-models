@@ -184,17 +184,19 @@ const double& FilterGeneralSde::getConditionalVariance() const {
 void FilterGeneralSde::initializeLikelihoodState(
     const std::vector<double>& data_series
 ) {
-  const GeneralLinearParameters likelihood_values =
-      likelihood.calculateParameters(data_series);
   const GeneralLinearLikelihoodComponents components =
-      likelihood.calculateComponents(data_series, likelihood_values);
+      likelihood.calculateComponents(data_series);
+  const GeneralLinearParameters likelihood_values =
+      likelihood.calculateParameters(components);
 
   mu = likelihood_values.mu;
   sigma = likelihood_values.sigma;
-  conditional_variance = likelihood.calculateConditionalVariance(sigma, mu);
+  conditional_variance =
+      likelihood.calculateConditionalVariance(likelihood_values);
   mu_numerator = components.lead_lag_inner_product;
   mu_denominator = components.lag_squared;
-  sigma_kernel_value = components.sigma_kernel;
+  sigma_kernel_value =
+      likelihood.calculateSigmaKernel(components, likelihood_values);
   n_observations = components.n_obs;
 }
 
