@@ -4,7 +4,7 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <iostream>
-void BoostMartixInverter::linalgLuDecomp(
+void BoostMatrixInverter::linalgLuDecomp(
     gsl_matrix* gsl_mat, gsl_permutation* perm
 ) const {
   int signum;
@@ -17,7 +17,7 @@ void BoostMartixInverter::linalgLuDecomp(
     throw std::runtime_error("GSL LU decomposition failed.");
   }
 }
-void BoostMartixInverter::linalgInvertMatrix(
+void BoostMatrixInverter::linalgInvertMatrix(
     gsl_matrix* gsl_mat, gsl_permutation* perm, gsl_matrix* gsl_inv
 ) const {
   const int status = gsl_linalg_LU_invert(gsl_mat, perm, gsl_inv);
@@ -30,7 +30,7 @@ void BoostMartixInverter::linalgInvertMatrix(
     throw std::runtime_error("GSL matrix inversion failed.");
   }
 }
-void BoostMartixInverter::copyBoostToGslMatrix(
+void BoostMatrixInverter::copyBoostToGslMatrix(
     const boost::numeric::ublas::matrix<double>& boost_matrix,
     gsl_matrix* gsl_mat
 ) const {
@@ -43,7 +43,7 @@ void BoostMartixInverter::copyBoostToGslMatrix(
   }
 }
 const boost::numeric::ublas::matrix<double>
-BoostMartixInverter::copyGslToBoostMatrix(const gsl_matrix* gsl_mat) const {
+BoostMatrixInverter::copyGslToBoostMatrix(const gsl_matrix* gsl_mat) const {
   std::size_t rows = gsl_mat->size1;
   std::size_t cols = gsl_mat->size2;
   boost::numeric::ublas::matrix<double> boost_matrix(rows, cols);
@@ -55,7 +55,7 @@ BoostMartixInverter::copyGslToBoostMatrix(const gsl_matrix* gsl_mat) const {
   return boost_matrix;
 }
 
-const boost::numeric::ublas::matrix<double> BoostMartixInverter::invertMatrix(
+const boost::numeric::ublas::matrix<double> BoostMatrixInverter::invertMatrix(
     const boost::numeric::ublas::matrix<double>& boost_matrix
 ) const {
   // Allocate GSL matrix memory space for inverted matrix.

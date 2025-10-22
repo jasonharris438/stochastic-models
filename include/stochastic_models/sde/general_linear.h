@@ -30,6 +30,9 @@ public:
    *
    * @return const GeneralLinearModel* Pointer to the new instance.
    */
+  /**
+   * @brief Return a heap-allocated copy of the model.
+   */
   const GeneralLinearModel* clone() const override;
 
   /**

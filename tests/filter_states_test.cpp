@@ -233,7 +233,7 @@ TEST(KalmanFilterTest, PredictedObservationCalculateKalmanGainTest) {
       create_boost_matrix_from_vectors(covariance_vector);
 
   // Generate predicted observation covariance from variables created.
-  const BoostMartixInverter matrix_inverter;
+  const BoostMatrixInverter matrix_inverter;
   const matrix<double> result = predicted_observation.calculateKalmanGain(
       predicted_state_covariance, predicted_observation_covariance,
       matrix_inverter

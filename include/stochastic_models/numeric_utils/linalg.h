@@ -7,10 +7,11 @@
 /**
  * @brief Class that handles inverting a boost::numeric::ublas matrix using GSL.
  *
- * This logic is unfortunately required due to boost not providing a native
- * matrix inversion method.
+ * Internally the class converts between the project's boost matrix types and
+ * GSL's matrix layout, performs LU-decomposition and inversion using GSL, and
+ * converts the result back to boost types.
  */
-class BoostMartixInverter {
+class BoostMatrixInverter {
 private:
   /**
    * @brief Method to perform LU decomposition on a matrix with GSL.

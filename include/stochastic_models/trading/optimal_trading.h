@@ -19,15 +19,15 @@ public:
    */
   virtual const OptimalTrading* clone() const = 0;
   /**
-   * @brief Abstract method that calculates @f[ F(x;r) @f] for the optimal
+   * @brief Abstract method that calculates F(x;r) for the optimal
    * trading strategy.
    *
    * @param model Pointer to the stochastic model to use in the function @f[
-   * F(x;r) @f].
-   * @param x The current value x to evaluate @f[ F(x;r) @f].
+   * F(x;r).
+   * @param x The current value x to evaluate F(x;r).
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value of @f[ F(x;r) @f].
+   * @return const double The value of F(x;r).
    */
   virtual const double
   F(const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -35,15 +35,15 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates @f[ G(x;r) @f] for the optimal
+   * @brief Abstract method that calculates G(x;r) for the optimal
    * trading strategy.
    *
    * @param model Pointer to the stochastic model to use in the function @f[
-   * G(x;r) @f].
-   * @param x The current value x to evaluate @f[ G(x;r) @f].
+   * G(x;r).
+   * @param x The current value x to evaluate G(x;r).
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value of @f[ G(x;r) @f].
+   * @return const double The value of G(x;r).
    */
   virtual const double
   G(const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -51,14 +51,14 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates @f[ L^* @f] for the optimal
+   * @brief Abstract method that calculates L* for the optimal
    * trading strategy.
    *
    * @param model Pointer to the stochastic model to use in the function @f[
-   * L^* @f].
+   * L*.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value of @f[ L^* @f].
+   * @return const double The value of L*.
    */
   virtual const double L_star(
       const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -66,15 +66,15 @@ public:
       const double& c
   ) const = 0;
   /**
-   * @brief Abstract method that calculates the value @f[ b @f]
+   * @brief Abstract method that calculates the value b
    * for the optimal trading strategy.
    *
    * @param value The value at which to evaluate the optimal exit level.
-   * @param model Pointer to the stochastic model to use in the function @f[ b
-   * @f].
+   * @param model Pointer to the stochastic model to use in the function b
+   *.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ b @f].
+   * @return const double The value b.
    */
   virtual const double
   b(const double& value,
@@ -82,16 +82,16 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates the value @f[ b @f]
+   * @brief Abstract method that calculates the value b
    * for the optimal trading strategy with a stop loss level.
    *
    * @param value The value at which to evaluate the optimal exit level.
-   * @param model Pointer to the stochastic model to use in the function @f[ b
-   * @f].
+   * @param model Pointer to the stochastic model to use in the function b
+   *.
    * @param stop_loss The stop loss level to use in the optimal trading.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ b @f].
+   * @return const double The value b.
    */
   virtual const double
   b(const double& value,
@@ -100,17 +100,17 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates the value @f[ a @f], the lower
+   * @brief Abstract method that calculates the value a, the lower
    * bound for the optimal entry region for the optimal trading strategy.
    *
    * @param value The value at which to evaluate the optimal entry level.
-   * @param model Pointer to the stochastic model to use in the function @f[ d
-   * @f].
+   * @param model Pointer to the stochastic model to use in the function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ a @f].
+   * @return const double The value a.
    */
   virtual const double
   a(const double& value,
@@ -119,19 +119,19 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates the value @f[ a @f], the lower
+   * @brief Abstract method that calculates the value a, the lower
    * bound for the optimal entry region for the optimal trading strategy when
    * a stop loss level is provided.
    *
    * @param value The value at which to evaluate the optimal entry level.
-   * @param model Pointer to the stochastic model to use in the function @f[ d
-   * @f].
+   * @param model Pointer to the stochastic model to use in the function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param stop_loss The stop loss level to use in the optimal trading.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ a @f].
+   * @return const double The value a.
    */
   virtual const double
   a(const double& value,
@@ -141,18 +141,18 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates the value @f[ d @f] for the
+   * @brief Abstract method that calculates the value d for the
    * optimal trading strategy when a stop loss level is provided.
    *
    * @param value The value at which to evaluate the optimal entry level.
-   * @param model Pointer to the stochastic model to use in the function @f[ d
-   * @f].
+   * @param model Pointer to the stochastic model to use in the function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param stop_loss The stop loss level to use in the optimal trading.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ d @f].
+   * @return const double The value d.
    */
   virtual const double
   d(const double& value,
@@ -162,17 +162,17 @@ public:
     const double& r,
     const double& c) const = 0;
   /**
-   * @brief Abstract method that calculates the value @f[ d @f] for the
+   * @brief Abstract method that calculates the value d for the
    * optimal trading strategy.
    *
    * @param value The value at which to evaluate the optimal entry level.
-   * @param model Pointer to the stochastic model to use in the function @f[ d
-   * @f].
+   * @param model Pointer to the stochastic model to use in the function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ d @f].
+   * @return const double The value d.
    */
   virtual const double
   d(const double& value,

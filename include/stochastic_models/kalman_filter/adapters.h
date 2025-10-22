@@ -7,8 +7,14 @@
 #include <string>
 
 /**
- * @brief Handles serialization and deserialization to and from JSON structure
- * for KcaStates objects.
+ * @file
+ * @brief JSON adapters used to serialize/deserialize Kalman filter state and
+ * dimension objects.
+ */
+
+/**
+ * @brief Handles serialization and deserialization to and from JSON for
+ * `KcaStates` objects.
  */
 class KcaStatesJsonAdapter {
 private:
@@ -28,13 +34,19 @@ public:
    * object.
    */
   const std::string serialize(const KcaStates& kca_states) const;
+  /**
+   * @brief Deserialize a JSON string into a `KcaStates` instance.
+   *
+   * @param state JSON string containing the state fields.
+   * @param dimensions Dimensions object used to size the internal matrices.
+   * @return KcaStates Reconstructed KCA state.
+   */
   const KcaStates deserialize(
       const std::string& state, const FilterSystemDimensions& dimensions
   ) const;
 };
 /**
- * @brief Handles serialization and deserialization to and from JSON structure
- * for KcaParameters objects.
+ * @brief Adapter to (de)serialize `FilterSystemDimensions` to/from JSON.
  */
 class FilterSystemDimensionsJsonAdapter {
 public:
@@ -47,10 +59,13 @@ public:
    */
   const std::string serialize(const FilterSystemDimensions& dimensions) const;
   /**
-   * @brief Deserializes a JSON string to a FilterSystemDimensions object.
+   * @brief Parse a JSON string and return a `FilterSystemDimensions` object.
    *
-   * Creates a readable JSON object from the `state` object and extracts
-   * fields to initialize a FilterSystemDimensions object.
+   * The function expects the JSON to contain numeric fields matching the
+   * struct layout.
+   *
+   * @param state JSON string to parse.
+   * @return FilterSystemDimensions Parsed object.
    */
   const FilterSystemDimensions deserialize(const std::string& state) const;
 };

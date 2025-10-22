@@ -2,9 +2,15 @@
 #define STOCHASTIC_MODELS_DISTRIBUTIONS_GAUSSIAN_H
 #include "stochastic_models/distributions/core.h"
 /**
- * Gaussian distribution class. Takes two floats as inputs "mu" and "sigma" for
- * mean and standard deviation and implements several functions related
- * to probabilistic characteristics of the Gaussian distribution.
+ * @file
+ * @brief Gaussian (normal) distribution concrete implementation.
+ */
+
+/**
+ * @brief Gaussian distribution class.
+ *
+ * Stores mu (mean) and sigma (standard deviation) and implements sampling
+ * and CDF helper methods.
  */
 class GaussianDistribution : public CoreDistribution {
 private:
@@ -23,10 +29,24 @@ private:
    * @param x the point at which to evaluate CDF.
    * @returns Gaussian CDF value evaluated at x.
    */
+  /**
+   * @brief Helper implementing the error-function-based CDF evaluation.
+   * @param x Value at which to evaluate (single-precision is sufficient
+   *          for this helper).
+   * @return double CDF value.
+   */
   double erfGaussianCdf(const float x);
 
 public:
+  /**
+   * @brief Default constructor producing a standard normal (mu=0, sigma=1).
+   */
   GaussianDistribution();
+  /**
+   * @brief Construct GaussianDistribution with specific mu and sigma.
+   * @param mu Mean.
+   * @param sigma Standard deviation (must be > 0).
+   */
   GaussianDistribution(const double mu, const double sigma);
 
   /**

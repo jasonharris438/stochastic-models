@@ -86,68 +86,68 @@ struct EntryLevelParams {
   ~EntryLevelParams();
 };
 /**
- * @brief Function to evaluate the optimal entry level function @f[ a @f] in the
+ * @brief Function to evaluate the optimal entry level function a in the
  * optimal trading problem.
  *
  * @param x The value at which to evaluate the optimal entry level function.
  * @param params Pointer to the EntryLevelParams struct containing the
  * parameters used in evaluating the optimal entry level function.
- * @return double The value of the optimal entry level function @f[ d @f] at the
+ * @return double The value of the optimal entry level function d at the
  * point x.
  */
 double funcOptimalMeanReversionA(double x, void* params);
 /**
- * @brief Function to evaluate the optimal entry level function @f[ a @f] in the
+ * @brief Function to evaluate the optimal entry level function a in the
  * optimal trading problem when a stop loss is provided.
  *
  * @param x The value at which to evaluate the optimal entry level function.
  * @param params Pointer to the EntryLevelStopLossParams struct containing the
  * parameters used in evaluating the optimal entry level function.
- * @return double The value of the optimal entry level function @f[ d @f] at the
+ * @return double The value of the optimal entry level function d at the
  * point x.
  */
 double funcOptimalMeanReversionStopLossA(double x, void* params);
 /**
- * @brief Function to evaluate the optimal entry level function @f[ d @f] in the
+ * @brief Function to evaluate the optimal entry level function d in the
  * optimal trading problem when a stop loss is provided.
  *
  * @param x The value at which to evaluate the optimal entry level function.
  * @param params Pointer to the EntryLevelStopLossParams struct containing the
  * parameters used in evaluating the optimal entry level function.
- * @return double The value of the optimal entry level function @f[ d @f] at the
+ * @return double The value of the optimal entry level function d at the
  * point x.
  */
 double funcOptimalMeanReversionStopLossD(double x, void* params);
 /**
- * @brief Function to evaluate the optimal entry level function @f[ d @f] in the
+ * @brief Function to evaluate the optimal entry level function d in the
  * optimal trading problem.
  *
  * @param x The value at which to evaluate the optimal entry level function.
  * @param params Pointer to the EntryLevelParams struct containing the
  * parameters used in evaluating the optimal entry level function.
- * @return double The value of the optimal entry level function @f[ d @f] at the
+ * @return double The value of the optimal entry level function d at the
  * point x.
  */
 double funcOptimalMeanReversionD(double x, void* params);
 /**
- * @brief Function to evaluate the optimal exit level function @f[ b @f] in the
+ * @brief Function to evaluate the optimal exit level function b in the
  * optimal trading problem when there is a stop loss level provided.
  *
  * @param x The value at which to evaluate the optimal exit level function.
  * @param params Pointer to the ExitLevelStopLossParams struct containing the
  * parameters used in evaluating the optimal exit level function.
- * @return double The value of the optimal exit level function @f[ b @f] at the
+ * @return double The value of the optimal exit level function b at the
  * point x.
  */
 double funcOptimalMeanReversionStopLossB(double x, void* params);
 /**
- * @brief Function to evaluate the optimal exit level function @f[ b @f] in the
+ * @brief Function to evaluate the optimal exit level function b in the
  * optimal trading problem when a stop loss is provided.
  *
  * @param x The value at which to evaluate the optimal exit level function.
  * @param params Pointer to the ExitLevelParams struct containing the
  * parameters used in evaluating the optimal exit level function.
- * @return double The value of the optimal exit level function @f[ b @f] at the
+ * @return double The value of the optimal exit level function b at the
  * point x.
  */
 double funcOptimalMeanReversionB(double x, void* params);

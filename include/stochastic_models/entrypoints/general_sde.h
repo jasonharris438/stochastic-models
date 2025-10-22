@@ -5,21 +5,28 @@
 #include <vector>
 
 /**
- * @brief Handles updating the parameters of a General Linear SDE model given a
- * new observation and the current state of the model.
+ * @file
+ * @brief Entrypoint used by the command-line example to perform a
+ * single online update of the General Linear SDE model estimates.
+ */
+
+/**
+ * @brief Update the model parameters and tracking statistics when a single new
+ * observation is received.
  *
- * The function arguments are granular to ensure efficiency when updating the
- * model state. These values should be managed by the calling code to maintain
- * consistency.
+ * The function takes a minimal set of numeric accumulators in addition to the
+ * current parameter estimates and returns a vector with updated mu and sigma
+ * values (in that order).
  *
- * @param observation The new observation to update the model with.
- * @param mu_numerator The current numerator value for mu calculation.
- * @param mu_denominator The current denominator value for mu calculation.
- * @param sigma_state_value The current state value for sigma calculation.
- * @param last_observation The last observation used in the model.
- * @param n_obs The current number of observations used in the model.
- * @return const std::vector<double> A vector containing the updated mu and
- * sigma values.
+ * @param mu Current mu parameter estimate.
+ * @param sigma Current sigma estimate.
+ * @param new_observation New observed value X_t.
+ * @param last_observation Previous observed value X_{t-1}.
+ * @param lag_squared Current accumulated sum of lag^2.
+ * @param lead_lag_inner_product Current accumulated lead-lag inner product.
+ * @param squared_error Current accumulated squared error.
+ * @param n_obs Current number of observations (before this update).
+ * @return const std::vector<double> Vector of updated parameters: {mu, sigma}.
  */
 const std::vector<double> updateGeneralLinearSDEModel(
     const double mu,

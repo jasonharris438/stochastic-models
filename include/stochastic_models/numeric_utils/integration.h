@@ -5,39 +5,53 @@
 #include <gsl/gsl_integration.h>
 
 /**
- * @brief RAII wrapper for GSL integration workspace.
+ * @file
+ * @brief RAII helpers and wrappers around GSL integration routines.
+ */
+
+/**
+ * @brief RAII wrapper for a GSL integration workspace.
  *
- * This class manages the lifecycle of a GSL integration workspace
- * by allocating and deallocating the workspace as needed. It ensures
- * that memory is properly freed when the object goes out of scope,
+ * This helper owns a gsl_integration_workspace pointer and ensures the
+ * GSL workspace instance is correctly freed when the object is destroyed.
  */
 class IntegrationState {
 public:
   gsl_integration_workspace* workspace;
+  /**
+   * @brief Construct the RAII wrapper around an existing workspace reference.
+   *
+   * The constructor takes a reference to a GSL workspace that is managed by
+   * this wrapper. The semantics mirror those in the implementation file.
+   */
   IntegrationState(gsl_integration_workspace& w);
+  /**
+   * @brief Free the underlying GSL workspace if present.
+   */
   ~IntegrationState();
 };
 
 /**
  * @brief Integrates the function f over a given interval.
  *
- * @param fn A pointer to the function to integrate.
- * @param model A pointer to the model instance that is being used
- * to perform integration.
- * @param lower A reference to the lower bound of the integration interval.
- * @param upper A reference to the upper bound of the integration interval.
- * @return const double. The value of the integral of F.
+ * @param fn Function pointer conforming to ModelFunc that computes f(x).
+ * @param model Opaque pointer passed to the function; used to carry model
+ *              parameters or context.
+ * @param lower Lower bound of integration (passed by reference to allow
+ *              adaptive routines to modify it in some callers).
+ * @param upper Upper bound of integration.
+ * @return const double Value of the integral over [lower, upper].
  */
 const double
 adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper);
 /**
  * @brief Integrates the function f over a semi-infinite interval [lower, +inf).
  *
- * @param fn A pointer to the function to integrate.
- * @param model A pointer to the model instance that is being used
- * to perform integration.
- * @param lower A reference to the lower bound of the integration interval.
- * @return const double. The value of the integral of F.
+ * @param fn Function pointer conforming to ModelFunc that computes f(x).
+ * @param model Opaque pointer passed to the function; used to carry model
+ *              parameters or context.
+ * @param lower Lower bound of the semi-infinite integral.
+ * @return const double Value of the integral over [lower, +inf).
  */
 const double
 semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower);

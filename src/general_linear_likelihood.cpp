@@ -83,12 +83,6 @@ const double GeneralLinearLikelihoodComponentCalculator::updateSquaredError(
          (n_observations_ratio *
           std::pow(new_observation - mean * last_observation, 2));
 }
-const double GeneralLinearLikelihoodComponentCalculator::calculateSigmaKernel(
-    const GeneralLinearLikelihoodComponents& components,
-    const GeneralLinearParameters& parameters
-) const {
-  return std::pow(parameters.sigma * components.n_obs, 2);
-}
 const double GeneralLinearLikelihoodComponentCalculator::calculateMu(
     const GeneralLinearLikelihoodComponents& components
 ) const {
@@ -142,12 +136,6 @@ const double GeneralLinearLikelihood::calculateConditionalVariance(
     const GeneralLinearParameters& parameters
 ) const {
   return component_calculator.calculateConditionalVariance(parameters);
-}
-const double GeneralLinearLikelihood::calculateSigmaKernel(
-    const GeneralLinearLikelihoodComponents& components,
-    const GeneralLinearParameters& parameters
-) const {
-  return component_calculator.calculateSigmaKernel(components, parameters);
 }
 const GeneralLinearLikelihoodComponents
 GeneralLinearLikelihood::updateComponents(

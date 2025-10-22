@@ -7,21 +7,39 @@
 #include <memory>
 
 /**
- * @brief Class for calculating the optimal trading levels.
+ * @file
+ * @brief High-level helpers to compute optimal trading entry/exit levels.
+ */
+
+/**
+ * @brief Class for calculating optimal trading levels using the
+ * Ornstein-Uhlenbeck process.
  *
- * @param optimizer Pointer to the OptimalTrading instance that is used to
- * find @f[ b* @f] - the optimal exit level.
- * @param model Pointer to the stochastic model to use in the function to
- * evluate @f[ b* @f].
- * @param hitting_time_kernel Pointer to the kernel to use in the function
- * to evaluate @f[ b* @f].
+ * This class implements trading level calculations based on the
+ * Ornstein-Uhlenbeck stochastic process. It provides methods to calculate
+ * optimal entry and exit levels for trading strategies with optional stop-loss
+ * mechanisms.
+ *
+ * Based on Leung, T., & Li, X. (2015). Optimal mean reversion trading book.
  */
 class OrnsteinUhlenbeckTradingLevels : public TradingLevels {
 private:
+  /**
+   * @brief Unique pointer to the optimal mean reversion optimizer used for
+   *              calculating trading strategy parameters
+   */
   std::unique_ptr<OptimalMeanReversion> optimizer;
+  /**
+   * @brief Unique pointer to the stochastic model implementation representing
+   *              the Ornstein-Uhlenbeck process
+   */
   std::unique_ptr<StochasticModel> model;
+  /**
+   * @brief Unique pointer to the hitting time kernel specifically
+   *        designed for Ornstein-Uhlenbeck processes, used for
+   *        calculating expected hitting times between levels
+   */
   std::unique_ptr<HittingTimeOrnsteinUhlenbeck> hitting_time_kernel;
-  // std::unique_ptr<TradingLevelsParams> params;
 
 public:
   OrnsteinUhlenbeckTradingLevels(
@@ -71,7 +89,7 @@ public:
    */
   const double optimalExitUpperBound() const;
   /**
-   * @brief Calculates the optimal exit level @f[ b* @f]
+   * @brief Calculates the optimal exit level b*
    * for an optimal trading strategy with a stop loss level.
    *
    * @param stop_loss The stop loss level.
@@ -79,30 +97,30 @@ public:
    * problem.
    * @param c The cost of trading.
    * @return const double The optimal trading exit level given a stop loss @f[
-   b* @f].
+   b*.
    */
   const double
   optimalExit(const double& stop_loss, const double& r, const double& c) const;
   /**
-   * @brief Calculates the optimal exit level @f[ b* @f]
+   * @brief Calculates the optimal exit level b*
    * for an optimal trading strategy.
    *
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The optimal trading exit level @f[ b* @f].
+   * @return const double The optimal trading exit level b*.
    */
   const double optimalExit(const double& r, const double& c) const;
   /**
-   * @brief Calculates the optimal entry level @f[ d* @f]
+   * @brief Calculates the optimal entry level d*
    * for an optimal trading strategy when a stop loss level is provided.
    *
-   * @param b_star The optimal exit level @f[ b* @f].
+   * @param b_star The optimal exit level b*.
    * @param stop_loss The stop loss level.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The optimal trading entry level @f[ d* @f].
+   * @return const double The optimal trading entry level d*.
    */
   const double optimalEntry(
       const double& b_star,
@@ -111,16 +129,16 @@ public:
       const double& c
   ) const;
   /**
-   * @brief Calculates the lower bound optimal entry level @f[ a* @f]
+   * @brief Calculates the lower bound optimal entry level a*
    * for an optimal trading strategy.
    *
-   * @param d_star The upper optimal entry level @f[ d* @f].
-   * @param b_star The optimal exit level @f[ b* @f].
+   * @param d_star The upper optimal entry level d*.
+   * @param b_star The optimal exit level b*.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The lower bound optimal trading entry level @f[ a*
-   * @f].
+   * @return const double The lower bound optimal trading entry level a*
+   *.
    */
   const double optimalEntryLower(
       const double& d_star,
@@ -129,17 +147,17 @@ public:
       const double& c
   ) const;
   /**
-   * @brief Calculates the lower bound optimal entry level @f[ a* @f]
+   * @brief Calculates the lower bound optimal entry level a*
    * for an optimal trading strategy when a stop loss level is provided.
    *
-   * @param d_star The upper optimal entry level @f[ d* @f].
-   * @param b_star The optimal exit level @f[ b* @f].
+   * @param d_star The upper optimal entry level d*.
+   * @param b_star The optimal exit level b*.
    * @param stop_loss The stop loss level.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The lower bound optimal trading entry level @f[ a*
-   * @f].
+   * @return const double The lower bound optimal trading entry level a*
+   *.
    */
   const double optimalEntryLower(
       const double& d_star,
@@ -149,14 +167,14 @@ public:
       const double& c
   ) const;
   /**
-   * @brief Calculates the optimal entry level @f[ d* @f]
+   * @brief Calculates the optimal entry level d*
    * for an optimal trading strategy.
    *
-   * @param b_star The optimal exit level @f[ b* @f].
+   * @param b_star The optimal exit level b*.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The optimal trading entry level @f[ d* @f].
+   * @return const double The optimal trading entry level d*.
    */
   const double
   optimalEntry(const double& b_star, const double& r, const double& c) const;

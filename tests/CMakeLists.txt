@@ -12,21 +12,22 @@ enable_testing()
 add_executable(
     unit_tests
     adapters_test.cpp
-    gaussian_distribution_test.cpp
-    optimal_mean_reversion_test.cpp
     exponential_mean_reversion_test.cpp
     filter_states_test.cpp
     filter_update_test.cpp
+    gaussian_distribution_test.cpp
     general_linear_likelihood_test.cpp
     general_linear_online_test.cpp
     general_linear_test.cpp
+    general_sde_model_test.cpp
+    hitting_time_test.cpp
+    kca_filter_test.cpp
+    optimal_mean_reversion_test.cpp
+    optimal_trading_levels_test.cpp
     ornstein_uhlenbeck_likelihood_test.cpp
     ornstein_uhlenbeck_test.cpp
-    hitting_time_test.cpp
-    trading_levels_test.cpp
-    kca_filter_test.cpp
     ou_model_test.cpp
-    optimal_trading_levels_test.cpp
+    trading_levels_test.cpp
     utils_test.cpp)
 
 

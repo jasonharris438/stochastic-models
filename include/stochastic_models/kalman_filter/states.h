@@ -301,8 +301,6 @@ struct FilterState {
  * parameter in initialisation and on update.
  * @param mu_denominator An internally managed value used to calculate the mu
  * parameter in initialisation and on update.
- * @param sigma_kernel_value An internally managed value used to calculate the
- * sigma parameter in initialisation and on update.
  * @param n_observations The number of observations in the data series used to
  * calculate the likelihood parameters.
  */
@@ -314,7 +312,6 @@ private:
   double conditional_variance;
   double mu_numerator;
   double mu_denominator;
-  double sigma_kernel_value;
   u_int32_t n_observations;
 
 public:
@@ -325,7 +322,6 @@ public:
       const double& conditional_variance,
       const double& mu_numerator,
       const double& mu_denominator,
-      const double& sigma_kernel_value,
       const u_int32_t& n_observations
   );
   /**

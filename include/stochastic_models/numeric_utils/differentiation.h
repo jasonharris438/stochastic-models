@@ -1,16 +1,22 @@
 #ifndef STOCHASTIC_MODELS_NUMERIC_UTILS_DIFFERENTIATION_H
 #define STOCHASTIC_MODELS_NUMERIC_UTILS_DIFFERENTIATION_H
 #include "stochastic_models/numeric_utils/types.h"
+
 /**
- * @brief Computes the numerical derivative of the function @f[ F(x;r) @f] at
- * the point @f[ x @f] using an adaptive central difference algorithm with a
- * step-size of @f[ h @f]
+ * @file
+ * @brief Numeric differentiation helpers.
+ */
+
+/**
+ * @brief Compute the derivative of fn at x using an adaptive central
+ * difference.
  *
- * @param fn A pointer to the function to centrally difference.
- * @param model A pointer to the model instance that is being used
- * to perform central differencing.
- * @param x The point at which to perform differentiation.
- * @return const double. The value of the integral of @f[ F(x;r) @f].
+ * @param fn Function pointer to evaluate.
+ * @param model Opaque context pointer passed through to fn. Contains the model
+ * instance that is being used.
+ * @param x Point at which to compute derivative (may be adjusted by the
+ *          adaptive routine in some implementations).
+ * @return const double Approximated derivative value f'(x).
  */
 const double
 adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x);

@@ -164,14 +164,13 @@ FilterGeneralSde::FilterGeneralSde(
     const double& conditional_variance,
     const double& mu_numerator,
     const double& mu_denominator,
-    const double& sigma_kernel_value,
     const u_int32_t& n_observations
 )
     : mu(mu), sigma(sigma), conditional_variance(conditional_variance),
       mu_numerator(mu_numerator), mu_denominator(mu_denominator),
-      sigma_kernel_value(sigma_kernel_value), n_observations(n_observations) {}
+      n_observations(n_observations) {}
 FilterGeneralSde::FilterGeneralSde()
-    : FilterGeneralSde(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) {}
+    : FilterGeneralSde(0.0, 0.0, 0.0, 0.0, 0.0, 0) {}
 const double& FilterGeneralSde::getMu() const {
   return mu;
 }
@@ -195,8 +194,6 @@ void FilterGeneralSde::initializeLikelihoodState(
       likelihood.calculateConditionalVariance(likelihood_values);
   mu_numerator = components.lead_lag_inner_product;
   mu_denominator = components.lag_squared;
-  sigma_kernel_value =
-      likelihood.calculateSigmaKernel(components, likelihood_values);
   n_observations = components.n_obs;
 }
 
@@ -362,7 +359,7 @@ void KcaStates::updateCurrentState(
           getPredictedStateCovariance(), innovation_sigma
       );
 
-  const BoostMartixInverter matrix_inverter;
+  const BoostMatrixInverter matrix_inverter;
   const matrix<double> kalman_gain = predicted_observation.calculateKalmanGain(
       getPredictedStateCovariance(), predicted_observation_covariance,
       matrix_inverter

@@ -4,7 +4,14 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <unordered_map>
-// Demonstrate some basic assertions.
+
+/**
+ * @file
+ * @brief Unit tests validating closed-form General Linear MLE calculations.
+ *
+ * These tests verify the values produced by `GeneralLinearLikelihood` match
+ * precomputed reference results for a small sample series.
+ */
 TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
   const float tolerance = 1e-4;
   // Generate mock data.

@@ -4,42 +4,62 @@
 #include "stochastic_models/kalman_filter/states.h"
 
 /**
- * @brief Class to expose an interface to use the Kinetic components analysis
- * implementation of the kalman filter to users of this library.
+ * @file
+ * @brief High-level Kinetic Components Analysis (KCA) Kalman filter facade.
+ */
+
+/**
+ * @brief Facade providing a simple interface to initialize and run the
+ * KCA-style Kalman filter.
  *
- * Functions are provided to initialise the internal state of the kalman filter
- * with a dataset (vector of values), update the priors and posteriors of the
- * filter and return the current state of the filter.
- *
- * The filter_state member attribute is used to store the current state of the
- * kalman filter. The values provided in instantiation are used to initialise
- * the memory of internally managed attributes.
- *
- * @param state_mean_dimension The dimension of the state mean vector.
- * @param state_covariance_rows The number of rows in the state covariance
- * matrix.
- * @param state_covariance_columns The number of columns in the state covariance
- * matrix.
- * @param observation_matrix_rows The number of rows in the observation matrix.
- * @param observation_matrix_columns The number of columns in the observation
- * matrix.
- * @param observation_covariance_rows The number of rows in the observation
- * covariance matrix.
- * @param observation_covariance_columns The number of columns in the
- * observation covariance matrix.
- * @param observation_offset The offset to apply to the observation value.
+ * The class wraps the lower-level `KcaStates` and provides methods that perform
+ * functions such as: initialize, update priors, update posteriors and accessors
+ * for the current state.
  */
 class KineticComponents {
 private:
   KcaStates filter_state;
 
 public:
+  /**
+   * @brief Construct a KineticComponents instance with the given dimensions.
+   * @param dimensions Dimensions that determine internal buffer sizes.
+   */
   KineticComponents(const FilterSystemDimensions& dimensions);
+
+  /**
+   * @brief Replace the internal `KcaStates` with an externally-constructed
+   * instance.
+   */
   void setFilterState(const KcaStates& state);
+
+  /**
+   * @brief Return a copy of the internal filter state.
+   */
   const KcaStates getFilterState() const;
+
+  /**
+   * @brief Return the current state mean as a std::vector (copy).
+   */
   const std::vector<double> getCurrentState() const;
+
+  /**
+   * @brief Query whether the internal filter has been initialised.
+   */
   const bool& isInitialised() const;
+
+  /**
+   * @brief Query whether priors have been successfully computed and are valid.
+   */
   const bool& isPriorStateValid() const;
+
+  /**
+   * @brief Initialize the filter using a raw data series and numeric params.
+   *
+   * @param data_series Series used to estimate initial state.
+   * @param h finite-difference spacing used by the KCA estimator.
+   * @param q transition covariance scaling.
+   */
   void initialiseFilter(
       const std::vector<double>& data_series, const double& h, const double& q
   );

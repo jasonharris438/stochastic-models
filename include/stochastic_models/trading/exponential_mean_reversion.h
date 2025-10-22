@@ -17,15 +17,15 @@ public:
    */
   const ExponentialMeanReversion* clone() const override;
   /**
-   * @brief Calculates @f[ F(x;r) @f] in the optimal
+   * @brief Calculates F(x;r) in the optimal
    * trading strategy for an exponential mean reverting model.
    *
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ F(x;r) @f].
-   * @param x The current value x to evaluate @f[ F(x;r) @f].
+   * function F(x;r).
+   * @param x The current value x to evaluate F(x;r).
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value of @f[ F(x;r) @f].
+   * @return const double The value of F(x;r).
    */
   const double
   F(const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -33,15 +33,15 @@ public:
     const double& r,
     const double& c) const override;
   /**
-   * @brief Calculates @f[ G(x;r) @f] in the optimal
+   * @brief Calculates G(x;r) in the optimal
    * trading strategy for an exponential mean reverting model.
    *
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ G(x;r) @f].
-   * @param x The current value x to evaluate @f[ G(x;r) @f].
+   * function G(x;r).
+   * @param x The current value x to evaluate G(x;r).
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value of @f[ G(x;r) @f].
+   * @return const double The value of G(x;r).
    */
   const double
   G(const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -49,14 +49,14 @@ public:
     const double& r,
     const double& c) const override;
   /**
-   * @brief Calculates the value @f[ L^* @f] for the optimal
+   * @brief Calculates the value L* for the optimal
    * trading strategy for an exponential model.
    *
    * @param hitting_time_kernel Pointer to the kernel instance to
-   * use in the function @f[ L^* @f].
+   * use in the function L*.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value of @f[ L^* @f].
+   * @return const double The value of L*.
    */
   const double L_star(
       const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
@@ -64,16 +64,16 @@ public:
       const double& c
   ) const override;
   /**
-   * @brief Calculates the value @f[ b @f] for the optimal trading strategy
+   * @brief Calculates the value b for the optimal trading strategy
    * for an an exponential mean reverting model with a stop loss level.
    *
    * @param value The value at which to evaluate the optimal exit level.
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ b @f].
+   * function b.
    * @param stop_loss The stop loss level to use in the optimal trading.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ b @f].
+   * @return const double The value b.
    */
   const double
   b(const double& value,
@@ -82,16 +82,16 @@ public:
     const double& r,
     const double& c) const override;
   /**
-   * @brief Calculates the value @f[ b @f] in the optimal trading strategy for
+   * @brief Calculates the value b in the optimal trading strategy for
    * an exponential mean reverting model.
    *
    * @param value The value at which to evaluate the optimal exit level.
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ b
-   * @f].
+   * function b
+   *.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ b @f].
+   * @return const double The value b.
    */
   const double
   b(const double& value,
@@ -99,19 +99,19 @@ public:
     const double& r,
     const double& c) const override;
   /**
-   * @brief Calculates the value @f[ a @f], the lower bound for the optimal
+   * @brief Calculates the value a, the lower bound for the optimal
    * entry region for the optimal trading strategy for an exponential mean
    * reverting model.
    *
    * @param value The value at which to evaluate the optimal entry level.
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ d
-   * @f].
+   * function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ a @f].
+   * @return const double The value a.
    */
   const double
   a(const double& value,
@@ -120,20 +120,20 @@ public:
     const double& r,
     const double& c) const;
   /**
-   * @brief Calculates the value @f[ a @f], the lower bound for the optimal
+   * @brief Calculates the value a, the lower bound for the optimal
    * entry region for the optimal trading strategy for an exponential mean
    * reverting model when a stop loss level is provided.
    *
    * @param value The value at which to evaluate the optimal entry level.
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ d
-   * @f].
+   * function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param stop_loss The stop loss level to use in the optimal trading.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ a @f].
+   * @return const double The value a.
    */
   const double
   a(const double& value,
@@ -143,20 +143,20 @@ public:
     const double& r,
     const double& c) const override;
   /**
-   * @brief Calculates the value @f[ d @f] for the optimal trading strategy
+   * @brief Calculates the value d for the optimal trading strategy
    * for an exponential mean reverting model when a stop loss level is
    * provided.
    *
    * @param value The value at which to evaluate the optimal entry level.
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ d
-   * @f].
+   * function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param stop_loss The stop loss level to use in the optimal trading.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ d @f].
+   * @return const double The value d.
    */
   const double
   d(const double& value,
@@ -166,18 +166,18 @@ public:
     const double& r,
     const double& c) const override;
   /**
-   * @brief Calculates the value @f[ d @f] for the optimal trading strategy
+   * @brief Calculates the value d for the optimal trading strategy
    * for a mean reverting model.
    *
    * @param value The value at which to evaluate the optimal entry level.
    * @param hitting_time_kernel Pointer to the kernel instance to use in the
-   * function @f[ d
-   * @f].
+   * function d
+   *.
    * @param b_star The optimal exit level calculated by the OptimalTrading
    * instance.
    * @param r The discount rate to apply to the optimal trading problem.
    * @param c The cost of trading.
-   * @return const double The value @f[ d @f].
+   * @return const double The value d.
    */
   const double
   d(const double& value,

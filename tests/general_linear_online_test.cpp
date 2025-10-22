@@ -5,6 +5,15 @@
 #include <cmath>
 #include <gtest/gtest.h>
 
+/**
+ * @file
+ * @brief Unit tests for the online General Linear MLE updater.
+ *
+ * These tests exercise single-step updates for `mu` and `sigma` using a
+ * fixed time series and assert values that were computed from a reference
+ * implementation (high precision offline calculation).
+ */
+
 // Test that the GeneralLinearUpdater.updateMu method returns the correct value.
 TEST(GeneralLinearOnlineTest, UpdateMuTest) {
   // Create test data.

@@ -31,9 +31,7 @@ public:
   );
   OrnsteinUhlenbeckModel(const OrnsteinUhlenbeckModel& other);
   /**
-   * @brief Construct a new OrnsteinUhlenbeckModel object and return on heap
-   * memory using the class' copy constructor in the caller instance
-   *
+   * @brief Return a heap-allocated copy of the model (virtual constructor).
    * @return const OrnsteinUhlenbeckModel* Pointer to the new instance.
    */
   const OrnsteinUhlenbeckModel* clone() const override;

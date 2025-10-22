@@ -5,39 +5,32 @@
 #include <gsl/gsl_roots.h>
 
 /**
- * @brief RAII wrapper for GSL root solver.
+ * @file
+ * @brief Wrappers around GSL root-finding helpers.
+ */
+
+/**
+ * @brief RAII wrapper for a GSL root solver (Brent method).
  *
- * This class manages the lifecycle of a GSL root solver
- * by allocating and deallocating the solver as needed. It ensures
- * that memory is properly freed when the object goes out of scope,
+ * Owns solver memory and ensures proper cleanup on destruction.
  */
 class BrentSolverState {
 public:
   gsl_root_fsolver* fsolver;
   const gsl_root_fsolver_type* fsolver_type;
-  /**
-   * @brief Constructor that allocates memory for the Brent root solver.
-   * It initializes the solver type and allocates the solver workspace.
-   */
   BrentSolverState();
-  /**
-   * @brief Destructor that frees the memory allocated for the Brent
-   * root solver. It checks if the solver pointer is not null before
-   * freeing it using native GSL functions.
-   */
   ~BrentSolverState();
 };
 
 /**
- * @brief Uses the Brent optimization method to solve for the root of a
- * function.
+ * @brief Uses the Brent method to find a root of fn in [lower, upper].
  *
- * @param fn A pointer to the function to solve.
- * @param model A pointer to the model instance that is being used
- * to perform root finding.
- * @param lower A reference to the lower bound of the root finding interval.
- * @param upper A reference to the upper bound of the root finding interval.
- * @return const double. The value of the root of the function.
+ * @param fn Function pointer to the scalar function whose root is sought.
+ * @param model Opaque model/context pointer passed to fn. Contains model
+ * instance that is being used.
+ * @param lower Lower bound of the bracketing interval (may be updated).
+ * @param upper Upper bound of the bracketing interval (may be updated).
+ * @return const double Approximated root value.
  */
 const double
 brentSolver(ModelFunc fn, void* model, double& lower, double& upper);
