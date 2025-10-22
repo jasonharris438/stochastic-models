@@ -45,7 +45,7 @@ This method drops the assumption that parameters are time-varying and requires t
 
 **For the linear model of the form:**
 
-**$$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$**
+$$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$
 
 The likelihood function being optimized is:
 
@@ -75,9 +75,12 @@ $$\hat{\mu} = \ln{\frac{\sum^n_{t=1}{X_t \cdot X_{t-1}}}{\sum^n_{t=1}{X_{t-1}^2}
 
 $$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n}}$$
 
-**For the Ornstein-Uhlenbeck model of the form $$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$**
+**For the Ornstein-Uhlenbeck model of the form:**
+
+$$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
 
 The likelihood function being optimized is:
+
 $$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{n\log{2\pi}}{2}-n\log{\hat{\sigma}}-\frac{1}{2\hat{\sigma}^2}\sum^n_{i=1}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
 
 **1. Update parameter components:** Accumulate individual components used in calculations for the MLE solution:
