@@ -366,7 +366,7 @@ TEST(KalmanFilterStateTest, KcaStatessetInitialStateTest) {
   const std::vector<std::vector<double>> transition_matrix =
       copy_matrix_elements_to_vector(kca_states.getTransitionMatrix());
   const std::vector<std::vector<double>> expected_transition_matrix{
-      {1.0011961162353782, 1.0, 0.5}, {0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}
+      {1.0, 1.0, 0.5}, {0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}
   };
   EXPECT_EQ(transition_matrix, expected_transition_matrix)
       << "The transition matrix was set with invalid or inconsistent values.";
@@ -375,7 +375,9 @@ TEST(KalmanFilterStateTest, KcaStatessetInitialStateTest) {
   const std::vector<std::vector<double>> transition_covariance =
       copy_matrix_elements_to_vector(kca_states.getTransitionCovariance());
   const std::vector<std::vector<double>> expected_transition_covariance{
-      {0.12695229227341848, 0, 0}, {0, 0.001, 0}, {0, 0, 0.001}
+      {5e-05, 0.000125, 0.00016666666666666666},
+      {0.000125, 0.00033333333333333332, 0.0005},
+      {0.00016666666666666666, 0.0005, 0.001}
   };
   EXPECT_EQ(transition_covariance, expected_transition_covariance)
       << "The transition covariance was set with invalid or inconsistent "
@@ -399,7 +401,7 @@ TEST(KalmanFilterStateTest, KcaStatessetInitialStateTest) {
       current_state_mean_vector.begin()
   );
   const std::vector<double> expected_current_state_mean{
-      10.288741828687053, 0.0, 0.0
+      10.276450000000001, 0.0, 0.0
   };
   EXPECT_EQ(current_state_mean_vector, expected_current_state_mean)
       << "The current state mean vector was set with invalid or inconsistent "

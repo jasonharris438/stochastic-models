@@ -31,11 +31,12 @@ TEST(KcaTest, getInitializedKcaStateTest) {
   EXPECT_EQ(
       internal_state,
       "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
-      "0.0,0.0]],\"current_state_mean\":[10.288741828687053,0.0,0.0],"
+      "0.0,0.0]],\"current_state_mean\":[10.27645,0.0,0.0],"
       "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
-      "0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,"
-      "0.001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1."
-      "0011961162353782,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
+      "0,\"transition_covariance\":[[5e-05,0.000125,0.00016666666666666666],"
+      "[0.000125,0.0003333333333333333,0.0005],[0.00016666666666666666,0.0005,"
+      "0.001]],"
+      "\"transition_matrix\":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
   ) << "The JSON string produced by the getInitializedKcaState "
        "function is incorrect.";
 }

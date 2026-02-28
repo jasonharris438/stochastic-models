@@ -286,72 +286,6 @@ struct FilterState {
 };
 
 /**
- * @brief Handles internals of the stochastic differential equation (SDE) that
- * governs the process being analysed by the kalman filtering process within the
- * KCA.
- *
- * The maximum likelihood parameters are calculated and stored within this
- * class.
- *
- * @param likelihood The likelihood calculator for the SDE process.
- * @param mu The mu parameter of the SDE process.
- * @param sigma The sigma parameter of the SDE process.
- * @param conditional_variance The conditional variance of the SDE process.
- * @param mu_numerator An internally managed value used to calculate the mu
- * parameter in initialisation and on update.
- * @param mu_denominator An internally managed value used to calculate the mu
- * parameter in initialisation and on update.
- * @param n_observations The number of observations in the data series used to
- * calculate the likelihood parameters.
- */
-class FilterGeneralSde {
-private:
-  GeneralLinearLikelihood likelihood;
-  double mu;
-  double sigma;
-  double conditional_variance;
-  double mu_numerator;
-  double mu_denominator;
-  u_int32_t n_observations;
-
-public:
-  FilterGeneralSde();
-  FilterGeneralSde(
-      const double& mu,
-      const double& sigma,
-      const double& conditional_variance,
-      const double& mu_numerator,
-      const double& mu_denominator,
-      const u_int32_t& n_observations
-  );
-  /**
-   * @brief Retrieves the current value of the mu parameter from the SDE
-   * process.
-   * @return The mu parameter of the SDE process.
-   */
-  const double& getMu() const;
-  /**
-   * @brief Retrieves the current value of the sigma parameter from the SDE
-   * process.
-   * @return The sigma parameter of the SDE process.
-   */
-  const double& getSigma() const;
-  /**
-   * @brief Retrieves the current value of the conditional covariance from the
-   * SDE process.
-   * @return The conditional covariance parameter of the SDE process.
-   */
-  const double& getConditionalVariance() const;
-  /**
-   * @brief Initializes completely the likelihood state of the SDE process
-   * from a data series.
-   * @param data_series The data series used to calculate the likelihood
-   * parameters.
-   */
-  void initializeLikelihoodState(const std::vector<double>& data_series);
-};
-
-/**
  * @brief Contains the dimensions of a Kalman Filter system.
  *
  * Internal system state dimensions are stored in this struct.
@@ -410,7 +344,6 @@ private:
   PosteriorState posterior_state;
   TransitionState transition_state;
   FilterState filter_state;
-  FilterGeneralSde filter_sde;
 
   /**
    * @brief Moves a std::vector of std::vectors to a boost uBLAS matrix.

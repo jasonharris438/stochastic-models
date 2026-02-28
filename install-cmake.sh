@@ -23,9 +23,9 @@ apt remove --purge --auto-remove cmake
 
 # Set cmake configuration.
 src_url="https://github.com/Kitware/CMake/releases/download"
-version="4.1"
-build="1"
-checksum="b29f6f19733aa224b7763507a108a427ed48c688e1faf22b29c44e1c30549282"
+version="4.2"
+build="3"
+checksum="7efaccde8c5a6b2968bad6ce0fe60e19b6e10701a12fce948c2bf79bac8a11e9"
 
 # Install cmake.
 mkdir ~/temp
