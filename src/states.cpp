@@ -269,19 +269,19 @@ void KcaStates::setInitialState(
 
   // Initial transition state.
   std::vector<std::vector<double>> transition_matrix_as_vectors{
-      {std::exp(filter_sde.getMu()), h, 0.5 * std::pow(h, 2)},
+      {1.0, h, 0.5 * std::pow(h, 2)},
       {0.0, 1.0, h},
       {0.0, 0.0, 1.0}
   };
   std::vector<std::vector<double>> transition_covariance_as_vectors{
-      {filter_sde.getConditionalVariance(), 0.0, 0.0},
-      {0.0, q, 0.0},
-      {0.0, 0.0, q}
+      {q * std::pow(h, 5) / 20.0, q * std::pow(h, 4) / 8.0, q * std::pow(h, 3) / 6.0},
+      {q * std::pow(h, 4) / 8.0, q * std::pow(h, 3) / 3.0, q * std::pow(h, 2) / 2.0},
+      {q * std::pow(h, 3) / 6.0, q * std::pow(h, 2) / 2.0, q * h}
   };
 
   // Initial current state.
   std::vector<double> current_state_mean_as_vector{
-      data_series.at(data_series.size() - 1) * std::exp(filter_sde.getMu()),
+      data_series.at(data_series.size() - 1),
       0.0, 0.0
   };
   std::vector<std::vector<double>> current_state_covariance_as_vectors{

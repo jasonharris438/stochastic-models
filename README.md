@@ -120,11 +120,15 @@ $(n-1) \leftarrow n$ and $X_{\text{last}} \leftarrow X_t$
 **6. Update stateful object parameters:** $\mu$, $\alpha$, and $\sigma$ are updated in a stateful object based on the new state.
 
 ### Kinetic Components Analysis
-A kalman-filter model adapted to capture the instantaneous first and second derivatives of a stochastic process. It is based on the Kinetic Components Analysis paper by López de Prado (2016) with the ability to produce estimates given a generic stochastic process characterised by a stochastic differential equation.
+A kalman-filter model adapted to capture the instantaneous first and second derivatives of a stochastic process and subsequently extract signal from noisy measurements. It is based on the Kinetic Components Analysis paper by López de Prado (2016) with the ability to produce estimates given a generic stochastic process characterised by a stochastic differential equation.
 
-I have done my best to implement what I have read and understood from various public sources detailing the KCA method and have added the default fit of a stochastic differential equation as a slight modification. This should reduce the error of the estimates to some extent.
+I have done my best to implement what I have read and understood from various public sources detailing the KCA method and have adapted slightly based on subsequent research, initialisation of the transition covariance matrix (Q).
 
-**Citation:** López de Prado, Marcos and López de Prado, Marcos and Rebonato, Riccardo, Kinetic Component Analysis (June 5, 2016). Journal of Investing, Vol. 25, No. 3, 2016.
+**Citations:**
+
+Frederic Crouse, David, Process Noise Selection Based on Mismatched Filter Design (March 2, 2023). Naval Research Lab, Washington DC, Page 23.
+
+López de Prado, Marcos and Rebonato, Riccardo, Kinetic Component Analysis (June 5, 2016). Journal of Investing, Vol. 25, No. 3, 2016.
 
 ### Optimal Trading Levels for Mean-Reverting Assets
 The library is modularised and each component serves a specific purpose in using SDEs in mathematical analysis of trading and markets.
