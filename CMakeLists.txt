@@ -1,5 +1,5 @@
-# Minimum version 4.0.
-cmake_minimum_required(VERSION 4.0)
+# Minimum version 4.2.
+cmake_minimum_required(VERSION 4.2)
 
 # This is a shared library project.
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
@@ -7,7 +7,7 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 # Set the project name and version.
 project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
-    VERSION 0.2.0
+    VERSION 0.3.0
     LANGUAGES CXX)
 
 # specify the C++ standard.
@@ -17,11 +17,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Include the FetchContent module.
 include(FetchContent)
 
-# Fetch Boost 1.89.0
+# Fetch Boost 1.90.0
 FetchContent_Declare(
     Boost
-    URL      https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.bz2
-    URL_HASH SHA256=85a33fa22621b4f314f8e85e1a5e2a9363d22e4f4992925d4bb3bc631b5a0c7a
+    URL      https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.bz2
+    URL_HASH SHA256=49551aff3b22cbc5c5a9ed3dbc92f0e23ea50a0f7325b0d198b705e8ee3fc305
     EXCLUDE_FROM_ALL
     )
 FetchContent_MakeAvailable(Boost)

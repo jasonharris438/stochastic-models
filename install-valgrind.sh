@@ -4,10 +4,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-valgrind_version="3.23.0"
+valgrind_version="3.26.0"
 
 wget "https://sourceware.org/pub/valgrind/valgrind-${valgrind_version}.tar.bz2"
-valgrind_md5="c59775fcbfa82fcce796843d0aaa7538"
+valgrind_md5="856da1bc568212df6df502295a0439c0"
 
 if ! echo "$valgrind_md5 valgrind-${valgrind_version}.tar.bz2" | md5sum -c -; then
 	echo "Valgrind checksum validation failed."

@@ -156,47 +156,6 @@ TransitionState::TransitionState(
 // Filter boolean state data class / struct implementation
 FilterState::FilterState() : initialised(false), priors_set(false) {}
 
-// General SDE state handler for managing stochastic process that governs series
-// being analysed by the KCA.
-FilterGeneralSde::FilterGeneralSde(
-    const double& mu,
-    const double& sigma,
-    const double& conditional_variance,
-    const double& mu_numerator,
-    const double& mu_denominator,
-    const u_int32_t& n_observations
-)
-    : mu(mu), sigma(sigma), conditional_variance(conditional_variance),
-      mu_numerator(mu_numerator), mu_denominator(mu_denominator),
-      n_observations(n_observations) {}
-FilterGeneralSde::FilterGeneralSde()
-    : FilterGeneralSde(0.0, 0.0, 0.0, 0.0, 0.0, 0) {}
-const double& FilterGeneralSde::getMu() const {
-  return mu;
-}
-const double& FilterGeneralSde::getSigma() const {
-  return sigma;
-}
-const double& FilterGeneralSde::getConditionalVariance() const {
-  return conditional_variance;
-}
-void FilterGeneralSde::initializeLikelihoodState(
-    const std::vector<double>& data_series
-) {
-  const GeneralLinearLikelihoodComponents components =
-      likelihood.calculateComponents(data_series);
-  const GeneralLinearParameters likelihood_values =
-      likelihood.calculateParameters(components);
-
-  mu = likelihood_values.mu;
-  sigma = likelihood_values.sigma;
-  conditional_variance =
-      likelihood.calculateConditionalVariance(likelihood_values);
-  mu_numerator = components.lead_lag_inner_product;
-  mu_denominator = components.lag_squared;
-  n_observations = components.n_obs;
-}
-
 // Type that contains internal dimensions of a Kalman Filter system.
 FilterSystemDimensions::FilterSystemDimensions()
     : state_mean_dimension(0), state_covariance_rows(0),
@@ -265,24 +224,21 @@ void KcaStates::move_std_vector_to_vector(
 void KcaStates::setInitialState(
     const std::vector<double>& data_series, const double& h, const double& q
 ) {
-  filter_sde.initializeLikelihoodState(data_series);
-
   // Initial transition state.
   std::vector<std::vector<double>> transition_matrix_as_vectors{
-      {std::exp(filter_sde.getMu()), h, 0.5 * std::pow(h, 2)},
-      {0.0, 1.0, h},
-      {0.0, 0.0, 1.0}
+      {1.0, h, 0.5 * std::pow(h, 2)}, {0.0, 1.0, h}, {0.0, 0.0, 1.0}
   };
   std::vector<std::vector<double>> transition_covariance_as_vectors{
-      {filter_sde.getConditionalVariance(), 0.0, 0.0},
-      {0.0, q, 0.0},
-      {0.0, 0.0, q}
+      {q * std::pow(h, 5) / 20.0, q * std::pow(h, 4) / 8.0,
+       q * std::pow(h, 3) / 6.0},
+      {q * std::pow(h, 4) / 8.0, q * std::pow(h, 3) / 3.0,
+       q * std::pow(h, 2) / 2.0},
+      {q * std::pow(h, 3) / 6.0, q * std::pow(h, 2) / 2.0, q * h}
   };
 
   // Initial current state.
   std::vector<double> current_state_mean_as_vector{
-      data_series.at(data_series.size() - 1) * std::exp(filter_sde.getMu()),
-      0.0, 0.0
+      data_series.at(data_series.size() - 1), 0.0, 0.0
   };
   std::vector<std::vector<double>> current_state_covariance_as_vectors{
       {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}

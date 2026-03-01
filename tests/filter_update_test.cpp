@@ -27,7 +27,7 @@ TEST(KalmanFilterUpdateTest, KineticComponentsinitialiseFilterTest) {
       << "The KineticComponents object must correctly indicate whether it is "
          "initialised.";
 
-  std::vector<double> expected_current_state_mean{10.288741828687053, 0.0, 0.0};
+  std::vector<double> expected_current_state_mean{10.276450000000001, 0.0, 0.0};
   EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
       << "The KineticComponents object must correctly set the current state "
          "mean at initialisation.";
@@ -49,7 +49,7 @@ TEST(KalmanFilterUpdateTest, KineticComponentsupdatePriorsTest) {
   std::vector<std::vector<double>> current_state_covariance{
       {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}
   };
-  std::vector<double> current_state_mean{10.288741828687053, 0.0, 0.0};
+  std::vector<double> current_state_mean{10.276567164179106, 0.0, 0.0};
   std::vector<std::vector<double>> observation_matrix{{1.0, 0.0, 0.0}};
   const double observation_offset{0.0};
 
@@ -75,7 +75,7 @@ TEST(KalmanFilterUpdateTest, KineticComponentsupdatePriorsTest) {
       << "The KineticComponents object must correctly indicate whether its "
          "prior state is valid after prior update.";
 
-  std::vector<double> expected_current_state_mean{10.288741828687053, 0.0, 0.0};
+  std::vector<double> expected_current_state_mean{10.276567164179106, 0.0, 0.0};
   EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
       << "The KineticComponents object must not change the value of the the "
          "current state when updating the prior state.";
@@ -164,7 +164,9 @@ TEST(KalmanFilterUpdateTest, KineticComponentsFullFilterTest) {
   // Update the posteriors with the observation.
   kinetic_components.updatePosteriors(observation, innovation_sigma);
 
-  std::vector<double> expected_current_state_mean{10.3000765492722, 0.0, 0.0};
+  std::vector<double> expected_current_state_mean{
+      10.276567164179106, 0.00029291044776119624, 0.00039054726368159494
+  };
   EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
       << "The KineticComponents object must correctly finish a kalman filter "
          "predict and update round with the correct current state.";
