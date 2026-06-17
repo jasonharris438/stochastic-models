@@ -4,6 +4,7 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gsl/gsl_deriv.h>
+#include <gsl/gsl_errno.h>
 const double
 adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x) {
   double result, error;

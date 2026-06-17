@@ -1,7 +1,6 @@
 #include "stochastic_models/entrypoints/general_sde.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 
 /**
@@ -27,10 +26,10 @@ TEST(GeneralSdeModelTest, updateGeneralLinearSDEModelOutputTest) {
       lead_lag_inner_product, squared_error, n_obs
   );
 
-  EXPECT_LE(abs(roundToDecimals(series.at(0), 8) - 0.158224), tolerance)
+  EXPECT_NEAR(roundToDecimals(series.at(0), 8), 0.158224, tolerance)
       << "The mu value of the parameters returned by "
          "updateGeneralLinearSDEModel is not the correct value.";
-  EXPECT_LE(abs(roundToDecimals(series.at(1), 8) - 0.00788256), tolerance)
+  EXPECT_NEAR(roundToDecimals(series.at(1), 8), 0.00788256, tolerance)
       << "The sigma value of the parameters returned by "
          "updateGeneralLinearSDEModel is not the correct value.";
 }

@@ -1,7 +1,6 @@
 #include "stochastic_models/entrypoints/optimal_trading_levels.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 
 /**
@@ -26,7 +25,7 @@ TEST(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
       optimalEntryLevelLower(d_star, b_star, mu, alpha, sigma, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.118451), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.118451, tolerance)
       << "Value produced by optimalEntryLevelLower function "
          "with a stop loss is not equal to the expected value.";
 }
@@ -71,7 +70,7 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
       optimalEntryLevel(b_star, mu, alpha, sigma, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.136755), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.136755, tolerance)
       << "Value produced by optimalEntryLevel function "
          "with a stop loss is not equal to the expected value.";
 }
@@ -94,7 +93,7 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
   const double value = optimalExitLevel(mu, alpha, sigma, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.46912012), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.46912012, tolerance)
       << "Value produced by optimalExitLevel function "
          "with a stop loss is not equal to the expected value.";
 }
@@ -116,7 +115,7 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
   const double value = optimalExitLevel(mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.466836), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.466836, tolerance)
       << "Value produced by optimalExitLevel function "
          "is not equal to the expected value.";
 }
@@ -138,7 +137,7 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialOutputTest) {
   const double value = optimalExitLevelExponential(mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 1.4093), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 1.4093, tolerance)
       << "Value produced by optimalExitLevelExponential function "
          "is not equal to the expected value.";
 }
@@ -162,7 +161,7 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelExponentialOutputTest) {
       optimalEntryLevelExponential(b_star, mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 1.24096), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 1.24096, tolerance)
       << "Value produced by optimalEntryLevelExponential function "
          "is not equal to the expected value.";
 }
@@ -208,7 +207,7 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialOutputTest) {
       optimalEntryLevelLowerExponential(d_star, b_star, mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 1.16016), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 1.16016, tolerance)
       << "Value produced by optimalEntryLevelLowerExponential function "
          "is not equal to the expected value.";
 }
@@ -231,7 +230,7 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelOutputTest) {
   const double value = optimalEntryLevel(b_star, mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.116948), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.116948, tolerance)
       << "Value produced by optimalEntryLevel function "
          "is not equal to the expected value.";
 }

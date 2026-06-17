@@ -20,6 +20,7 @@ add_executable(
     general_linear_online_test.cpp
     general_linear_test.cpp
     general_sde_model_test.cpp
+    helpers_include_hygiene_test.cpp
     hitting_time_test.cpp
     kca_filter_test.cpp
     optimal_mean_reversion_test.cpp

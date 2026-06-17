@@ -1,7 +1,6 @@
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 #include <unordered_map>
 
@@ -24,14 +23,14 @@ TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, ParameterTest) {
       likelihood.calculateParameters(components);
 
   // Expect equality for mu value.
-  EXPECT_LE(abs(roundToDecimals(params.mu, 8) - 0.85), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.mu, 8), 0.85, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value mu.";
   // Expect equality for alpha value.
-  EXPECT_LE(abs(roundToDecimals(params.alpha, 8) - 0.374693), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.alpha, 8), 0.374693, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value alpha.";
   // Expect equality for sigma value.
 
-  EXPECT_LE(abs(roundToDecimals(params.sigma, 8) - 0.359877), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 0.359877, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value sigma.";
 }
 
@@ -51,14 +50,14 @@ TEST(OrnsteinUhlenbeckLikelihoodUpdateTest, ParameterTest) {
       likelihood.calculateParameters(updated_components);
 
   // Expect equality for mu value.
-  EXPECT_LE(abs(roundToDecimals(params.mu, 8) - 0.741667), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.mu, 8), 0.741667, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value mu.";
   // Expect equality for alpha value.
-  EXPECT_LE(abs(roundToDecimals(params.alpha, 8) - 0.448549), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.alpha, 8), 0.448549, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value alpha.";
   // Expect equality for sigma value.
 
-  EXPECT_LE(abs(roundToDecimals(params.sigma, 8) - 0.264907), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 0.264907, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value sigma.";
 }
 
@@ -74,30 +73,30 @@ TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, ComponentsTest) {
       likelihood.calculateComponents(test_vec);
 
   // Expect equality for the lead sum component.
-  EXPECT_LE(abs(roundToDecimals(components.lead_sum, 2) - 4.0), tolerance)
+  EXPECT_NEAR(roundToDecimals(components.lead_sum, 2), 4.0, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
          "lead sum component.";
   // Expect equality for the lag sum component.
-  EXPECT_LE(abs(roundToDecimals(components.lag_sum, 2) - 3.5), tolerance)
+  EXPECT_NEAR(roundToDecimals(components.lag_sum, 2), 3.5, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
          "lag sum component.";
   // Expect equality for the lead sum squared component.
-  EXPECT_LE(
-      abs(roundToDecimals(components.lead_sum_squared, 4) - 4.125), tolerance
+  EXPECT_NEAR(
+      roundToDecimals(components.lead_sum_squared, 4), 4.125, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the lead "
        "sum squared component.";
   // Expect equality for the lag sum squared component.
-  EXPECT_LE(
-      abs(roundToDecimals(components.lag_sum_squared, 4) - 3.375), tolerance
+  EXPECT_NEAR(
+      roundToDecimals(components.lag_sum_squared, 4), 3.375, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the lag "
        "sum squared component.";
   // Expect equality for the lead-lag sum product component.
-  EXPECT_LE(
-      abs(roundToDecimals(components.lead_lag_sum_product, 2) - 3.25), tolerance
+  EXPECT_NEAR(
+      roundToDecimals(components.lead_lag_sum_product, 2), 3.25, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
        "lead-lag sum product component.";
   // Expect equality for the number of observations component.
-  EXPECT_LE(abs(roundToDecimals(components.n_obs, 2) - 6.0), tolerance)
+  EXPECT_NEAR(roundToDecimals(components.n_obs, 2), 6.0, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
          "number of observations component.";
 }
@@ -115,35 +114,33 @@ TEST(OrnsteinUhlenbeckLikelihoodUpdateTest, ComponentsTest) {
       likelihood.updateComponents(components, 0.75, 1.0);
 
   // Expect equality for the lead sum component.
-  EXPECT_LE(
-      abs(roundToDecimals(updated_components.lead_sum, 2) - 4.75), tolerance
+  EXPECT_NEAR(
+      roundToDecimals(updated_components.lead_sum, 2), 4.75, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the lead "
        "sum component.";
   // Expect equality for the lag sum component.
-  EXPECT_LE(
-      abs(roundToDecimals(updated_components.lag_sum, 2) - 4.5), tolerance
+  EXPECT_NEAR(
+      roundToDecimals(updated_components.lag_sum, 2), 4.5, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the lag "
        "sum component.";
   // Expect equality for the lead sum squared component.
-  EXPECT_LE(
-      abs(roundToDecimals(updated_components.lead_sum_squared, 4) - 4.6875),
-      tolerance
+  EXPECT_NEAR(
+      roundToDecimals(updated_components.lead_sum_squared, 4), 4.6875, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the lead "
        "sum squared component.";
   // Expect equality for the lag sum squared component.
-  EXPECT_LE(
-      abs(roundToDecimals(updated_components.lag_sum_squared, 4) - 4.375),
-      tolerance
+  EXPECT_NEAR(
+      roundToDecimals(updated_components.lag_sum_squared, 4), 4.375, tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the lag "
        "sum squared component.";
   // Expect equality for the lead-lag sum product component.
-  EXPECT_LE(
-      abs(roundToDecimals(updated_components.lead_lag_sum_product, 2) - 4.0),
+  EXPECT_NEAR(
+      roundToDecimals(updated_components.lead_lag_sum_product, 2), 4.0,
       tolerance
   ) << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
        "lead-lag sum product component.";
   // Expect equality for the number of observations component.
-  EXPECT_LE(abs(roundToDecimals(updated_components.n_obs, 2) - 7.0), tolerance)
+  EXPECT_NEAR(roundToDecimals(updated_components.n_obs, 2), 7.0, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
          "number of observations component.";
 }

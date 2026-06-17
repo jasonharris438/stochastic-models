@@ -2,7 +2,6 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 /**
  * @test Tests the output of the
@@ -18,7 +17,7 @@ TEST(OrnsteinUhlenbeckModelTest, getUnconditionalVarianceOutputTest) {
   delete model;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(output, 8) - 0.0625), tolerance)
+  EXPECT_NEAR(roundToDecimals(output, 8), 0.0625, tolerance)
       << "OrnsteinUhlenbeckModel not calculating "
          "correct value for getUnconditionalVariance method.";
 }
@@ -35,7 +34,7 @@ TEST(OrnsteinUhlenbeckModelTest, getMeanOutputTest) {
   delete model;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(output, 8) - 0.5), tolerance)
+  EXPECT_NEAR(roundToDecimals(output, 8), 0.5, tolerance)
       << "OrnsteinUhlenbeckModel not calculating "
          "correct value for getMean method.";
 }
@@ -54,7 +53,7 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, hittingTimeCoreOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(output, 8) - 0.18637397), tolerance)
+  EXPECT_NEAR(roundToDecimals(output, 8), 0.18637397, tolerance)
       << "OrnsteinUhlenbeckModel not calculating "
          "correct value for hitting time density.";
 }
@@ -74,7 +73,7 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingFCoreOutputTest) {
       hitting_time_kernel->optimalTradingFCore(0.3, 0.1, 0.02);
   delete hitting_time_kernel;
   // Expect equality for output.
-  EXPECT_LE(abs(roundToDecimals(output, 8) - 0.91851228), tolerance)
+  EXPECT_NEAR(roundToDecimals(output, 8), 0.91851228, tolerance)
       << "HittingTimeOrnsteinUhlenbeck not calculating "
          "correct value for first passage time F function.";
 }
@@ -94,7 +93,7 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingGCoreOutputTest) {
       hitting_time_kernel->optimalTradingGCore(0.3, 0.1, 0.02);
   delete hitting_time_kernel;
   // Expect equality for output.
-  EXPECT_LE(abs(roundToDecimals(output, 8) - 1.07788415), tolerance)
+  EXPECT_NEAR(roundToDecimals(output, 8), 1.07788415, tolerance)
       << "HittingTimeOrnsteinUhlenbeck not calculating "
          "correct value for first passage time G function.";
 }
@@ -112,7 +111,7 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingLCoreOutputTest) {
   const double output = hitting_time_kernel->optimalTradingLCore(0.05, 0.02);
   delete hitting_time_kernel;
   // Expect equality for output.
-  EXPECT_LE(abs(roundToDecimals(output, 8) - 0.298261), tolerance)
+  EXPECT_NEAR(roundToDecimals(output, 8), 0.298261, tolerance)
       << "HittingTimeOrnsteinUhlenbeck not calculating correct value for L "
          "function.";
 }

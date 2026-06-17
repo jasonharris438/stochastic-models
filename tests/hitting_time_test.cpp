@@ -3,7 +3,6 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/integration.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 /**
  * @test Tests the output of the hittingTimeDensity function and asserts that
@@ -34,7 +33,7 @@ TEST(HittingTimeDensityTest, hittingTimeDensityOutputTest) {
   hitting_time_kernel = nullptr;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.43046005), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.43046005, tolerance)
       << "The value of the hitting time density is not equal to the expected "
          "value.";
 }

@@ -40,7 +40,7 @@ TEST(GeneralLinearOnlineTest, UpdateMuTest) {
       updater.updateState(new_observation, initial_observation);
 
   const double expected = -0.00133194;
-  EXPECT_LE(abs(roundToDecimals(actual.mu, 8) - expected), tolerance)
+  EXPECT_NEAR(roundToDecimals(actual.mu, 8), expected, tolerance)
       << "GeneralLinearUpdater updateMu method returning invalid value.";
 }
 
@@ -71,6 +71,6 @@ TEST(GeneralLinearOnlineTest, UpdateSigmaTest) {
       updater.updateState(new_observation, initial_observation);
 
   const double expected = 10.2165;
-  EXPECT_LE(abs(roundToDecimals(actual.sigma, 4) - expected), tolerance)
+  EXPECT_NEAR(roundToDecimals(actual.sigma, 4), expected, tolerance)
       << "GeneralLinearUpdater updateSigma method returning invalid value.";
 }

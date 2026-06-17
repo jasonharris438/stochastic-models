@@ -3,6 +3,7 @@
 #include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
+#include <gsl/gsl_errno.h>
 #include <iostream>
 void BoostMatrixInverter::linalgLuDecomp(
     gsl_matrix* gsl_mat, gsl_permutation* perm
