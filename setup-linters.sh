@@ -5,7 +5,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-readonly SCRIPT_NAME;
 SCRIPT_NAME=$(basename "$0")
 
 # Functions for logging and error handling.
