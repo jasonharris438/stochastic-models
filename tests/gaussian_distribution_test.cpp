@@ -11,9 +11,8 @@ TEST(GaussianDistributionTest, getMeanTest) {
   // Assert that getMean returns the mean of the distribution.
   double mu = 0.996;
   double sigma = 1.1;
-  GaussianDistribution* model = new GaussianDistribution(mu, sigma);
-  const double value = model->getMean();
-  delete model;
+  GaussianDistribution model(mu, sigma);
+  const double value = model.getMean();
   EXPECT_EQ(
       value, mu
   ) << "The value returned by GaussianDistribution.getMean is not the "
@@ -29,9 +28,8 @@ TEST(GaussianDistributionTest, getStdTest) {
   double mu = 0.996;
   double sigma = 1.1;
 
-  GaussianDistribution* model = new GaussianDistribution(mu, sigma);
-  const double value = model->getStd();
-  delete model;
+  GaussianDistribution model(mu, sigma);
+  const double value = model.getStd();
   EXPECT_EQ(
       value, sigma
   ) << "The value returned by GaussianDistribution.getStd is not the "
@@ -47,9 +45,8 @@ TEST(GaussianDistributionTest, cdfTest) {
   double mu = 0.996;
   double sigma = 1.1;
   double tolerance = 1e-5;
-  GaussianDistribution* model = new GaussianDistribution(mu, sigma);
-  const double value = model->cdf(1.2);
-  delete model;
+  GaussianDistribution model(mu, sigma);
+  const double value = model.cdf(1.2);
   EXPECT_NEAR(roundToDecimals(value, 8), 0.57356373, tolerance)
       << "The value returned by GaussianDistribution.Cdf is not the "
          "expected value.";

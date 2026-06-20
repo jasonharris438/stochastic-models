@@ -12,9 +12,8 @@
 TEST(OrnsteinUhlenbeckModelTest, getUnconditionalVarianceOutputTest) {
   const float tolerance = 1e-5;
   // Instantiate model and generate output of hitting time core function.
-  OrnsteinUhlenbeckModel* model = new OrnsteinUhlenbeckModel(0.5, 0.02, 0.05);
-  const double output = model->getUnconditionalVariance();
-  delete model;
+  OrnsteinUhlenbeckModel model(0.5, 0.02, 0.05);
+  const double output = model.getUnconditionalVariance();
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(roundToDecimals(output, 8), 0.0625, tolerance)
@@ -29,9 +28,8 @@ TEST(OrnsteinUhlenbeckModelTest, getUnconditionalVarianceOutputTest) {
 TEST(OrnsteinUhlenbeckModelTest, getMeanOutputTest) {
   const float tolerance = 1e-5;
   // Instantiate model and generate output of hitting time core function.
-  OrnsteinUhlenbeckModel* model = new OrnsteinUhlenbeckModel(0.5, 0.02, 0.05);
-  const double output = model->getMean();
-  delete model;
+  OrnsteinUhlenbeckModel model(0.5, 0.02, 0.05);
+  const double output = model.getMean();
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(roundToDecimals(output, 8), 0.5, tolerance)
@@ -47,10 +45,8 @@ TEST(OrnsteinUhlenbeckModelTest, getMeanOutputTest) {
 TEST(HittingTimeOrnsteinUhlenbeckTest, hittingTimeCoreOutputTest) {
   const float tolerance = 1e-5;
   // Instantiate model and generate output of hitting time core function.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(0.5, 0.02, 0.05);
-  const double output = hitting_time_kernel->hittingTimeDensityCore(0.3);
-  delete hitting_time_kernel;
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.5, 0.02, 0.05);
+  const double output = hitting_time_kernel.hittingTimeDensityCore(0.3);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(roundToDecimals(output, 8), 0.18637397, tolerance)
@@ -67,11 +63,8 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingFCoreOutputTest) {
   const float tolerance = 1e-5;
   // Instantiate model and generate output of first passage time core
   // function F.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(0.5, 0.02, 0.05);
-  const double output =
-      hitting_time_kernel->optimalTradingFCore(0.3, 0.1, 0.02);
-  delete hitting_time_kernel;
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.5, 0.02, 0.05);
+  const double output = hitting_time_kernel.optimalTradingFCore(0.3, 0.1, 0.02);
   // Expect equality for output.
   EXPECT_NEAR(roundToDecimals(output, 8), 0.91851228, tolerance)
       << "HittingTimeOrnsteinUhlenbeck not calculating "
@@ -87,11 +80,8 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingGCoreOutputTest) {
   const float tolerance = 1e-5;
   // Instantiate model and generate output of first passage time core
   // function G.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(0.5, 0.02, 0.05);
-  const double output =
-      hitting_time_kernel->optimalTradingGCore(0.3, 0.1, 0.02);
-  delete hitting_time_kernel;
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.5, 0.02, 0.05);
+  const double output = hitting_time_kernel.optimalTradingGCore(0.3, 0.1, 0.02);
   // Expect equality for output.
   EXPECT_NEAR(roundToDecimals(output, 8), 1.07788415, tolerance)
       << "HittingTimeOrnsteinUhlenbeck not calculating "
@@ -106,10 +96,8 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingGCoreOutputTest) {
 TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingLCoreOutputTest) {
   const float tolerance = 1e-5;
   // Instantiate model and generate output of core function L.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(0.3, 8, 0.3);
-  const double output = hitting_time_kernel->optimalTradingLCore(0.05, 0.02);
-  delete hitting_time_kernel;
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.3, 8, 0.3);
+  const double output = hitting_time_kernel.optimalTradingLCore(0.05, 0.02);
   // Expect equality for output.
   EXPECT_NEAR(roundToDecimals(output, 8), 0.298261, tolerance)
       << "HittingTimeOrnsteinUhlenbeck not calculating correct value for L "

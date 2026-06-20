@@ -106,13 +106,11 @@ TEST(AdaptiveIntegrationFunctionTest, OutputTest) {
   double lower = 0.8;
 
   // Initialize model and define function to integrate.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ModelFunc fn = &integrateHittingTimeDensity;
 
   // Adaptive integration function.
-  double value = adaptiveIntegration(fn, hitting_time_kernel, lower, upper);
-  delete hitting_time_kernel;
+  double value = adaptiveIntegration(fn, &hitting_time_kernel, lower, upper);
   EXPECT_EQ(value, 0.003993143831817661)
       << "Value produced by adaptiveIntegration is not equal to the "
          "expected value.";
@@ -132,9 +130,8 @@ TEST(SemiInfiniteIntegrationFunctionTest, OutputTest) {
   double r = 0.03;
 
   // Initialize model and define function to integrate.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-  void* params = new OptimalMeanReversionParams{hitting_time_kernel, x, r};
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
+  void* params = new OptimalMeanReversionParams{&hitting_time_kernel, x, r};
   ModelFunc fn = &funcOptimalMeanReversionF;
 
   // Adaptive integration function.
@@ -208,11 +205,10 @@ TEST(SolverBoundsTest, upperSolverBoundOutputTest) {
   const float tolerance = 1e-5;
 
   // Create core model and optimal mean reversion instances.
-  OrnsteinUhlenbeckModel* model = new OrnsteinUhlenbeckModel(mu, alpha, sigma);
+  OrnsteinUhlenbeckModel model(mu, alpha, sigma);
 
   // Calculate upperSolverBound.
-  const double value = upperSolverBound(model);
-  delete model;
+  const double value = upperSolverBound(&model);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(roundToDecimals(value, 8), 0.649579, tolerance)
@@ -232,11 +228,10 @@ TEST(SolverBoundsTest, lowerSolverBoundOutputTest) {
   const float tolerance = 1e-5;
 
   // Create core model and optimal mean reversion instances.
-  OrnsteinUhlenbeckModel* model = new OrnsteinUhlenbeckModel(mu, alpha, sigma);
+  OrnsteinUhlenbeckModel model(mu, alpha, sigma);
 
   // Calculate lowerSolverBound.
-  const double value = lowerSolverBound(model);
-  delete model;
+  const double value = lowerSolverBound(&model);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(roundToDecimals(value, 8), 0.428021, tolerance)
