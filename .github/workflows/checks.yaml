@@ -1,12 +1,18 @@
 name: Run checks
 
+permissions:
+  # Required for actions/checkout (access to source code).
+  contents: read
+
 on:
   pull_request:
     types:
       - opened
       - reopened
-      - edited
       - synchronize
+  push:
+    branches:
+      - main
 
 # Cancel previous runs if the PR is updated before completion.
 concurrency:
@@ -14,22 +20,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  run-checks:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu:24.04
     container:
-      image: ubuntu:latest
+      image: ubuntu:24.04
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
     - name: Install linux packages
       run: ./setup-linters.sh
     - name: check shell scripts
-      run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh
+      run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh setup-linters.sh
     - name: script permissions
       run: chmod +x ./setup-env.sh ./install-cmake.sh ./install-valgrind.sh
     - name: lint code
-      run: clang-format-20 --dry-run --Werror -style=file:.clang-format src/**.cpp include/stochastic_models/**/**.h tests/**.cpp
+      run: git ls-files '*.cpp' '*.h' | xargs clang-format-20 --dry-run --Werror
     - name: Install dependencies
       run: ./setup-env.sh
     - name: Install cmake
@@ -44,4 +50,3 @@ jobs:
       run: ./tests/unit_tests
     - name: Run valgrind
       run: valgrind -s --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/unit_tests
-

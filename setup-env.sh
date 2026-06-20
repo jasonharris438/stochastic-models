@@ -10,9 +10,9 @@ apt-get update && apt-get install -y --no-install-recommends \
 	ca-certificates \
 	libc6 \
 	libssl-dev \
-	gcc-14 \
-	g++-14
+	gcc-15 \
+	g++-15
 
 # Update default links.
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-15 100
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-15 100
