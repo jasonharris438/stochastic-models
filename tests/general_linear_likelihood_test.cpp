@@ -1,7 +1,6 @@
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 #include <unordered_map>
 
@@ -27,10 +26,10 @@ TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
       likelihood.calculateParameters(components);
 
   // Expect equality for mu value.
-  EXPECT_LE(abs(roundToDecimals(params.mu, 8) + 0.00143647), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.mu, 8), -0.00143647, tolerance)
       << "GeneralLinearLikelihood not calculating correct value mu.";
 
   // Expect equality for sigma value.
-  EXPECT_LE(abs(roundToDecimals(params.sigma, 8) - 10.4573), tolerance)
+  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 10.4573, tolerance)
       << "GeneralLinearLikelihood not calculating correct value sigma.";
 }

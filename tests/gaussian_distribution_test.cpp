@@ -1,7 +1,6 @@
 #include "stochastic_models/distributions/gaussian.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 /**
  * @test Tests the output of the GaussianDistribution::getMean method and
@@ -51,7 +50,7 @@ TEST(GaussianDistributionTest, cdfTest) {
   GaussianDistribution* model = new GaussianDistribution(mu, sigma);
   const double value = model->cdf(1.2);
   delete model;
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.57356373), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.57356373, tolerance)
       << "The value returned by GaussianDistribution.Cdf is not the "
          "expected value.";
 }

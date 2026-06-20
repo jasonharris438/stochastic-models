@@ -23,7 +23,7 @@ TEST(GeneralLinearModelTest, GetUnconditionalVarianceTest) {
   const GeneralLinearModel model(-0.00143647, 10.4573);
   const double expected = 109.19818826;
   const double actual = model.getUnconditionalVariance();
-  EXPECT_LE(abs(roundToDecimals(actual, 8) - expected), tolerance)
+  EXPECT_NEAR(roundToDecimals(actual, 8), expected, tolerance)
       << "GeneralLinearLikelihood getUnconditionalVariance method returning "
          "invalid value.";
 }
@@ -34,7 +34,7 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceTest) {
   const GeneralLinearModel model(-0.00143647, 10.4573);
   const double expected = 20.95971157;
   const double actual = model.getConditionalVariance();
-  EXPECT_LE(abs(roundToDecimals(actual, 8) - expected), tolerance)
+  EXPECT_NEAR(roundToDecimals(actual, 8), expected, tolerance)
       << "GeneralLinearLikelihood getConditionalVariance method returning "
          "invalid value.";
 }

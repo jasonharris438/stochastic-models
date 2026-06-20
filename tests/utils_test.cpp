@@ -215,7 +215,7 @@ TEST(SolverBoundsTest, upperSolverBoundOutputTest) {
   delete model;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.649579), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.649579, tolerance)
       << "Value produced by upperSolverBound is not equal to the expected "
          "value.";
 }
@@ -239,7 +239,7 @@ TEST(SolverBoundsTest, lowerSolverBoundOutputTest) {
   delete model;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.428021), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.428021, tolerance)
       << "Value produced by lowerSolverBound is not equal to the expected "
          "value.";
 }

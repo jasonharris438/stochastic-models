@@ -3,7 +3,6 @@
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/optimal_mean_reversion.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 /**
  * @test Tests the output of the OptimalMeanReversion::F method and asserts that
@@ -30,7 +29,7 @@ TEST(OptimalMeanReversionTest, methodFOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 5.80482400), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 5.80482400, tolerance)
       << "Value produced by OptimalMeanReversion::F is not equal to the "
          "expected value.";
 }
@@ -59,7 +58,7 @@ TEST(OptimalMeanReversionTest, methodGOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 163.617), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 163.617, tolerance)
       << "Value produced by OptimalMeanReversion::G is not equal to the "
          "expected value.";
 }
@@ -88,7 +87,7 @@ TEST(OptimalMeanReversionTest, methodBOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 135.511), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 135.511, tolerance)
       << "Value produced by OptimalMeanReversion::b is not equal to the "
          "expected value.";
 }
@@ -119,7 +118,7 @@ TEST(OptimalMeanReversionTest, methodBStopLossOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 2) - 187.81), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 2), 187.81, tolerance)
       << "Value produced by OptimalMeanReversion::b with stop loss level is "
          "not equal to the expected value.";
 }
@@ -150,7 +149,7 @@ TEST(OptimalMeanReversionTest, methodDOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) + 129.094), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), -129.094, tolerance)
       << "Value produced by OptimalMeanReversion::d is not equal to the "
          "expected value.";
 }
@@ -182,7 +181,7 @@ TEST(OptimalMeanReversionTest, methodDStopLossOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) + 129.094), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), -129.094, tolerance)
       << "Value produced by OptimalMeanReversion::d is not equal to the "
          "expected value when a stop loss is provided.";
 }
@@ -214,7 +213,7 @@ TEST(OptimalMeanReversionTest, methodAStopLossOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) + 132.55), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), -132.55, tolerance)
       << "Value produced by OptimalMeanReversion::a is not equal to the "
          "expected value when a stop loss is provided.";
 }
@@ -244,7 +243,7 @@ TEST(OptimalMeanReversionTest, methodAboveVOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.53), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.53, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is above b*.";
 }
@@ -274,7 +273,7 @@ TEST(OptimalMeanReversionTest, methodBelowVOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.403389), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.403389, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is below b*.";
 }
@@ -307,7 +306,7 @@ TEST(OptimalMeanReversionTest, methodAboveVStopLossOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.55), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.55, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is above b* and a stop loss is provided.";
 }
@@ -339,7 +338,7 @@ TEST(OptimalMeanReversionTest, methodBelowVStopLossOutputTest) {
   delete hitting_time_kernel;
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.508892), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.508892, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is below b* and a stop loss is provided.";
 }

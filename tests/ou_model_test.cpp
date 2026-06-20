@@ -1,7 +1,6 @@
 #include "stochastic_models/entrypoints/ou_model.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 
 /**
@@ -47,7 +46,7 @@ TEST(OuModelTest, hittingTimeDensityOutputTest) {
       hittingTimeDensityOrnsteinUhlenbeck(x, mu, alpha, sigma, first, second);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.43046005), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.43046005, tolerance)
       << "The value of the hitting time density calculated by "
          "hittingTimeDensityOrnsteinUhlenbeck is not equal to the expected "
          "value.";
@@ -67,18 +66,15 @@ TEST(OuModelTest, ornsteinUhlenbeckMaximumLikelihoodOutputTest) {
       ornsteinUhlenbeckMaximumLikelihood(test_vec);
 
   // Expect equality for mu value.
-  EXPECT_LE(
-      abs(roundToDecimals(likelihood.at("mu"), 8) - 0.58333333), tolerance
-  ) << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
-       "mu.";
+  EXPECT_NEAR(roundToDecimals(likelihood.at("mu"), 8), 0.58333333, tolerance)
+      << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
+         "mu.";
   // Expect equality for alpha value.
-  EXPECT_LE(
-      abs(roundToDecimals(likelihood.at("alpha"), 8) - 1.06784063), tolerance
-  ) << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
-       "alpha.";
+  EXPECT_NEAR(roundToDecimals(likelihood.at("alpha"), 8), 1.06784063, tolerance)
+      << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
+         "alpha.";
   // Expect equality for sigma value.
-  EXPECT_LE(
-      abs(roundToDecimals(likelihood.at("sigma"), 8) - 0.15277777), tolerance
-  ) << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
-       "sigma.";
+  EXPECT_NEAR(roundToDecimals(likelihood.at("sigma"), 8), 0.15277777, tolerance)
+      << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
+         "sigma.";
 }

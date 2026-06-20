@@ -7,7 +7,6 @@
 #include "stochastic_models/trading/trading_levels_exponential.h"
 #include "stochastic_models/trading/trading_levels_params.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 /**
  * @test Tests the output of the TradingLevels::optimalExit method with a stop
@@ -31,7 +30,7 @@ TEST(TradingLevelsTest, exitLevelStopLossOutputTest) {
   const double value = tradingLevels.optimalExit(stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.46912012), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.46912012, tolerance)
       << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
          "with a stop loss provided is not equal to the expected value.";
 }
@@ -56,7 +55,7 @@ TEST(TradingLevelsTest, exitLevelOutputTest) {
   const double value = tradingLevels.optimalExit(r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.466836), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.466836, tolerance)
       << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
          "is not equal to the expected value.";
 }
@@ -82,7 +81,7 @@ TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
   const double value = tradingLevels.optimalExit(r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 1.4093), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 1.4093, tolerance)
       << "Value produced by "
          "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
          "with ExponentialMeanReversion optimizer is not equal to the "
@@ -114,7 +113,7 @@ TEST(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
       tradingLevels.optimalEntryLower(d_star, b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.118451), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.118451, tolerance)
       << "Value produced by "
          "OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
          "is not equal to the expected value when a stop loss is provided.";
@@ -142,7 +141,7 @@ TEST(TradingLevelsTest, entryLevelStopLossOutputTest) {
   const double value = tradingLevels.optimalEntry(b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.136755), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.136755, tolerance)
       << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
          "is not equal to the expected value when a stop loss is provided.";
 }
@@ -168,7 +167,7 @@ TEST(TradingLevelsTest, entryLevelOutputTest) {
   const double value = tradingLevels.optimalEntry(b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 0.116948), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 0.116948, tolerance)
       << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
          "is not equal to the expected value.";
 }
@@ -218,7 +217,7 @@ TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
   const double value = tradingLevels.optimalEntry(b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 1.24096), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 1.24096, tolerance)
       << "Value produced by "
          "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry "
          "with ExponentialMeanReversion optimizer is not equal to the "
@@ -248,7 +247,7 @@ TEST(TradingLevelsTest, entryLevelLowerExponentialOutputTest) {
   const double value = tradingLevels.optimalEntryLower(d_star, b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_LE(abs(roundToDecimals(value, 8) - 1.16016), tolerance)
+  EXPECT_NEAR(roundToDecimals(value, 8), 1.16016, tolerance)
       << "Value produced by "
          "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
          "with ExponentialMeanReversion optimizer is not equal to the "

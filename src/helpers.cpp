@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <gsl/gsl_errno.h>
 #include <iostream>
 #include <stdexcept>
 
