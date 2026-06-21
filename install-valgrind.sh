@@ -4,12 +4,12 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-valgrind_version="3.26.0"
+valgrind_version="3.27.1"
 
 wget "https://sourceware.org/pub/valgrind/valgrind-${valgrind_version}.tar.bz2"
-valgrind_md5="856da1bc568212df6df502295a0439c0"
+valgrind_sha512="4522e345fe31bc10478f21ab261cf7b3e509d80fe98fd0c7c9778ac9a9f90e1d8fa6e54a37c2e23114c01c95131035103fc1e78661710d7f45f5d564a31c1015"
 
-if ! echo "$valgrind_md5 valgrind-${valgrind_version}.tar.bz2" | md5sum -c -; then
+if ! echo "$valgrind_sha512 valgrind-${valgrind_version}.tar.bz2" | sha512sum -c -; then
 	echo "Valgrind checksum validation failed."
 	exit 1
 fi
