@@ -27,7 +27,7 @@ TEST(ExponentialMeanReversionTest, stopLossBNotImplementedTest) {
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      mean_reversion.b(x, hitting_time_kernel, stop_loss, r, c),
+      mean_reversion.b(x, &hitting_time_kernel, stop_loss, r, c),
       std::logic_error
   ) << "OptimalMeanReversion::b with stop loss is not meant to be "
        "implemented.";
