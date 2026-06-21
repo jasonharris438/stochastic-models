@@ -35,7 +35,7 @@ jobs:
     - name: script permissions
       run: chmod +x ./setup-env.sh ./install-cmake.sh ./install-valgrind.sh
     - name: lint code
-      run: git ls-files '*.cpp' '*.h' | xargs clang-format-20 --dry-run --Werror
+      run: git ls-files '*.cpp' '*.h' | xargs clang-format-20 --dry-run --Werror -style=file
     - name: Install dependencies
       run: ./setup-env.sh
     - name: Install cmake
