@@ -21,8 +21,7 @@ TEST(ExponentialMeanReversionTest, stopLossBNotImplementedTest) {
   const double r = 0.05;
 
   // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel =
-      HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ExponentialMeanReversion mean_reversion;
 
   // Assert that the method is not implemented.

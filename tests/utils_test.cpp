@@ -130,17 +130,14 @@ TEST(SemiInfiniteIntegrationFunctionTest, OutputTest) {
   double r = 0.03;
 
   // Initialize model and define function to integrate.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
+  auto* hitting_time_kernel =
       new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
-  void* params = new OptimalMeanReversionParams{hitting_time_kernel, x, r};
+  OptimalMeanReversionParams params =
+      OptimalMeanReversionParams{hitting_time_kernel, x, r};
   ModelFunc fn = &funcOptimalMeanReversionF;
 
   // Adaptive integration function.
-  double value = semiInfiniteIntegrationUpper(fn, params, lower);
-
-  OptimalMeanReversionParams* ptr =
-      static_cast<OptimalMeanReversionParams*>(params);
-  delete ptr;
+  double value = semiInfiniteIntegrationUpper(fn, &params, lower);
 
   EXPECT_EQ(value, 0.30603133345784983)
       << "Value produced by semiInfiniteIntegrationUpper is not equal to "
@@ -172,7 +169,7 @@ TEST(AdaptiveCentralDifferentiationFunctionTest, OutputTest) {
  */
 TEST(BrentSolverFunctionTest, OutputTest) {
   // Declare and initialize model and test parameters.
-  void* params = new QuadraticParams{1.0, 0.0, -5.0};
+  QuadraticParams params = QuadraticParams{1.0, 0.0, -5.0};
 
   double upper = 5;
   double lower = 0;
@@ -184,10 +181,7 @@ TEST(BrentSolverFunctionTest, OutputTest) {
   };
 
   // Apply brent solver.
-  double value = brentSolver(fn, params, lower, upper);
-
-  QuadraticParams* ptr = static_cast<QuadraticParams*>(params);
-  delete ptr;
+  double value = brentSolver(fn, &params, lower, upper);
 
   EXPECT_LT(value - 2.236068, tolerance)
       << "Value produced by brentSolver is not equal to "
