@@ -19,7 +19,7 @@ apt-get -yqq update && apt-get -yqq install \
 apt-get -yqq install libgsl-dev
 
 # Remove any existing cmake installation.
-apt remove --purge --auto-remove cmake
+apt-get remove --purge --auto-remove cmake
 
 # Set cmake configuration.
 src_url="https://github.com/Kitware/CMake/releases/download"

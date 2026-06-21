@@ -5,7 +5,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-readonly SCRIPT_NAME=$(basename "$0")
+SCRIPT_NAME=$(basename "$0")
 
 # Functions for logging and error handling.
 log() { printf '%s: %s\n' "$SCRIPT_NAME" "$*" >&2; }
