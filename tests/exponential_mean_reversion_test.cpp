@@ -21,17 +21,15 @@ TEST(ExponentialMeanReversionTest, stopLossBNotImplementedTest) {
   const double r = 0.05;
 
   // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ExponentialMeanReversion mean_reversion;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      mean_reversion.b(x, hitting_time_kernel, stop_loss, r, c),
+      mean_reversion.b(x, &hitting_time_kernel, stop_loss, r, c),
       std::logic_error
   ) << "OptimalMeanReversion::b with stop loss is not meant to be "
        "implemented.";
-  delete hitting_time_kernel;
 }
 /**
  * @test Tests the method ExponentialMeanReversion::d with a stop_loss argument
@@ -50,17 +48,15 @@ TEST(ExponentialMeanReversionTest, stopLossDNotImplementedTest) {
   const double r = 0.05;
 
   // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ExponentialMeanReversion mean_reversion;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      mean_reversion.d(x, hitting_time_kernel, b_star, stop_loss, r, c),
+      mean_reversion.d(x, &hitting_time_kernel, b_star, stop_loss, r, c),
       std::logic_error
   ) << "OptimalMeanReversion::d with stop loss is not meant to be "
        "implemented.";
-  delete hitting_time_kernel;
 }
 /**
  * @test Tests the method ExponentialMeanReversion::a with a stop_loss argument
@@ -79,17 +75,15 @@ TEST(ExponentialMeanReversionTest, stopLossANotImplementedTest) {
   const double r = 0.05;
 
   // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ExponentialMeanReversion mean_reversion;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      mean_reversion.a(x, hitting_time_kernel, b_star, stop_loss, r, c),
+      mean_reversion.a(x, &hitting_time_kernel, b_star, stop_loss, r, c),
       std::logic_error
   ) << "OptimalMeanReversion::a with stop loss is not meant to be "
        "implemented.";
-  delete hitting_time_kernel;
 }
 /**
  * @test Tests the method ExponentialMeanReversion::V with a stop_loss argument
@@ -107,17 +101,15 @@ TEST(ExponentialMeanReversionTest, stopLossVNotImplementedTest) {
   const double c = 0.02;
   const double r = 0.05;
   // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ExponentialMeanReversion mean_reversion;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      mean_reversion.V(hitting_time_kernel, x, b_star, stop_loss, r, c),
+      mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, r, c),
       std::logic_error
   ) << "OptimalMeanReversion::V with stop loss is not meant to be "
        "implemented.";
-  delete hitting_time_kernel;
 }
 /**
  * @test Tests the method ExponentialMeanReversion::instantaneousDifferential
@@ -140,17 +132,15 @@ TEST(
   ModelFunc fn = funcIntegrateF;
 
   // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck* hitting_time_kernel =
-      new HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
+  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   ExponentialMeanReversion mean_reversion;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
       mean_reversion.instantaneousDifferential(
-          fn, hitting_time_kernel, x, b_star, stop_loss, r, c
+          fn, &hitting_time_kernel, x, b_star, stop_loss, r, c
       ),
       std::logic_error
   ) << "OptimalMeanReversion::instantaneousDifferential with stop loss is "
        "not meant to be implemented.";
-  delete hitting_time_kernel;
 }
