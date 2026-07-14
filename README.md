@@ -202,7 +202,7 @@ correctly linked. The `.so` file created in the `src` directory is the most effi
 To access in the `main` module of another application a `CMakeLists.txt` can be produced
 and `#include <stochastic_models/sde/ornstein_uhlenbeck.h>` for example to access the `OrnsteinUhlenbeckModel` interface.
 ```
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 4.2)
 project(another-application VERSION 0.1.0 DESCRIPTION "A project with external library" LANGUAGES CXX)
 
 # Add the subdirectory to build the library as a subproject to follow how stochastic-models is built.

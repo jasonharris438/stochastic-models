@@ -16,10 +16,12 @@ add_executable(
     filter_states_test.cpp
     filter_update_test.cpp
     gaussian_distribution_test.cpp
+    gaussian_seeding_test.cpp
     general_linear_likelihood_test.cpp
     general_linear_online_test.cpp
     general_linear_test.cpp
     general_sde_model_test.cpp
+    gsl_handler_guard_test.cpp
     helpers_include_hygiene_test.cpp
     hitting_time_test.cpp
     kca_filter_test.cpp

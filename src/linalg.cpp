@@ -64,9 +64,9 @@ const boost::numeric::ublas::matrix<double> BoostMatrixInverter::invertMatrix(
   std::size_t cols = boost_matrix.size2();
   gsl_matrix* gsl_mat = gsl_matrix_alloc(rows, cols);
 
-  // Set custom GSL error handler.
-  gsl_error_handler_t* old_handler =
-      gsl_set_error_handler(&custom_gsl_exception_handler);
+  // Set custom GSL error handler; RAII guard restores the previous handler on
+  // every exit path (including exceptions thrown by LU decomp/inversion).
+  GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   // Copy Boost matrix to GSL matrix.
   copyBoostToGslMatrix(boost_matrix, gsl_mat);
@@ -92,9 +92,6 @@ const boost::numeric::ublas::matrix<double> BoostMatrixInverter::invertMatrix(
   gsl_permutation_free(perm);
   gsl_matrix_free(gsl_mat);
   gsl_matrix_free(gsl_inv);
-
-  // Restore original GSL error handler.
-  gsl_set_error_handler(old_handler);
 
   return boost_inv_matrix;
 }

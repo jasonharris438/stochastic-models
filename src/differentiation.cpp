@@ -13,18 +13,15 @@ adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x) {
   F.function = *fn;
   F.params = model;
 
-  // Set custom error handler.
-  gsl_error_handler_t* old_handler =
-      gsl_set_error_handler(&custom_gsl_exception_handler);
+  // Set custom error handler; RAII guard restores the previous handler on
+  // every exit path (including exceptions).
+  GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_deriv_central(&F, x, 1e-5, &result, &error);
 
   // No codes to ignore.
   const std::vector<int> ignore_codes = {};
   check_function_status(status, ignore_codes);
-
-  // Restore original handler.
-  gsl_set_error_handler(old_handler);
 
   const double value = result;
 

@@ -103,3 +103,52 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingLCoreOutputTest) {
       << "HittingTimeOrnsteinUhlenbeck not calculating correct value for L "
          "function.";
 }
+/**
+ * @test A path simulated with sigma > 0 must carry continuous Gaussian noise of
+ * a plausible magnitude. The pre-fix loop bound each double N(0,1) draw to
+ * `const unsigned int&`; negative draws (~half) wrap to huge unsigned values,
+ * so the corrupted path's increment variance explodes (~1e17) rather than
+ * collapsing. A correct simulator keeps per-step variance near sigma^2 scale,
+ * so we assert the variance sits in a plausible band [1e-6, 100): the lower
+ * bound rejects a dead/zero-noise path, the upper bound rejects the
+ * truncation/UB explosion. Independent of the (internally random) seed.
+ */
+TEST(OrnsteinUhlenbeckModelTest, SimulateCarriesStochasticNoise) {
+  const double start = 0.5;
+  const unsigned int size = 500;
+  const unsigned int t = 1;
+
+  // sigma == 0: noise term (t * sigma * noise) is zero regardless of draws, so
+  // this path is fully deterministic and identical run-to-run.
+  OrnsteinUhlenbeckModel drift_only(0.5, 0.1, 0.0);
+  const std::vector<double> baseline = drift_only.Simulate(start, size, t);
+
+  // sigma > 0: a correct simulator injects continuous Gaussian noise, so the
+  // path's increments must vary (positive sample variance) and the path must
+  // differ from the deterministic baseline.
+  OrnsteinUhlenbeckModel with_noise(0.5, 0.1, 0.3);
+  const std::vector<double> noisy = with_noise.Simulate(start, size, t);
+
+  ASSERT_EQ(baseline.size(), noisy.size());
+
+  // Sample variance of the step-to-step increments of the noisy path.
+  double mean_inc = 0.0;
+  for (std::size_t i = 1; i < noisy.size(); ++i)
+    mean_inc += noisy[i] - noisy[i - 1];
+  mean_inc /= static_cast<double>(noisy.size() - 1);
+  double var_inc = 0.0;
+  for (std::size_t i = 1; i < noisy.size(); ++i) {
+    const double d = (noisy[i] - noisy[i - 1]) - mean_inc;
+    var_inc += d * d;
+  }
+  var_inc /= static_cast<double>(noisy.size() - 1);
+
+  EXPECT_GT(
+      var_inc, 1e-6
+  ) << "OU Simulate increments show no stochastic variation.";
+  EXPECT_LT(var_inc, 100.0)
+      << "OU increments are implausibly large — integer-truncation/UB bug "
+         "inflates the noise term (legitimate per-step variance ~0.1).";
+  EXPECT_NE(noisy, baseline)
+      << "OU noisy path is identical to the deterministic drift-only path.";
+}
