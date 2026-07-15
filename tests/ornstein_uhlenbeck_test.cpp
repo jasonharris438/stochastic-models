@@ -105,12 +105,9 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingLCoreOutputTest) {
 }
 /**
  * @test A path simulated with sigma > 0 must carry continuous Gaussian noise of
- * a plausible magnitude. The pre-fix loop bound each double N(0,1) draw to
- * `const unsigned int&`; negative draws (~half) wrap to huge unsigned values,
- * so the corrupted path's increment variance explodes (~1e17) rather than
- * collapsing. A correct simulator keeps per-step variance near sigma^2 scale,
- * so we assert the variance sits in a plausible band [1e-6, 100): the lower
- * bound rejects a dead/zero-noise path, the upper bound rejects the
+ * a plausible magnitude. A simulator must keep per-step variance near sigma^2
+ * scale, so we assert the variance sits in a plausible band [1e-6, 100): the
+ * lower bound rejects a dead/zero-noise path, the upper bound rejects a
  * truncation/UB explosion. Independent of the (internally random) seed.
  */
 TEST(OrnsteinUhlenbeckModelTest, SimulateCarriesStochasticNoise) {

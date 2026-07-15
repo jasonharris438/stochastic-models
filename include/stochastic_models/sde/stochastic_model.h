@@ -1,11 +1,11 @@
 #ifndef STOCHASTIC_MODELS_SDE_STOCHASTIC_MODEL_H
 #define STOCHASTIC_MODELS_SDE_STOCHASTIC_MODEL_H
-// Include hygiene (issue #26): do NOT include gaussian.h here. It pulls in
-// <random>, which transitively leaks a global abs(double); because this header
-// is reached via helpers.h by nearly every TU, that leak silently changes
-// unqualified abs() resolution. GaussianDistribution is used only via a pointer
-// below, so a forward declaration suffices; the complete type is included in
-// the .cpp files that actually construct it.
+// Do NOT include gaussian.h here. It pulls in <random>, which transitively
+// leaks a global abs(double); because this header is reached via helpers.h by
+// nearly every TU, that leak silently changes unqualified abs() resolution.
+// GaussianDistribution is used only via a pointer below, so a forward
+// declaration suffices; the complete type is included in the .cpp files that
+// actually construct it.
 #include <vector> // Simulate() returns std::vector<double>; was transitively via gaussian.h
 
 class GaussianDistribution; // fwd-decl; complete type only needed in the .cpp

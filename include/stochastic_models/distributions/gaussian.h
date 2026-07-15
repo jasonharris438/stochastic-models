@@ -16,7 +16,7 @@
  * and CDF helper methods.
  *
  * @note Not thread-safe: sample() advances a single shared engine. Use one
- *       GaussianDistribution instance per thread. See issue-drafts/10.
+ *       GaussianDistribution instance per thread.
  */
 class GaussianDistribution : public CoreDistribution {
 private:
@@ -25,7 +25,7 @@ private:
   // Gaussian distribution standard deviation value.
   const double sigma;
   // Pseudo-random engine, seeded once at construction and advanced by sample().
-  // mutable because sample() is const (CoreDistribution interface).
+  // mutable because sample() is const.
   mutable std::mt19937_64 gen_;
 
   /**
