@@ -24,16 +24,15 @@ adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper) {
   F.function = *fn;
   F.params = model;
 
-  /* set custom error handler */
-  gsl_error_handler_t* old_handler =
-      gsl_set_error_handler(&custom_gsl_exception_handler);
+  /* set custom error handler; RAII guard restores the previous handler on
+     every exit path. Behaviour note: the handler now stays installed across
+     check_function_status below, which is harmless as it invokes no GSL
+     routines. */
+  GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_integration_qags(
       &F, lower, upper, 0, 1e-7, 1000, state.workspace, &result, &error
   );
-
-  /* restore original handler */
-  gsl_set_error_handler(old_handler);
 
   // Check the status returned from the integration routine.
   // We are choosing to ignore a round-off error as it is not critical to the
@@ -55,16 +54,15 @@ semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower) {
   F.function = *fn;
   F.params = model;
 
-  /* set custom error handler */
-  gsl_error_handler_t* old_handler =
-      gsl_set_error_handler(&custom_gsl_exception_handler);
+  /* set custom error handler; RAII guard restores the previous handler on
+     every exit path. Behaviour note: the handler now stays installed across
+     check_function_status below, which is harmless as it invokes no GSL
+     routines. */
+  GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_integration_qagiu(
       &F, lower, 0, 1e-7, 1000, state.workspace, &result, &error
   );
-
-  /* restore original handler */
-  gsl_set_error_handler(old_handler);
 
   // Check the status returned from the integration routine.
   // We are choosing to ignore a round-off error as it is not critical to the

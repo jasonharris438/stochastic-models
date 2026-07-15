@@ -1,5 +1,7 @@
 #include "stochastic_models/sde/general_linear.h"
 
+#include "stochastic_models/distributions/gaussian.h"
+
 #include <cmath>
 GeneralLinearModel::GeneralLinearModel()
     : GeneralLinearModel::GeneralLinearModel(0.0, 1.0) {}

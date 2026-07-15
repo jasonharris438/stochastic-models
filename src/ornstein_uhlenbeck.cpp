@@ -53,9 +53,8 @@ std::vector<double> OrnsteinUhlenbeckModel::Simulate(
   const std::vector<double> distribution_draws = (*dist).sample(size - 1);
   std::vector<double> vec = {start};
 
-  for (const unsigned int& val : distribution_draws) {
-    const double& last = vec.back();
-    const double sample = coreEquation(last, val, t);
+  for (double val : distribution_draws) {
+    const double sample = coreEquation(vec.back(), val, t);
     vec.push_back(sample);
   }
 

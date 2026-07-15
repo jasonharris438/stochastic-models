@@ -1,6 +1,9 @@
 #ifndef STOCHASTIC_MODELS_DISTRIBUTIONS_GAUSSIAN_H
 #define STOCHASTIC_MODELS_DISTRIBUTIONS_GAUSSIAN_H
 #include "stochastic_models/distributions/core.h"
+
+#include <cstdint>
+#include <random>
 /**
  * @file
  * @brief Gaussian (normal) distribution concrete implementation.
@@ -11,6 +14,9 @@
  *
  * Stores mu (mean) and sigma (standard deviation) and implements sampling
  * and CDF helper methods.
+ *
+ * @note Not thread-safe: sample() advances a single shared engine. Use one
+ *       GaussianDistribution instance per thread.
  */
 class GaussianDistribution : public CoreDistribution {
 private:
@@ -18,6 +24,9 @@ private:
   const double mu;
   // Gaussian distribution standard deviation value.
   const double sigma;
+  // Pseudo-random engine, seeded once at construction and advanced by sample().
+  // mutable because sample() is const.
+  mutable std::mt19937_64 gen_;
 
   /**
    * Uses Error Function to produce the CDF of the Gaussian
@@ -48,6 +57,17 @@ public:
    * @param sigma Standard deviation (must be > 0).
    */
   GaussianDistribution(const double mu, const double sigma);
+
+  /**
+   * @brief Construct with explicit mu, sigma and RNG seed for reproducible
+   * draws.
+   * @param mu Mean.
+   * @param sigma Standard deviation (must be > 0).
+   * @param seed Seed for the internal pseudo-random engine.
+   */
+  GaussianDistribution(
+      const double mu, const double sigma, const std::uint64_t seed
+  );
 
   /**
    * Returns distribution mean.

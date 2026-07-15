@@ -47,6 +47,6 @@ void KineticComponents::updatePosteriors(
         "Unhandled error when updating the posterior kinetic components "
         "state: " +
         std::string(exc.what());
-    throw filter_invalid_operation("");
+    throw filter_invalid_operation(message);
   }
 }

@@ -39,9 +39,9 @@ brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
   F.function = fn;
   F.params = model;
 
-  // Set custom error handler.
-  gsl_error_handler_t* old_handler =
-      gsl_set_error_handler(&custom_gsl_exception_handler);
+  // Set custom error handler; RAII guard restores the previous handler on
+  // every exit path (including exceptions).
+  GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_root_fsolver_set(solver_state.fsolver, &F, lower, upper);
 
@@ -61,9 +61,6 @@ brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
     status = gsl_root_test_interval(x_lo, x_hi, 0, 0.0001);
 
   } while (status == GSL_CONTINUE && iter < max_iter);
-
-  // Restore original handler.
-  gsl_set_error_handler(old_handler);
 
   const double value = result;
 
