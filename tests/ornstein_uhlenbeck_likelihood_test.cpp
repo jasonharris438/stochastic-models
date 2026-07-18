@@ -1,8 +1,11 @@
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
+#include <cmath>
 #include <gtest/gtest.h>
+#include <random>
 #include <unordered_map>
+#include <vector>
 
 /**
  * @file
@@ -23,14 +26,14 @@ TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, ParameterTest) {
       likelihood.calculateParameters(components);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(roundToDecimals(params.mu, 8), 0.85, tolerance)
+  EXPECT_NEAR(roundToDecimals(params.mu, 8), 0.89473684, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value mu.";
   // Expect equality for alpha value.
-  EXPECT_NEAR(roundToDecimals(params.alpha, 8), 0.374693, tolerance)
+  EXPECT_NEAR(roundToDecimals(params.alpha, 8), 0.72054615, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value alpha.";
   // Expect equality for sigma value.
 
-  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 0.359877, tolerance)
+  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 0.51633524, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value sigma.";
 }
 
@@ -50,14 +53,14 @@ TEST(OrnsteinUhlenbeckLikelihoodUpdateTest, ParameterTest) {
       likelihood.calculateParameters(updated_components);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(roundToDecimals(params.mu, 8), 0.741667, tolerance)
+  EXPECT_NEAR(roundToDecimals(params.mu, 8), 0.82407407, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value mu.";
   // Expect equality for alpha value.
-  EXPECT_NEAR(roundToDecimals(params.alpha, 8), 0.448549, tolerance)
+  EXPECT_NEAR(roundToDecimals(params.alpha, 8), 0.82667857, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value alpha.";
   // Expect equality for sigma value.
 
-  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 0.264907, tolerance)
+  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 0.50070985, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value sigma.";
 }
 
@@ -143,4 +146,28 @@ TEST(OrnsteinUhlenbeckLikelihoodUpdateTest, ComponentsTest) {
   EXPECT_NEAR(roundToDecimals(updated_components.n_obs, 2), 7.0, tolerance)
       << "OrnsteinUhlenbeckLikelihood not calculating correct value for the "
          "number of observations component.";
+}
+
+// Data generated from the exact OU transition with known parameters must be
+// recovered by the MLE. Tolerances are >= 6 standard errors at n = 20000.
+TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, RecoversKnownParameters) {
+  const double mu = 1.3, alpha = 0.8, sigma = 0.5;
+  const double a = std::exp(-alpha);
+  const double transition_sd =
+      sigma * std::sqrt((1 - std::exp(-2 * alpha)) / (2 * alpha));
+
+  std::mt19937 gen(42);
+  std::normal_distribution<double> norm(0.0, 1.0);
+  std::vector<double> data{mu};
+  for (int i = 0; i < 20000; i++) {
+    data.push_back(mu + (data.back() - mu) * a + transition_sd * norm(gen));
+  }
+
+  OrnsteinUhlenbeckLikelihood likelihood;
+  const OrnsteinUhlenbeckParameters params =
+      likelihood.calculateParameters(likelihood.calculateComponents(data));
+
+  EXPECT_NEAR(params.mu, mu, 0.03);
+  EXPECT_NEAR(params.alpha, alpha, 0.10);
+  EXPECT_NEAR(params.sigma, sigma, 0.02);
 }

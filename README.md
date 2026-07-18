@@ -83,6 +83,8 @@ The likelihood function being optimized is:
 
 $$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{n\log{2\pi}}{2}-n\log{\hat{\sigma}}-\frac{1}{2\hat{\sigma}^2}\sum^n_{i=1}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
 
+Here $n$ is the number of observations; the estimators below sum over the $n-1$ transition pairs, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
+
 **1. Update parameter components:** Accumulate individual components used in calculations for the MLE solution:
 
 $$\sum^n_{t=1}X_{t-1} \leftarrow  \text{ is updated with the next } X_t$$
@@ -97,21 +99,23 @@ $$\sum^n_{t=1}{X_{t-1} \cdot X_{t-2}} \leftarrow \text{ is updated with the next
 
 **2. Update $\mu$ parameter:**
 
-$$\hat{\mu} = \frac{\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}^2} - \sum^n_{t=1}X_{t-1} \cdot \sum^n_{t=1}X_{t}X_{t-1}}{n \cdot \left(\sum^n_{t=1}X_{t-1}^2 - \sum^n_{t=1}{X_{t}X_{t-1}}\right) - \sum^n_{t=1}X_{t-1}^2+\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}}}$$
+$$\hat{\mu} = \frac{\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}^2} - \sum^n_{t=1}X_{t-1} \cdot \sum^n_{t=1}X_{t}X_{t-1}}{(n-1) \cdot \left(\sum^n_{t=1}X_{t-1}^2 - \sum^n_{t=1}{X_{t}X_{t-1}}\right) - \left(\sum^n_{t=1}X_{t-1}\right)^2+\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}}}$$
 
 **3. Update $\alpha$ parameter:**
 
-$$\hat{\alpha} = \ln{\left(\frac{\sum^n_{t=1}{X_{t-1}^2} - 2\mu \sum^n_{t=1}{X_{t-1}}+n\mu^2}{\sum^n_{t=1}{X_{t}X_{t-1}} - \mu \sum^n_{t=1}{X_{t-1}}-\mu \sum^n_{t=1}{X_{t}}+n\mu^2}\right)}$$
+$$\hat{\alpha} = \ln{\left(\frac{\sum^n_{t=1}{X_{t-1}^2} - 2\mu \sum^n_{t=1}{X_{t-1}}+(n-1)\mu^2}{\sum^n_{t=1}{X_{t}X_{t-1}} - \mu \sum^n_{t=1}{X_{t-1}}-\mu \sum^n_{t=1}{X_{t}}+(n-1)\mu^2}\right)}$$
 
 **4. Update $\sigma$ parameter:**
 
-$$\hat{\sigma} = \sum^n_{t=1}{X_t^2} - 2e^{-\hat{\alpha}}\sum^n_{t=1}{X_t \cdot X_{t-1}} + e^{-2\hat{\alpha}} \sum^n_{t=1}{X_{t-1}^2}-2\mu\left(1-e^{-\hat{\alpha}}\right) \left(\sum^n_{t=1}{X_{t}}-e^{-\hat{\alpha}}\sum^n_{t=1}{X_{t-1}}\right)+\left(\mu^2n\left(1-e^{-\hat{\alpha}}\right)\right)$$
+First accumulate the transition-variance sum:
 
-Then,
+$$\tilde{v} = \sum^n_{t=1}{X_t^2} - 2e^{-\hat{\alpha}}\sum^n_{t=1}{X_t \cdot X_{t-1}} + e^{-2\hat{\alpha}} \sum^n_{t=1}{X_{t-1}^2}-2\mu\left(1-e^{-\hat{\alpha}}\right) \left(\sum^n_{t=1}{X_{t}}-e^{-\hat{\alpha}}\sum^n_{t=1}{X_{t-1}}\right)+(n-1)\mu^2\left(1-e^{-\hat{\alpha}}\right)^2$$
 
-$$\hat{\sigma} = \hat{\sigma} \cdot \frac{1}{n}$$
+Then divide by the $n-1$ transition-pair count and convert the transition variance to the SDE diffusion coefficient (the conversion factor's $\alpha \to 0$ limit is $1$):
 
-$$\hat{\sigma} = \hat{\sigma} \cdot \frac{(2e^{-\hat{\alpha}})}{(1 - e^{-2\hat{\alpha}})}$$
+$$\tilde{v} \leftarrow \frac{\tilde{v}}{n-1}$$
+
+$$\hat{\sigma} = \sqrt{\tilde{v} \cdot \frac{2\hat{\alpha}}{1 - e^{-2\hat{\alpha}}}}$$
 
 **5. Update state:**
 

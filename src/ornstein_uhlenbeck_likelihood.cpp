@@ -119,9 +119,10 @@ OrnsteinUhlenbeckLikelihood::updateComponents(
 const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateMu(
     const OrnsteinUhlenbeckLikelihoodComponents& components
 ) const {
+  const double n_pairs = components.n_obs - 1.0;
   return ((components.lead_sum * components.lag_sum_squared) -
           (components.lag_sum * components.lead_lag_sum_product)) /
-         ((components.n_obs *
+         ((n_pairs *
            (components.lag_sum_squared - components.lead_lag_sum_product)) -
           (std::pow(components.lag_sum, 2) -
            (components.lead_sum * components.lag_sum)));
@@ -129,13 +130,14 @@ const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateMu(
 const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateAlpha(
     const OrnsteinUhlenbeckLikelihoodComponents& components, const double& mu
 ) const {
+  const double n_pairs = components.n_obs - 1.0;
   return std::log(
              components.lag_sum_squared - (2 * mu * components.lag_sum) +
-             (components.n_obs * (std::pow(mu, 2)))
+             (n_pairs * (std::pow(mu, 2)))
          ) -
          std::log(
              components.lead_lag_sum_product - (mu * components.lag_sum) -
-             (mu * components.lead_sum) + (components.n_obs * (std::pow(mu, 2)))
+             (mu * components.lead_sum) + (n_pairs * (std::pow(mu, 2)))
          );
 };
 const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateSigma(
@@ -143,18 +145,24 @@ const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateSigma(
     const double& mu,
     const double& alpha
 ) const {
+  const double n_pairs = components.n_obs - 1.0;
   const double exp_alpha{std::exp(-alpha)};
-  double sigma{
+  double transition_variance{
       components.lead_sum_squared -
       (2 * exp_alpha * components.lead_lag_sum_product) +
       ((std::pow(exp_alpha, 2)) * components.lag_sum_squared) -
       ((2 * mu * (1 - exp_alpha)) *
        (components.lead_sum - (exp_alpha * components.lag_sum))) +
-      (components.n_obs * std::pow(mu, 2) * std::pow(1 - exp_alpha, 2))
+      (n_pairs * std::pow(mu, 2) * std::pow(1 - exp_alpha, 2))
   };
-  sigma *= (1.0 / components.n_obs);
-  sigma *= ((2 * exp_alpha) / (1 - std::pow(exp_alpha, 2)));
-  return sigma;
+  transition_variance *= (1.0 / n_pairs);
+  // Transition-variance -> SDE diffusion coefficient. The factor is
+  // 2*alpha/(1 - e^{-2 alpha}); its removable singularity at alpha == 0 has
+  // limit 1. See docs/derivations/sde-mle-derivations.md.
+  const double conversion = (std::abs(alpha) < 1e-12)
+                                ? 1.0
+                                : (2 * alpha) / (1 - std::pow(exp_alpha, 2));
+  return std::sqrt(transition_variance * conversion);
 };
 const OrnsteinUhlenbeckParameters
 OrnsteinUhlenbeckLikelihood::calculateParameters(

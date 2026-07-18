@@ -66,15 +66,15 @@ TEST(OuModelTest, ornsteinUhlenbeckMaximumLikelihoodOutputTest) {
       ornsteinUhlenbeckMaximumLikelihood(test_vec);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(roundToDecimals(likelihood.at("mu"), 8), 0.58333333, tolerance)
+  EXPECT_NEAR(roundToDecimals(likelihood.at("mu"), 8), 0.70000000, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "mu.";
   // Expect equality for alpha value.
-  EXPECT_NEAR(roundToDecimals(likelihood.at("alpha"), 8), 1.06784063, tolerance)
+  EXPECT_NEAR(roundToDecimals(likelihood.at("alpha"), 8), 2.91777073, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "alpha.";
   // Expect equality for sigma value.
-  EXPECT_NEAR(roundToDecimals(likelihood.at("sigma"), 8), 0.15277777, tolerance)
+  EXPECT_NEAR(roundToDecimals(likelihood.at("sigma"), 8), 1.03902607, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "sigma.";
 }
