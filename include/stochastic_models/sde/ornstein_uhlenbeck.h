@@ -55,6 +55,7 @@ public:
    * @param start The value to start the simulation at.
    * @param size The number of values to simulate.
    * @return std::vector<double> A simulated model series.
+   * @throws std::invalid_argument If `size < 1`.
    */
   std::vector<double> Simulate(
       const double start, const unsigned int& size, const unsigned int& t

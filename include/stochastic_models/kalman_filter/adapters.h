@@ -40,6 +40,9 @@ public:
    * @param state JSON string containing the state fields.
    * @param dimensions Dimensions object used to size the internal matrices.
    * @return KcaStates Reconstructed KCA state.
+   * @throws json_parse_error If the JSON is unparseable, a field is missing
+   *         or has the wrong type, or any array's shape does not match
+   *         `dimensions`.
    */
   const KcaStates deserialize(
       const std::string& state, const FilterSystemDimensions& dimensions
@@ -66,6 +69,9 @@ public:
    *
    * @param state JSON string to parse.
    * @return FilterSystemDimensions Parsed object.
+   * @throws json_parse_error If the JSON is unparseable, a field is missing,
+   *         a dimension is not an integer in [1, 1024], or the offset is not
+   *         a number.
    */
   const FilterSystemDimensions deserialize(const std::string& state) const;
 };

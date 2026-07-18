@@ -3,6 +3,7 @@
 #include "stochastic_models/distributions/gaussian.h"
 
 #include <cmath>
+#include <stdexcept>
 /**
  * @brief No args constructor delegates to main constructor.
  *
@@ -50,6 +51,11 @@ const double OrnsteinUhlenbeckModel::getUnconditionalVariance() const {
 std::vector<double> OrnsteinUhlenbeckModel::Simulate(
     const double start, const unsigned int& size, const unsigned int& t
 ) const {
+  if (size < 1) {
+    throw std::invalid_argument(
+        "OrnsteinUhlenbeckModel::Simulate requires size >= 1."
+    );
+  }
   const std::vector<double> distribution_draws = (*dist).sample(size - 1);
   std::vector<double> vec = {start};
 

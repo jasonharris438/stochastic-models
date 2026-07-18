@@ -59,6 +59,12 @@ const double hittingTimeDensityOrnsteinUhlenbeck(
 const std::unordered_map<std::string, const double>
 ornsteinUhlenbeckMaximumLikelihood(const std::vector<double> vec);
 
+/**
+ * @brief Update the OU model parameters and tracking statistics when a
+ * single new observation is received.
+ *
+ * @throws InvalidNumberObservationsError If `n_obs == 0`.
+ */
 const std::vector<double> updateOuModel(
     const double mu,
     const double alpha,

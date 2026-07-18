@@ -31,6 +31,7 @@ add_executable(
     ornstein_uhlenbeck_test.cpp
     ou_model_test.cpp
     trading_levels_test.cpp
+    type_conversion_test.cpp
     utils_test.cpp)
 
 

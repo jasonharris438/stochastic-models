@@ -7,9 +7,37 @@
 #include "stochastic_models/entrypoints/kca_filter.h"
 #include "stochastic_models/kalman_filter/adapters.h"
 #include "stochastic_models/kalman_filter/kca.h"
+#include "stochastic_models/kalman_filter/states.h"
+#include "stochastic_models/kalman_filter/states_exceptions.h"
 
 #include <string>
 #include <vector>
+
+namespace {
+
+// KCA models a fixed 3-state kinematic system (position, velocity,
+// acceleration) observed through a single 1x3 row; KcaStates::setInitialState
+// writes exactly that scheme. Dimensions that disagree would size the
+// internal matrices differently from the data written into them.
+void validateKcaSystemDimensions(const FilterSystemDimensions& dimensions) {
+  const bool matches_scheme =
+      dimensions.state_mean_dimension == 3 &&
+      dimensions.state_covariance_rows == 3 &&
+      dimensions.state_covariance_columns == 3 &&
+      dimensions.observation_matrix_rows == 1 &&
+      dimensions.observation_matrix_columns == 3 &&
+      dimensions.observation_covariance_rows == 1 &&
+      dimensions.observation_covariance_columns == 1;
+  if (!matches_scheme) {
+    throw json_parse_error(
+        "KCA system dimensions must match the fixed kinematic scheme: "
+        "state_mean_dimension=3, state_covariance=3x3, "
+        "observation_matrix=1x3, observation_covariance=1x1."
+    );
+  }
+}
+
+} // namespace
 
 const std::string getInitializedKcaState(
     const std::vector<double> data_series,
@@ -22,6 +50,7 @@ const std::string getInitializedKcaState(
   const FilterSystemDimensionsJsonAdapter dimensions_adapter;
   const FilterSystemDimensions dimensions =
       dimensions_adapter.deserialize(system_dimensions);
+  validateKcaSystemDimensions(dimensions);
 
   // Create kinetic components object.
   KineticComponents kinetic_components = KineticComponents{dimensions};
@@ -46,6 +75,7 @@ const std::string getUpdatedKcaState(
   const FilterSystemDimensionsJsonAdapter dimensions_adapter;
   const FilterSystemDimensions dimensions =
       dimensions_adapter.deserialize(system_dimensions);
+  validateKcaSystemDimensions(dimensions);
 
   // Create JSON adapter to handle serialisation and deserialisation of
   // the internal state provided.

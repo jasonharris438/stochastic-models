@@ -231,7 +231,7 @@ Your `main.cpp` could look like:
 
 #include <iostream>
 int main() {
-    const std::vector<double> vec = simulateOrnsteinUhlenbeck(0.5, 0.01, 0.067, 0, 50, 1);
+    const std::vector<double> vec = simulateOrnsteinUhlenbeck(0.5, 0.01, 0.0067, 0, 5000, 1);
 
     const std::unordered_map<std::string, const double> m =
         ornsteinUhlenbeckMaximumLikelihood(vec);
