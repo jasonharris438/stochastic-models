@@ -23,7 +23,7 @@ Please feel free to open issues, submit pull requests, or reach out with suggest
 **Ornstein-Uhlenbeck (Mean Reverting) Model**
 This assumes that the Ornstein-Uhlenbeck process takes the form
 
-$$\mathrm{d}X(t) = \alpha(\mu-x(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
+$$\mathrm{d}X(t) = \alpha(\mu-x(t))\mathrm{d}t + \sigma \mathrm{d}W(t)$$
 
 with $\alpha$ the drift term and $\sigma$ diffusion term. The term $\mathrm{d}W(t)$ comprises the Brownian motion.
 
@@ -31,7 +31,7 @@ with $\alpha$ the drift term and $\sigma$ diffusion term. The term $\mathrm{d}W(
 **General Stochastic Differential Equation (SDE) Model**
 This assumes that the SDE process takes the form:
 
-$$\mathrm{d}X(t) = \mu(X,t)\mathrm{d}t + \sigma(X,t) \mathrm{d}W(t), $$
+$$\mathrm{d}X(t) = \mu(X,t)\mathrm{d}t + \sigma(X,t) \mathrm{d}W(t)$$
 
 with $\mu(X,t)$ the drift term and $\sigma(X,t)$ diffusion term. The term $\mathrm{d}W(t)$ comprises the Brownian motion.
 
@@ -45,7 +45,7 @@ This method drops the assumption that parameters are time-varying and requires t
 
 **For the linear model of the form:**
 
-$$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$
+$$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t)$$
 
 The likelihood function being optimized is:
 
@@ -77,7 +77,7 @@ $$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n}}$$
 
 **For the Ornstein-Uhlenbeck model of the form:**
 
-$$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
+$$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t)$$
 
 The likelihood function being optimized is:
 
