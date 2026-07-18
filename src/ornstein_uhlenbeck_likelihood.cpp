@@ -1,11 +1,13 @@
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
 
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <cmath>
 #include <iterator>
 #include <new>
 #include <numeric>
+#include <string>
 
 const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadSum(
     const std::vector<double>& data
@@ -86,6 +88,13 @@ OrnsteinUhlenbeckLikelihoodComponents
 OrnsteinUhlenbeckLikelihood::calculateComponents(
     const std::vector<double>& data
 ) const {
+  if (data.size() < 2) {
+    throw InvalidNumberObservationsError(
+        "Ornstein-Uhlenbeck maximum likelihood requires at least 2 "
+        "observations to form a lead/lag pair; got " +
+        std::to_string(data.size()) + "."
+    );
+  }
   return OrnsteinUhlenbeckLikelihoodComponents{
       component_calculator.calculateLeadSum(data),
       component_calculator.calculateLagSum(data),

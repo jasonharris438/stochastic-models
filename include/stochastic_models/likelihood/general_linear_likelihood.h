@@ -180,6 +180,8 @@ public:
    * and model parameters.
    *
    * @param data Data series used to calculate.
+   * @throws InvalidNumberObservationsError If `data.size() < 2` (at least one
+   *         lead/lag pair is required).
    * @return const GeneralLinearLikelihoodComponents The likelihood equation
    * components.
    */

@@ -195,7 +195,8 @@ public:
    * @return OrnsteinUhlenbeckLikelihoodComponents Struct with precomputed
    *         sums (lead/lag sums, squared sums, cross-products) and observation
    *         count `n_obs`.
-   * @pre `data.size() >= 2` (requires at least one lead/lag pair).
+   * @throws InvalidNumberObservationsError If `data.size() < 2` (at least one
+   *         lead/lag pair is required).
    * @note This method is deterministic and performs no allocations beyond the
    *       returned struct.
    */

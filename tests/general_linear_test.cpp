@@ -2,6 +2,8 @@
 #include "stochastic_models/sde/general_linear.h"
 
 #include <gtest/gtest.h>
+
+#include <stdexcept>
 /**
  * @file
  * @brief Unit tests for the GeneralLinearModel class (mean/variance helpers).
@@ -37,4 +39,12 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceTest) {
   EXPECT_NEAR(roundToDecimals(actual, 8), expected, tolerance)
       << "GeneralLinearLikelihood getConditionalVariance method returning "
          "invalid value.";
+}
+/**
+ * @test size = 0 must be rejected for a contract consistent with the OU model.
+ */
+TEST(GeneralLinearValidationTest, simulateRejectsZeroSize) {
+  const GeneralLinearModel model(0.5, 0.1);
+  EXPECT_THROW(model.Simulate(0.0, 0, 1), std::invalid_argument)
+      << "Simulate accepted size == 0.";
 }
