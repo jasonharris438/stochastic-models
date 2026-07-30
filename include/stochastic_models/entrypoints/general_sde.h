@@ -26,6 +26,7 @@
  * @param lead_lag_inner_product Current accumulated lead-lag inner product.
  * @param squared_error Current accumulated squared error.
  * @param n_obs Current number of observations (before this update).
+ * @throws InvalidNumberObservationsError If `n_obs == 0`.
  * @return const std::vector<double> Vector of updated parameters: {mu, sigma}.
  */
 const std::vector<double> updateGeneralLinearSDEModel(

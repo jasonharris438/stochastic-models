@@ -1,7 +1,10 @@
 #include "stochastic_models/entrypoints/ou_model.h"
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
+
+#include <stdexcept>
 
 /**
  * @test Tests the output of the simulateOrnsteinUhlenbeck function and asserts
@@ -77,4 +80,38 @@ TEST(OuModelTest, ornsteinUhlenbeckMaximumLikelihoodOutputTest) {
   EXPECT_NEAR(roundToDecimals(likelihood.at("sigma"), 8), 1.03902607, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "sigma.";
+}
+
+/**
+ * @test The public MLE entrypoint must reject series shorter than 2 with
+ * InvalidNumberObservationsError before any lead/lag helper runs.
+ */
+TEST(OuModelValidationTest, maximumLikelihoodRejectsShortSeries) {
+  EXPECT_THROW(
+      ornsteinUhlenbeckMaximumLikelihood({}), InvalidNumberObservationsError
+  ) << "ornsteinUhlenbeckMaximumLikelihood accepted an empty series.";
+  EXPECT_THROW(
+      ornsteinUhlenbeckMaximumLikelihood({1.0}), InvalidNumberObservationsError
+  ) << "ornsteinUhlenbeckMaximumLikelihood accepted a 1-element series.";
+}
+
+/**
+ * @test The simulate entrypoint must surface the size guard.
+ */
+TEST(OuModelValidationTest, simulateEntrypointRejectsZeroSize) {
+  EXPECT_THROW(
+      simulateOrnsteinUhlenbeck(0.5, 0.01, 0.0067, 0.0, 0, 1),
+      std::invalid_argument
+  ) << "simulateOrnsteinUhlenbeck accepted size == 0.";
+}
+
+/**
+ * @test n_obs == 0 previously produced n_pairs == 0 divisions (Inf/NaN
+ * parameters). The update entrypoint must reject it.
+ */
+TEST(OuModelValidationTest, updateOuModelRejectsZeroObservations) {
+  EXPECT_THROW(
+      updateOuModel(0.5, 0.1, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 1.0),
+      InvalidNumberObservationsError
+  ) << "updateOuModel accepted n_obs == 0.";
 }

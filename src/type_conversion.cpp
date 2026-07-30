@@ -1,5 +1,7 @@
 #include "stochastic_models/kalman_filter/type_conversion.h"
 
+#include <cstddef>
+#include <stdexcept>
 #include <vector>
 const std::vector<std::vector<double>> copy_matrix_elements_to_vector(
     const boost::numeric::ublas::matrix<double>& matrix
@@ -10,7 +12,7 @@ const std::vector<std::vector<double>> copy_matrix_elements_to_vector(
   );
 
   // Copy the values from the matrix to the std::vector by row.
-  for (int i{0}; i < matrix.size1(); i++) {
+  for (std::size_t i{0}; i < matrix.size1(); i++) {
     std::copy(
         row(matrix, i).begin(), row(matrix, i).end(), result.at(i).begin()
     );
@@ -20,13 +22,28 @@ const std::vector<std::vector<double>> copy_matrix_elements_to_vector(
 boost::numeric::ublas::matrix<double> create_boost_matrix_from_vectors(
     const std::vector<std::vector<double>>& matrix_as_vectors
 ) {
+  if (matrix_as_vectors.empty()) {
+    throw std::invalid_argument(
+        "create_boost_matrix_from_vectors requires a non-empty input."
+    );
+  }
+  const std::size_t columns{matrix_as_vectors.front().size()};
+  for (const std::vector<double>& matrix_row : matrix_as_vectors) {
+    if (matrix_row.size() != columns) {
+      throw std::invalid_argument(
+          "create_boost_matrix_from_vectors requires all rows to have the "
+          "same length."
+      );
+    }
+  }
+
   // Allocate a boost matrix with the same dimensions as the input vectors.
   boost::numeric::ublas::matrix<double> boost_matrix(
-      matrix_as_vectors.size(), matrix_as_vectors[0].size()
+      matrix_as_vectors.size(), columns
   );
 
   // Copy the values from the std::vector<std::vector<>>.
-  for (int i{0}; i < matrix_as_vectors.size(); i++) {
+  for (std::size_t i{0}; i < matrix_as_vectors.size(); i++) {
     std::copy(
         matrix_as_vectors.at(i).begin(), matrix_as_vectors.at(i).end(),
         row(boost_matrix, i).begin()

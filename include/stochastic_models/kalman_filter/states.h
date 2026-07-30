@@ -349,6 +349,8 @@ private:
    * @brief Moves a std::vector of std::vectors to a boost uBLAS matrix.
    * @param matrix_as_vectors The matrix represented as a vector of vectors.
    * @param target The target boost matrix to move the vectors to.
+   * @throws std::invalid_argument If the source dimensions do not exactly
+   *         match the target dimensions.
    */
   void move_std_vectors_to_matrix(
       std::vector<std::vector<double>>&& matrix_as_vectors,
@@ -358,6 +360,8 @@ private:
    * @brief Moves a std::vector to a boost uBLAS vector.
    * @param vector_as_vector The vector represented as a vector.
    * @param target The target boost vector to move the vector to.
+   * @throws std::invalid_argument If the source dimensions do not exactly
+   *         match the target dimensions.
    */
   void move_std_vector_to_vector(
       std::vector<double>&& vector_as_vector, vector<double>& target

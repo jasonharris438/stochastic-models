@@ -7,6 +7,8 @@
 #include <boost/numeric/ublas/expression_types.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <cmath>
+#include <cstddef>
+#include <stdexcept>
 #include <utility>
 
 // Just for this module as we do not introduce any other namespaces.
@@ -205,10 +207,21 @@ KcaStates::KcaStates(const FilterSystemDimensions& dimensions)
 void KcaStates::move_std_vectors_to_matrix(
     std::vector<std::vector<double>>&& matrix_as_vectors, matrix<double>& target
 ) {
-  u_int32_t rows = static_cast<u_int32_t>(matrix_as_vectors.size());
+  if (matrix_as_vectors.size() != target.size1()) {
+    throw std::invalid_argument(
+        "Source row count does not match the target matrix row count."
+    );
+  }
+  for (const std::vector<double>& source_row : matrix_as_vectors) {
+    if (source_row.size() != target.size2()) {
+      throw std::invalid_argument(
+          "Source row length does not match the target matrix column count."
+      );
+    }
+  }
 
   // Move the vectors into the target matrix.
-  for (u_int32_t i{0}; i < rows; i++) {
+  for (std::size_t i{0}; i < target.size1(); i++) {
     std::move(
         matrix_as_vectors.at(i).begin(), matrix_as_vectors.at(i).end(),
         row(target, i).begin()
@@ -218,6 +231,11 @@ void KcaStates::move_std_vectors_to_matrix(
 void KcaStates::move_std_vector_to_vector(
     std::vector<double>&& vector_as_vector, vector<double>& target
 ) {
+  if (vector_as_vector.size() != target.size()) {
+    throw std::invalid_argument(
+        "Source vector length does not match the target vector length."
+    );
+  }
   // Move the vector into the target vector.
   std::move(vector_as_vector.begin(), vector_as_vector.end(), target.begin());
 }

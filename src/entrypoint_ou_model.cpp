@@ -6,6 +6,7 @@
  */
 
 #include "stochastic_models/entrypoints/ou_model.h"
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/hitting_times/hitting_time_density.h"
 #include "stochastic_models/hitting_times/hitting_time_ornstein_uhlenbeck.h"
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
@@ -87,6 +88,13 @@ const std::vector<double> updateOuModel(
     const double last_observation
 
 ) {
+  if (n_obs == 0) {
+    throw InvalidNumberObservationsError(
+        "updateOuModel requires n_obs >= 1: the online update assumes the "
+        "components already summarise at least one observation."
+    );
+  }
+
   OrnsteinUhlenbeckUpdater updater(
       OrnsteinUhlenbeckLikelihoodComponents{
           lead_sum, lag_sum, lead_sum_squared, lag_sum_squared,

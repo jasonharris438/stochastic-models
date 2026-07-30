@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <numeric>
+#include <string>
 
 const double GeneralLinearLikelihoodComponentCalculator::calculateSeriesMean(
     const double& numerator, const double& denominator
@@ -118,6 +119,12 @@ const GeneralLinearLikelihoodComponents
 GeneralLinearLikelihood::calculateComponents(
     const std::vector<double>& data
 ) const {
+  if (data.size() < 2) {
+    throw InvalidNumberObservationsError(
+        "General linear maximum likelihood requires at least 2 observations "
+        "to form a lead/lag pair; got " + std::to_string(data.size()) + "."
+    );
+  }
   const uint32_t n_obs = static_cast<uint32_t>(data.size());
   const double lead_lag_inner_product =
       component_calculator.calculateLeadLagInnerProduct(data);

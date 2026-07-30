@@ -1,4 +1,5 @@
 #include "stochastic_models/entrypoints/general_sde.h"
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
@@ -32,4 +33,15 @@ TEST(GeneralSdeModelTest, updateGeneralLinearSDEModelOutputTest) {
   EXPECT_NEAR(roundToDecimals(series.at(1), 8), 0.00788256, tolerance)
       << "The sigma value of the parameters returned by "
          "updateGeneralLinearSDEModel is not the correct value.";
+}
+
+/**
+ * @test n_obs == 0 must be rejected before the online update divides by the
+ * pair count.
+ */
+TEST(GeneralSdeValidationTest, updateGeneralLinearSDEModelRejectsZeroObservations) {
+  EXPECT_THROW(
+      updateGeneralLinearSDEModel(0.5, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 0),
+      InvalidNumberObservationsError
+  ) << "updateGeneralLinearSDEModel accepted n_obs == 0.";
 }

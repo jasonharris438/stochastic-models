@@ -3,6 +3,8 @@
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 
 #include <gtest/gtest.h>
+
+#include <stdexcept>
 /**
  * @test Tests the output of the
  * OrnsteinUhlenbeckModel::getUnconditionalVariance method and asserts that it
@@ -148,4 +150,13 @@ TEST(OrnsteinUhlenbeckModelTest, SimulateCarriesStochasticNoise) {
          "inflates the noise term (legitimate per-step variance ~0.1).";
   EXPECT_NE(noisy, baseline)
       << "OU noisy path is identical to the deterministic drift-only path.";
+}
+/**
+ * @test size = 0 previously wrapped to 4294967295 in `sample(size - 1)`,
+ * attempting a ~34 GB allocation. It must be rejected up front.
+ */
+TEST(OrnsteinUhlenbeckValidationTest, simulateRejectsZeroSize) {
+  const OrnsteinUhlenbeckModel model(0.5, 0.01, 0.0067);
+  EXPECT_THROW(model.Simulate(0.0, 0, 1), std::invalid_argument)
+      << "Simulate accepted size == 0.";
 }

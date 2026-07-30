@@ -190,3 +190,193 @@ TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeTest) {
       << "The observation offset value was set to an invalid or inconsistent "
          "value.";
 }
+
+/**
+ * @test Unparseable JSON previously escaped as a raw
+ * nlohmann::json::parse_error because the parse call sat outside the try.
+ */
+TEST(AdaptersValidationTest, DimensionsDeserializeRejectsUnparseableJson) {
+  const FilterSystemDimensionsJsonAdapter adapter;
+  EXPECT_THROW(adapter.deserialize("{not json"), json_parse_error)
+      << "Unparseable dimensions JSON did not raise json_parse_error.";
+}
+
+/**
+ * @test Non-integer numeric dimensions previously reached get_to(int&) whose
+ * unchecked float->int cast is UB for out-of-range values such as 1e300.
+ */
+TEST(AdaptersValidationTest, DimensionsDeserializeRejectsNonIntegerFields) {
+  const FilterSystemDimensionsJsonAdapter adapter;
+  const std::string fractional = R"({"state_mean_dimension": 3.5,
+      "state_covariance_rows": 3, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(fractional), json_parse_error)
+      << "A fractional dimension did not raise json_parse_error.";
+
+  const std::string huge_float = R"({"state_mean_dimension": 1e300,
+      "state_covariance_rows": 3, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(huge_float), json_parse_error)
+      << "A 1e300 dimension did not raise json_parse_error.";
+
+  const std::string stringly = R"({"state_mean_dimension": "3",
+      "state_covariance_rows": 3, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(stringly), json_parse_error)
+      << "A string dimension did not raise json_parse_error.";
+}
+
+/**
+ * @test Zero, negative, and absurdly large dimensions must be rejected:
+ * negatives previously wrapped through size_t matrix constructors into
+ * enormous allocations.
+ */
+TEST(AdaptersValidationTest, DimensionsDeserializeRejectsOutOfRangeFields) {
+  const FilterSystemDimensionsJsonAdapter adapter;
+  const std::string zero = R"({"state_mean_dimension": 0,
+      "state_covariance_rows": 3, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(zero), json_parse_error)
+      << "A zero dimension did not raise json_parse_error.";
+
+  const std::string negative = R"({"state_mean_dimension": 3,
+      "state_covariance_rows": -3, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(negative), json_parse_error)
+      << "A negative dimension did not raise json_parse_error.";
+
+  const std::string oversized = R"({"state_mean_dimension": 3,
+      "state_covariance_rows": 3, "state_covariance_columns": 1025,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(oversized), json_parse_error)
+      << "An out-of-bound dimension did not raise json_parse_error.";
+}
+
+/**
+ * @test A non-numeric observation_offset must be rejected.
+ */
+TEST(AdaptersValidationTest, DimensionsDeserializeRejectsNonNumericOffset) {
+  const FilterSystemDimensionsJsonAdapter adapter;
+  const std::string bad_offset = R"({"state_mean_dimension": 3,
+      "state_covariance_rows": 3, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": "zero"})";
+  EXPECT_THROW(adapter.deserialize(bad_offset), json_parse_error)
+      << "A string observation_offset did not raise json_parse_error.";
+}
+
+namespace {
+// Baseline-valid 3-dim KCA state JSON; each hostile-state test perturbs one
+// field. Matches the fixed kinematic scheme dims (3, 3, 3, 1, 3, 1, 1).
+const FilterSystemDimensions kKcaSchemeDimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+} // namespace
+
+/**
+ * @test Unparseable state JSON previously escaped as a raw
+ * nlohmann::json::parse_error because the parse call sat outside the try.
+ */
+TEST(AdaptersValidationTest, StateDeserializeRejectsUnparseableJson) {
+  const KcaStatesJsonAdapter adapter;
+  EXPECT_THROW(
+      adapter.deserialize("{not json", kKcaSchemeDimensions), json_parse_error
+  ) << "Unparseable state JSON did not raise json_parse_error.";
+}
+
+/**
+ * @test A transition matrix with an extra row previously wrote out of bounds:
+ * the move helper trusted the source row count against a 3x3 target.
+ */
+TEST(AdaptersValidationTest, StateDeserializeRejectsOversizedMatrix) {
+  const KcaStatesJsonAdapter adapter;
+  const std::string oversized = R"({"current_state_covariance":
+      [[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]],
+      "current_state_mean":[10.28,0.0,0.0],
+      "observation_matrix":[[1.0,0.0,0.0]],"observation_offset":0.0,
+      "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
+      "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0],
+      [9.0,9.0,9.0]]})";
+  EXPECT_THROW(
+      adapter.deserialize(oversized, kKcaSchemeDimensions), json_parse_error
+  ) << "An oversized transition_matrix did not raise json_parse_error.";
+}
+
+/**
+ * @test A ragged inner row must be rejected before any write.
+ */
+TEST(AdaptersValidationTest, StateDeserializeRejectsRaggedMatrix) {
+  const KcaStatesJsonAdapter adapter;
+  const std::string ragged = R"({"current_state_covariance":
+      [[0.0,0.0,0.0],[0.0,0.0,0.0,7.0],[0.0,0.0,0.0]],
+      "current_state_mean":[10.28,0.0,0.0],
+      "observation_matrix":[[1.0,0.0,0.0]],"observation_offset":0.0,
+      "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
+      "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
+  EXPECT_THROW(
+      adapter.deserialize(ragged, kKcaSchemeDimensions), json_parse_error
+  ) << "A ragged current_state_covariance did not raise json_parse_error.";
+}
+
+/**
+ * @test An undersized state mean must be rejected (uninitialised remainder
+ * otherwise).
+ */
+TEST(AdaptersValidationTest, StateDeserializeRejectsWrongLengthMean) {
+  const KcaStatesJsonAdapter adapter;
+  const std::string short_mean = R"({"current_state_covariance":
+      [[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]],
+      "current_state_mean":[10.28,0.0],
+      "observation_matrix":[[1.0,0.0,0.0]],"observation_offset":0.0,
+      "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
+      "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
+  EXPECT_THROW(
+      adapter.deserialize(short_mean, kKcaSchemeDimensions), json_parse_error
+  ) << "A 2-element current_state_mean did not raise json_parse_error.";
+}
+
+/**
+ * @test An observation matrix whose shape disagrees with the dimensions input
+ * must be rejected.
+ */
+TEST(AdaptersValidationTest, StateDeserializeRejectsWrongShapeObservationMatrix) {
+  const KcaStatesJsonAdapter adapter;
+  const std::string wrong_shape = R"({"current_state_covariance":
+      [[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]],
+      "current_state_mean":[10.28,0.0,0.0],
+      "observation_matrix":[[1.0,0.0,0.0],[2.0,0.0,0.0]],
+      "observation_offset":0.0,
+      "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
+      "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
+  EXPECT_THROW(
+      adapter.deserialize(wrong_shape, kKcaSchemeDimensions), json_parse_error
+  ) << "A 2x3 observation_matrix did not raise json_parse_error for 1x3 "
+       "dimensions.";
+}
+
+/**
+ * @test A non-numeric observation_offset in the state JSON must be rejected.
+ */
+TEST(AdaptersValidationTest, StateDeserializeRejectsNonNumericOffset) {
+  const KcaStatesJsonAdapter adapter;
+  const std::string bad_offset = R"({"current_state_covariance":
+      [[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]],
+      "current_state_mean":[10.28,0.0,0.0],
+      "observation_matrix":[[1.0,0.0,0.0]],"observation_offset":"zero",
+      "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
+      "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
+  EXPECT_THROW(
+      adapter.deserialize(bad_offset, kKcaSchemeDimensions), json_parse_error
+  ) << "A string observation_offset did not raise json_parse_error.";
+}

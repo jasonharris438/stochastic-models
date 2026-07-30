@@ -1,3 +1,4 @@
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
@@ -170,4 +171,26 @@ TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, RecoversKnownParameters) {
   EXPECT_NEAR(params.mu, mu, 0.03);
   EXPECT_NEAR(params.alpha, alpha, 0.10);
   EXPECT_NEAR(params.sigma, sigma, 0.02);
+}
+
+/**
+ * @test An empty series must be rejected with InvalidNumberObservationsError
+ * before any lead/lag iterator arithmetic runs.
+ */
+TEST(OuLikelihoodValidationTest, calculateComponentsRejectsEmptySeries) {
+  const OrnsteinUhlenbeckLikelihood likelihood{};
+  EXPECT_THROW(
+      likelihood.calculateComponents({}), InvalidNumberObservationsError
+  ) << "calculateComponents accepted an empty series.";
+}
+
+/**
+ * @test A single-element series cannot form a lead/lag pair and must be
+ * rejected with InvalidNumberObservationsError.
+ */
+TEST(OuLikelihoodValidationTest, calculateComponentsRejectsSingleObservation) {
+  const OrnsteinUhlenbeckLikelihood likelihood{};
+  EXPECT_THROW(
+      likelihood.calculateComponents({1.0}), InvalidNumberObservationsError
+  ) << "calculateComponents accepted a single-observation series.";
 }

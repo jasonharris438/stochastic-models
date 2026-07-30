@@ -5,6 +5,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <cmath>
 #include <gtest/gtest.h>
+#include <stdexcept>
 #include <vector>
 
 using namespace boost::numeric::ublas;
@@ -588,4 +589,47 @@ TEST(KalmanFilterStateTest, KcaStatesupdateCurrentStateTest) {
   EXPECT_EQ(new_current_state_covariance, expected_current_state_covariance)
       << "The current state covariance was set with invalid or "
          "inconsistent values.";
+}
+
+/**
+ * @test A source matrix with more rows than the target previously wrote out
+ * of bounds through unchecked uBLAS row proxies. The move helper must verify
+ * exact row/column counts.
+ */
+TEST(FilterStatesValidationTest, setTransitionMatrixRejectsRowCountMismatch) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  std::vector<std::vector<double>> oversized{
+      {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, {9.0, 9.0, 9.0}
+  };
+  EXPECT_THROW(
+      kca_states.setTransitionMatrix(oversized), std::invalid_argument
+  ) << "setTransitionMatrix accepted a 4-row source for a 3x3 target.";
+}
+
+/**
+ * @test A ragged source row longer than the target's column count previously
+ * overran the row. It must be rejected.
+ */
+TEST(FilterStatesValidationTest, setTransitionMatrixRejectsRaggedRows) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  std::vector<std::vector<double>> ragged{
+      {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 5.0}, {0.0, 0.0, 1.0}
+  };
+  EXPECT_THROW(kca_states.setTransitionMatrix(ragged), std::invalid_argument)
+      << "setTransitionMatrix accepted a ragged source row.";
+}
+
+/**
+ * @test An oversized source vector must be rejected by the vector move helper.
+ */
+TEST(FilterStatesValidationTest, setCurrentStateMeanRejectsLengthMismatch) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  std::vector<double> oversized{1.0, 2.0, 3.0, 4.0};
+  EXPECT_THROW(
+      kca_states.setCurrentStateMean(oversized), std::invalid_argument
+  ) << "setCurrentStateMean accepted a 4-element source for a 3-element "
+       "target.";
 }

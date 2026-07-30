@@ -3,6 +3,7 @@
 #include "stochastic_models/distributions/gaussian.h"
 
 #include <cmath>
+#include <stdexcept>
 GeneralLinearModel::GeneralLinearModel()
     : GeneralLinearModel::GeneralLinearModel(0.0, 1.0) {}
 GeneralLinearModel::GeneralLinearModel(const double mu, const double sigma)
@@ -38,6 +39,11 @@ const double GeneralLinearModel::getConditionalVariance() const {
 std::vector<double> GeneralLinearModel::Simulate(
     const double start, const unsigned int& size, const unsigned int& t
 ) const {
+  if (size < 1) {
+    throw std::invalid_argument(
+        "GeneralLinearModel::Simulate requires size >= 1."
+    );
+  }
   const std::vector<double> distribution_draws = (*dist).sample(size);
   std::vector<double> vec = {start};
 

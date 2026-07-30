@@ -22,6 +22,7 @@ const std::vector<std::vector<double>> copy_matrix_elements_to_vector(
  * @brief Create a boost matrix from row-major vector-of-vectors.
  * @param matrix_as_vectors Row-major vector of vectors.
  * @return boost::numeric::ublas::matrix<double> Constructed boost matrix.
+ * @throws std::invalid_argument If the input is empty or its rows are ragged.
  */
 boost::numeric::ublas::matrix<double> create_boost_matrix_from_vectors(
     const std::vector<std::vector<double>>& matrix_as_vectors

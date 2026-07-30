@@ -6,6 +6,7 @@
  */
 
 #include "stochastic_models/entrypoints/general_sde.h"
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/likelihood/general_linear_online.h"
 
 #include <cmath>
@@ -20,6 +21,13 @@ const std::vector<double> updateGeneralLinearSDEModel(
     const double squared_error,
     const uint32_t n_obs
 ) {
+  if (n_obs == 0) {
+    throw InvalidNumberObservationsError(
+        "updateGeneralLinearSDEModel requires n_obs >= 1: the online update "
+        "assumes the components already summarise at least one observation."
+    );
+  }
+
   GeneralLinearUpdater updater(
       GeneralLinearLikelihoodComponents{
           lag_squared, lead_lag_inner_product, squared_error, n_obs
