@@ -48,6 +48,15 @@ const double OrnsteinUhlenbeckModel::getMean() const {
 const double OrnsteinUhlenbeckModel::getUnconditionalVariance() const {
   return std::pow(sigma, 2) / (2 * alpha);
 }
+const double
+OrnsteinUhlenbeckModel::getConditionalVariance(const double t) const {
+  if (std::abs(alpha) < 1e-12) {
+    return std::pow(sigma, 2) * t;
+  }
+  // expm1 avoids catastrophic cancellation in 1 - exp(-2 alpha t) for small
+  // alpha * t; the guard above still handles the 0/0 case at alpha == 0.
+  return std::pow(sigma, 2) * -std::expm1(-2 * alpha * t) / (2 * alpha);
+}
 std::vector<double> OrnsteinUhlenbeckModel::Simulate(
     const double start, const unsigned int& size, const unsigned int& t
 ) const {
@@ -69,8 +78,7 @@ std::vector<double> OrnsteinUhlenbeckModel::Simulate(
 const double OrnsteinUhlenbeckModel::coreEquation(
     const double& x, const double& noise, const unsigned int& t
 ) const {
-  double delta{std::exp(-alpha * t)};
-  const double solution =
-      (x * delta) + (mu * (1 - delta)) + (t * sigma * noise);
-  return solution;
+  const double delta{std::exp(-alpha * t)};
+  const double diffusion_sd = std::sqrt(getConditionalVariance(t));
+  return (x * delta) + (mu * (1 - delta)) + (diffusion_sd * noise);
 }

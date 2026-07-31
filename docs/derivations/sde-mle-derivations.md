@@ -61,6 +61,18 @@ $$\hat{\sigma} = \sqrt{\tilde{v}\cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
 
 The conversion factor has limit $1$ as $\mu \to 0$.
 
+## Simulator discretization (exact scheme)
+
+Both simulators step with the exact conditional mean plus a Gaussian increment
+whose standard deviation is the square root of the conditional variance above,
+for $Z \sim \mathcal{N}(0, 1)$:
+
+- **OU:** $X_{s+t} = \mu + (X_s - \mu)e^{-\alpha t} + \sigma\sqrt{\dfrac{1 - e^{-2\alpha t}}{2\alpha}}\,Z$
+- **GL:** $X_{s+t} = X_s e^{\mu t} + \sigma\sqrt{\dfrac{e^{2\mu t} - 1}{2\mu}}\,Z$
+
+The noise scales have limit $\sigma\sqrt{t}$ as $\alpha \to 0$ / $\mu \to 0$.
+The GL scheme is implemented by a later change; the OU scheme is current.
+
 ## Sampling at spacing $t$ (round-trip identities used by the tests)
 
 Applying the unit-step estimator to data sampled every $t$ time units of the

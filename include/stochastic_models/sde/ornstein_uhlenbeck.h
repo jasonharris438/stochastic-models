@@ -48,6 +48,15 @@ public:
    */
   const double getUnconditionalVariance() const override;
   /**
+   * @brief Conditional variance of the process over a step of length t:
+   * sigma^2 * (1 - exp(-2 alpha t)) / (2 alpha), with alpha -> 0 limit
+   * sigma^2 * t. See docs/derivations/sde-mle-derivations.md.
+   *
+   * @param t The step length.
+   * @return const double The conditional variance over the step.
+   */
+  const double getConditionalVariance(const double t) const;
+  /**
    * @brief Produces a simulation using the parameters mu, alpha, and sigma of
    * size provided in the method arguments. Uses coreEquation to produce the
    * model equation and the model distribution to produce .sample() values.
@@ -61,8 +70,9 @@ public:
       const double start, const unsigned int& size, const unsigned int& t
   ) const override;
   /**
-   * @brief Uses the Euler–Maruyama method for the approximate numerical
-   * solution of the Ornstein-Uhlenbeck process.
+   * @brief Exact-scheme step of the Ornstein-Uhlenbeck process: conditional-
+   * mean drift plus a Gaussian increment with the exact conditional standard
+   * deviation. See docs/derivations/sde-mle-derivations.md.
    *
    * @param x The current value of the series.
    * @param noise The random Gaussian noise to add to the series.
