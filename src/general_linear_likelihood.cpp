@@ -100,13 +100,6 @@ const double GeneralLinearLikelihoodComponentCalculator::calculateSigma(
           : 0.0;
   return sigma;
 };
-const double
-GeneralLinearLikelihoodComponentCalculator::calculateConditionalVariance(
-    const GeneralLinearParameters& parameters
-) const {
-  return (2 * parameters.sigma * parameters.mu) /
-         (std::exp(2 * parameters.mu) - std::exp(parameters.mu));
-};
 const GeneralLinearParameters GeneralLinearLikelihood::calculateParameters(
     const GeneralLinearLikelihoodComponents& components
 ) const {
@@ -122,7 +115,8 @@ GeneralLinearLikelihood::calculateComponents(
   if (data.size() < 2) {
     throw InvalidNumberObservationsError(
         "General linear maximum likelihood requires at least 2 observations "
-        "to form a lead/lag pair; got " + std::to_string(data.size()) + "."
+        "to form a lead/lag pair; got " +
+        std::to_string(data.size()) + "."
     );
   }
   const uint32_t n_obs = static_cast<uint32_t>(data.size());
@@ -138,11 +132,6 @@ GeneralLinearLikelihood::calculateComponents(
       ),
       n_obs
   };
-}
-const double GeneralLinearLikelihood::calculateConditionalVariance(
-    const GeneralLinearParameters& parameters
-) const {
-  return component_calculator.calculateConditionalVariance(parameters);
 }
 const GeneralLinearLikelihoodComponents
 GeneralLinearLikelihood::updateComponents(

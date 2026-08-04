@@ -74,14 +74,6 @@ public:
       const std::vector<double>& data, const double& mu
   ) const;
   /**
-   * @brief Calculates the kernel value for the sigma parameter of the data
-   * series in `data`.
-   * @param n_observations The number of observations in the data series.
-   * @param sigma The sigma parameter for the data series.
-   * @return const double The kernel value for the sigma parameter.
-   */
-
-  /**
    * @brief Incrementally update the lead-lag inner product with one new pair.
    *
    * @param lead_lag_inner_product Current accumulated inner product.
@@ -143,22 +135,6 @@ public:
   const double calculateSigma(
       const GeneralLinearLikelihoodComponents& components, const double& mu
   ) const;
-  /**
-   * @brief Calculates the maximum likelihood values for all model
-   * parameters.
-   *
-   * @param data Data series used to calculate.
-   * @return const std::unordered_map<std::string, const double> The maximum
-   * likelihood value for model parameters.
-   */
-  /**
-   * @brief Calculate the model's conditional variance from its parameters.
-   *
-   * @param parameters Model parameters (mu, sigma).
-   * @return const double Conditional variance of the AR(1)-like model.
-   */
-  const double
-  calculateConditionalVariance(const GeneralLinearParameters& parameters) const;
 };
 
 /**
@@ -195,8 +171,6 @@ public:
   const GeneralLinearParameters calculateParameters(
       const GeneralLinearLikelihoodComponents& components
   ) const;
-  const double
-  calculateConditionalVariance(const GeneralLinearParameters& parameters) const;
 };
 
 #endif // STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_LIKELIHOOD_H
