@@ -74,8 +74,8 @@ public:
       const double start, const unsigned int& size, const unsigned int& t
   ) const override;
   /**
-   * @brief Uses the Euler–Maruyama method for the approximate numerical
-   * solution of the general linear SDE process.
+   * @brief Exact-scheme step of the linear SDE: conditional-mean drift plus a
+   * Gaussian increment with the exact conditional standard deviation.
    *
    * @param x The current value of the series.
    * @param noise The random Gaussian noise to add to the series.
