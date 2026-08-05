@@ -1,7 +1,10 @@
 #include "stochastic_models/sde/general_linear.h"
 
+#include <cmath>
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <stdexcept>
+#include <vector>
 /**
  * @file
  * @brief Unit tests for the GeneralLinearModel class (mean/variance helpers).
@@ -76,4 +79,27 @@ TEST(GeneralLinearValidationTest, simulateRejectsZeroSize) {
   const GeneralLinearModel model(0.5, 0.1);
   EXPECT_THROW(model.Simulate(0.0, 0, 1), std::invalid_argument)
       << "Simulate accepted size == 0.";
+}
+/**
+ * @test Per-step sample variance of simulated residuals must match the
+ * closed-form conditional variance for t = 1 and t = 3. Tolerance 10%
+ * (~10 standard errors of a variance estimate at n = 20000).
+ */
+TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
+  const double mu = -0.05, sigma = 0.4;
+  const GeneralLinearModel model(mu, sigma);
+  for (const unsigned int t : {1u, 3u}) {
+    const std::vector<double> path = model.Simulate(1.0, 20000, t);
+    const double growth = std::exp(mu * static_cast<double>(t));
+    double sum_sq = 0.0;
+    for (std::size_t i = 1; i < path.size(); ++i) {
+      const double residual = path[i] - path[i - 1] * growth;
+      sum_sq += residual * residual;
+    }
+    const double sample_variance =
+        sum_sq / static_cast<double>(path.size() - 1);
+    const double expected = model.getConditionalVariance(t);
+    EXPECT_NEAR(sample_variance, expected, 0.1 * expected)
+        << "GL simulator per-step variance off at t = " << t << ".";
+  }
 }

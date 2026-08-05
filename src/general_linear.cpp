@@ -62,5 +62,6 @@ const double GeneralLinearModel::coreEquation(
     const double& x, const double& noise, const unsigned int& t
 ) const {
   const double exp_mu_t = std::exp(mu * t);
-  return x * exp_mu_t + exp_mu_t * std::exp(-mu * t) * sigma * noise;
+  const double diffusion_sd = std::sqrt(getConditionalVariance(t));
+  return x * exp_mu_t + diffusion_sd * noise;
 }
