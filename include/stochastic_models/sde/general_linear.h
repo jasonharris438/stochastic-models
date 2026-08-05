@@ -43,18 +43,22 @@ public:
   const double getMean() const override;
 
   /**
-   * @brief Returns the unconditional variance of the model.
+   * @brief Stationary variance sigma^2 / (2|mu|); only defined for mu < 0.
    *
-   * @return const double The model unconditional variance.
+   * @return const double The stationary variance.
+   * @throws std::domain_error If `mu >= 0` (no stationary variance exists).
    */
   const double getUnconditionalVariance() const override;
 
   /**
-   * @brief Returns the conditional variance of the model.
+   * @brief Conditional variance of the process over a step of length t:
+   * sigma^2 * (exp(2 mu t) - 1) / (2 mu), with mu -> 0 limit sigma^2 * t.
+   * See docs/derivations/sde-mle-derivations.md.
    *
-   * @return const double The model conditional variance.
+   * @param t The step length.
+   * @return const double The conditional variance over the step.
    */
-  const double getConditionalVariance() const;
+  const double getConditionalVariance(const double t) const;
 
   /**
    * @brief Produces a simulation using the parameters mu and sigma of

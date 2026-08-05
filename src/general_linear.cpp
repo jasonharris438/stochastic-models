@@ -25,16 +25,20 @@ const double GeneralLinearModel::getMean() const {
   return 0.0;
 }
 const double GeneralLinearModel::getUnconditionalVariance() const {
-  if (mu == 0) {
-    return 0;
+  if (mu >= 0) {
+    throw std::domain_error(
+        "The linear SDE has no stationary variance for mu >= 0."
+    );
   }
-  return (std::pow(sigma, 2) / (2 * mu)) * (std::exp(2 * mu) - 1);
+  return std::pow(sigma, 2) / (-2 * mu);
 }
-const double GeneralLinearModel::getConditionalVariance() const {
-  if (mu == 0) {
-    return 0;
+const double GeneralLinearModel::getConditionalVariance(const double t) const {
+  if (std::abs(mu) < 1e-12) {
+    return std::pow(sigma, 2) * t;
   }
-  return ((2 * sigma * mu) / (std::exp(2 * mu) - std::exp(mu)));
+  // expm1 avoids catastrophic cancellation in exp(2 mu t) - 1 for small
+  // mu * t; the guard above still handles the 0/0 case at mu == 0.
+  return std::pow(sigma, 2) * std::expm1(2 * mu * t) / (2 * mu);
 }
 std::vector<double> GeneralLinearModel::Simulate(
     const double start, const unsigned int& size, const unsigned int& t
