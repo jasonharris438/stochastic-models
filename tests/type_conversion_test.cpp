@@ -24,9 +24,7 @@ TEST(TypeConversionTest, createBoostMatrixRejectsEmptyInput) {
  * end. Ragged input must be rejected.
  */
 TEST(TypeConversionTest, createBoostMatrixRejectsRaggedInput) {
-  const std::vector<std::vector<double>> ragged{
-      {1.0, 2.0}, {3.0, 4.0, 5.0}
-  };
+  const std::vector<std::vector<double>> ragged{{1.0, 2.0}, {3.0, 4.0, 5.0}};
   EXPECT_THROW(create_boost_matrix_from_vectors(ragged), std::invalid_argument)
       << "create_boost_matrix_from_vectors accepted ragged rows.";
 }

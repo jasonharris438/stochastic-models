@@ -602,9 +602,8 @@ TEST(FilterStatesValidationTest, setTransitionMatrixRejectsRowCountMismatch) {
   std::vector<std::vector<double>> oversized{
       {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, {9.0, 9.0, 9.0}
   };
-  EXPECT_THROW(
-      kca_states.setTransitionMatrix(oversized), std::invalid_argument
-  ) << "setTransitionMatrix accepted a 4-row source for a 3x3 target.";
+  EXPECT_THROW(kca_states.setTransitionMatrix(oversized), std::invalid_argument)
+      << "setTransitionMatrix accepted a 4-row source for a 3x3 target.";
 }
 
 /**
@@ -628,8 +627,7 @@ TEST(FilterStatesValidationTest, setCurrentStateMeanRejectsLengthMismatch) {
   const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
   KcaStates kca_states(dimensions);
   std::vector<double> oversized{1.0, 2.0, 3.0, 4.0};
-  EXPECT_THROW(
-      kca_states.setCurrentStateMean(oversized), std::invalid_argument
-  ) << "setCurrentStateMean accepted a 4-element source for a 3-element "
-       "target.";
+  EXPECT_THROW(kca_states.setCurrentStateMean(oversized), std::invalid_argument)
+      << "setCurrentStateMean accepted a 4-element source for a 3-element "
+         "target.";
 }

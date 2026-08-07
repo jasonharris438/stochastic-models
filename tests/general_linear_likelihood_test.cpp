@@ -1,5 +1,5 @@
-#include "stochastic_models/likelihood/general_linear_likelihood.h"
 #include "stochastic_models/exceptions/errors.h"
+#include "stochastic_models/likelihood/general_linear_likelihood.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
@@ -40,7 +40,9 @@ TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
  * previously the size guard sat in calculateSquaredError, which is reached
  * only after the unguarded iterator arithmetic.
  */
-TEST(GeneralLinearLikelihoodValidationTest, calculateComponentsRejectsEmptySeries) {
+TEST(
+    GeneralLinearLikelihoodValidationTest, calculateComponentsRejectsEmptySeries
+) {
   const GeneralLinearLikelihood likelihood{};
   EXPECT_THROW(
       likelihood.calculateComponents({}), InvalidNumberObservationsError
@@ -51,7 +53,10 @@ TEST(GeneralLinearLikelihoodValidationTest, calculateComponentsRejectsEmptySerie
  * @test A single-element series cannot form a lead/lag pair and must be
  * rejected with InvalidNumberObservationsError.
  */
-TEST(GeneralLinearLikelihoodValidationTest, calculateComponentsRejectsSingleObservation) {
+TEST(
+    GeneralLinearLikelihoodValidationTest,
+    calculateComponentsRejectsSingleObservation
+) {
   const GeneralLinearLikelihood likelihood{};
   EXPECT_THROW(
       likelihood.calculateComponents({1.0}), InvalidNumberObservationsError

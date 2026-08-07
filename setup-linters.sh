@@ -41,6 +41,32 @@ install_shellcheck() {
 	log "shellcheck installed."
 }
 
+# Adds the official LLVM apt repository and pins clang-format-<version> to it
+# (apt otherwise picks whichever archive reports the higher version). The pin
+# covers the clang-format package only, not its LLVM runtime dependencies.
+# Arguments:
+#   $1 : clang-format major version (e.g., 20)
+add_llvm_apt_repo() {
+	local clang_format_version="$1"
+	local codename
+	# shellcheck disable=SC1091 # /etc/os-release is a standard runtime file, not a repo input.
+	codename=$(. /etc/os-release && echo "$VERSION_CODENAME")
+
+	install_packages wget gnupg ca-certificates
+
+	local keyring="/usr/share/keyrings/apt-llvm-org.gpg"
+	wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --batch --yes --dearmor -o "$keyring"
+
+	printf 'deb [signed-by=%s] http://apt.llvm.org/%s/ llvm-toolchain-%s-%s main\n' \
+		"$keyring" "$codename" "$codename" "$clang_format_version" \
+		>/etc/apt/sources.list.d/llvm.list
+
+	printf 'Package: clang-format-%s\nPin: origin apt.llvm.org\nPin-Priority: 1001\n' \
+		"$clang_format_version" >/etc/apt/preferences.d/clang-format-llvm.pref
+
+	apt-get update -qq
+}
+
 # Installs specified version of clang-format from apt repositories.
 # Arguments:
 #   -c | --clang-format-version <version> : Version number (e.g., 20 for clang-format-20)
@@ -78,13 +104,14 @@ install_clang_format_version() {
 	fi
 
 	install_packages "$pkg_name"
-	log "$pkg_name installed."
+	log "$pkg_name installed: $(dpkg-query -W -f='${Version}' "$pkg_name")"
 }
 
 apt-get update -qq
 install_shellcheck
 
 clang_format_version="20"
+add_llvm_apt_repo "$clang_format_version"
 install_clang_format_version --clang-format-version "$clang_format_version"
 
 log "All requested linters installed"

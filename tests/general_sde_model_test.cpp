@@ -39,7 +39,9 @@ TEST(GeneralSdeModelTest, updateGeneralLinearSDEModelOutputTest) {
  * @test n_obs == 0 must be rejected before the online update divides by the
  * pair count.
  */
-TEST(GeneralSdeValidationTest, updateGeneralLinearSDEModelRejectsZeroObservations) {
+TEST(
+    GeneralSdeValidationTest, updateGeneralLinearSDEModelRejectsZeroObservations
+) {
   EXPECT_THROW(
       updateGeneralLinearSDEModel(0.5, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 0),
       InvalidNumberObservationsError
