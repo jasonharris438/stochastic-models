@@ -17,5 +17,5 @@ fi
 tar -xjvf "valgrind-${valgrind_version}.tar.bz2"
 cd "valgrind-${valgrind_version}" || exit 1
 ./configure
-make
+make -j"$(nproc)"
 make install

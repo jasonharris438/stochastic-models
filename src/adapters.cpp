@@ -105,7 +105,7 @@ KcaStatesJsonAdapter::copyBoostMatrixToVector(
   );
 
   // Copy the values from the matrix to the std::vector by row.
-  for (int i{0}; i < boost_matrix.size1(); i++) {
+  for (std::size_t i{0}; i < boost_matrix.size1(); i++) {
     std::copy(
         row(boost_matrix, i).begin(), row(boost_matrix, i).end(),
         result.at(i).begin()
