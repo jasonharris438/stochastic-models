@@ -4,6 +4,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Valgrind needs glibc debug symbols: the stock ld.so is stripped and the
+# mandatory function redirections fail to resolve without them.
+apt-get -yqq install libc6-dbg
+
 valgrind_version="3.27.1"
 
 wget "https://sourceware.org/pub/valgrind/valgrind-${valgrind_version}.tar.bz2"
