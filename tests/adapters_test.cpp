@@ -279,9 +279,9 @@ TEST(AdaptersValidationTest, DimensionsDeserializeRejectsNonNumericOffset) {
 }
 
 namespace {
-// Baseline-valid 3-dim KCA state JSON; each hostile-state test perturbs one
-// field. Matches the fixed kinematic scheme dims (3, 3, 3, 1, 3, 1, 1).
-const FilterSystemDimensions kKcaSchemeDimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  // Baseline-valid 3-dim KCA state JSON; each hostile-state test perturbs one
+  // field. Matches the fixed kinematic scheme dims (3, 3, 3, 1, 3, 1, 1).
+  const FilterSystemDimensions kKcaSchemeDimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
 } // namespace
 
 /**
@@ -350,7 +350,9 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsWrongLengthMean) {
  * @test An observation matrix whose shape disagrees with the dimensions input
  * must be rejected.
  */
-TEST(AdaptersValidationTest, StateDeserializeRejectsWrongShapeObservationMatrix) {
+TEST(
+    AdaptersValidationTest, StateDeserializeRejectsWrongShapeObservationMatrix
+) {
   const KcaStatesJsonAdapter adapter;
   const std::string wrong_shape = R"({"current_state_covariance":
       [[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]],

@@ -10,88 +10,89 @@
 #ifndef JSON_DIAGNOSTICS
 #define JSON_DIAGNOSTICS 0
 #endif
-#include <nlohmann/json.hpp>
-
 #include <cstddef>
 #include <cstdint>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
 namespace {
 
-// Upper bound for any deserialized filter dimension. Large enough for any
-// real filter system while preventing hostile JSON from driving pathological
-// matrix allocations.
-constexpr std::int64_t kMaxFilterDimension{1024};
+  // Upper bound for any deserialized filter dimension. Large enough for any
+  // real filter system while preventing hostile JSON from driving pathological
+  // matrix allocations.
+  constexpr std::int64_t kMaxFilterDimension{1024};
 
-int getValidatedDimension(const nlohmann::json& json_obj, const char* key) {
-  const nlohmann::json& field = json_obj.at(key);
-  if (!field.is_number_integer()) {
-    throw json_parse_error(
-        "Dimension field '" + std::string{key} + "' must be a JSON integer."
-    );
-  }
-  const std::int64_t value = field.template get<std::int64_t>();
-  if (value < 1 || value > kMaxFilterDimension) {
-    throw json_parse_error(
-        "Dimension field '" + std::string{key} + "' must be in [1, " +
-        std::to_string(kMaxFilterDimension) + "]; got " +
-        std::to_string(value) + "."
-    );
-  }
-  return static_cast<int>(value);
-}
-
-double getValidatedNumber(const nlohmann::json& json_obj, const char* key) {
-  const nlohmann::json& field = json_obj.at(key);
-  if (!field.is_number()) {
-    throw json_parse_error(
-        "Field '" + std::string{key} + "' must be a JSON number."
-    );
-  }
-  return field.template get<double>();
-}
-
-std::vector<std::vector<double>> getValidatedMatrix(
-    const nlohmann::json& json_obj,
-    const char* key,
-    const std::size_t rows,
-    const std::size_t columns
-) {
-  std::vector<std::vector<double>> matrix_as_vectors;
-  json_obj.at(key).get_to(matrix_as_vectors);
-  if (matrix_as_vectors.size() != rows) {
-    throw json_parse_error(
-        "Field '" + std::string{key} + "' must have " + std::to_string(rows) +
-        " rows; got " + std::to_string(matrix_as_vectors.size()) + "."
-    );
-  }
-  for (const std::vector<double>& matrix_row : matrix_as_vectors) {
-    if (matrix_row.size() != columns) {
+  int getValidatedDimension(const nlohmann::json& json_obj, const char* key) {
+    const nlohmann::json& field = json_obj.at(key);
+    if (!field.is_number_integer()) {
       throw json_parse_error(
-          "Field '" + std::string{key} + "' must have " +
-          std::to_string(columns) + " columns in every row; got a row of "
-          "length " + std::to_string(matrix_row.size()) + "."
+          "Dimension field '" + std::string{key} + "' must be a JSON integer."
       );
     }
+    const std::int64_t value = field.template get<std::int64_t>();
+    if (value < 1 || value > kMaxFilterDimension) {
+      throw json_parse_error(
+          "Dimension field '" + std::string{key} + "' must be in [1, " +
+          std::to_string(kMaxFilterDimension) + "]; got " +
+          std::to_string(value) + "."
+      );
+    }
+    return static_cast<int>(value);
   }
-  return matrix_as_vectors;
-}
 
-std::vector<double> getValidatedVector(
-    const nlohmann::json& json_obj, const char* key, const std::size_t length
-) {
-  std::vector<double> vector_as_vector;
-  json_obj.at(key).get_to(vector_as_vector);
-  if (vector_as_vector.size() != length) {
-    throw json_parse_error(
-        "Field '" + std::string{key} + "' must have length " +
-        std::to_string(length) + "; got " +
-        std::to_string(vector_as_vector.size()) + "."
-    );
+  double getValidatedNumber(const nlohmann::json& json_obj, const char* key) {
+    const nlohmann::json& field = json_obj.at(key);
+    if (!field.is_number()) {
+      throw json_parse_error(
+          "Field '" + std::string{key} + "' must be a JSON number."
+      );
+    }
+    return field.template get<double>();
   }
-  return vector_as_vector;
-}
+
+  std::vector<std::vector<double>> getValidatedMatrix(
+      const nlohmann::json& json_obj,
+      const char* key,
+      const std::size_t rows,
+      const std::size_t columns
+  ) {
+    std::vector<std::vector<double>> matrix_as_vectors;
+    json_obj.at(key).get_to(matrix_as_vectors);
+    if (matrix_as_vectors.size() != rows) {
+      throw json_parse_error(
+          "Field '" + std::string{key} + "' must have " + std::to_string(rows) +
+          " rows; got " + std::to_string(matrix_as_vectors.size()) + "."
+      );
+    }
+    for (const std::vector<double>& matrix_row : matrix_as_vectors) {
+      if (matrix_row.size() != columns) {
+        throw json_parse_error(
+            "Field '" + std::string{key} + "' must have " +
+            std::to_string(columns) +
+            " columns in every row; got a row of "
+            "length " +
+            std::to_string(matrix_row.size()) + "."
+        );
+      }
+    }
+    return matrix_as_vectors;
+  }
+
+  std::vector<double> getValidatedVector(
+      const nlohmann::json& json_obj, const char* key, const std::size_t length
+  ) {
+    std::vector<double> vector_as_vector;
+    json_obj.at(key).get_to(vector_as_vector);
+    if (vector_as_vector.size() != length) {
+      throw json_parse_error(
+          "Field '" + std::string{key} + "' must have length " +
+          std::to_string(length) + "; got " +
+          std::to_string(vector_as_vector.size()) + "."
+      );
+    }
+    return vector_as_vector;
+  }
 
 } // namespace
 
@@ -203,10 +204,9 @@ const KcaStates KcaStatesJsonAdapter::deserialize(
     );
     kca_states.setTransitionMatrix(transition_matrix);
 
-    std::vector<std::vector<double>> transition_covariance =
-        getValidatedMatrix(
-            json_obj, "transition_covariance", state_rows, state_columns
-        );
+    std::vector<std::vector<double>> transition_covariance = getValidatedMatrix(
+        json_obj, "transition_covariance", state_rows, state_columns
+    );
     kca_states.setTransitionCovariance(transition_covariance);
 
     std::vector<double> current_state_mean =

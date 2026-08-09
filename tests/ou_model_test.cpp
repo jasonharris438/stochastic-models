@@ -3,7 +3,6 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
-
 #include <stdexcept>
 
 /**
