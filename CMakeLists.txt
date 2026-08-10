@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 4.2)
 # This is a shared library project.
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
+option(STOCHASTIC_MODELS_WERROR "Treat library warnings as errors" OFF)
+
 # Set the project name and version.
 project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
@@ -32,6 +34,8 @@ FetchContent_Declare(
     URL         https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
     URL_HASH    SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
 )
+# Emit json headers as -isystem so they stay out of the warning gate.
+set(JSON_SystemInclude ON)
 FetchContent_MakeAvailable(json)
 option(JSON_ImplicitConversions OFF) # Recommended by nlohmann/json maintainers.
 
@@ -42,6 +46,9 @@ include(GNUInstallDirs)
 # Add the main library.
 add_library(${PROJECT_NAME} .)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+# Register tests at the root so ctest works from the build directory.
+enable_testing()
 
 # Add subdirectories.
 add_subdirectory(src)

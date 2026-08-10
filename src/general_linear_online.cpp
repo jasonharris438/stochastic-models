@@ -5,8 +5,8 @@ GeneralLinearUpdater::GeneralLinearUpdater(
     const GeneralLinearLikelihoodComponents components,
     const GeneralLinearParameters parameters
 )
-    : components(components), parameters(parameters),
-      likelihood(GeneralLinearLikelihood()) {}
+    : likelihood(GeneralLinearLikelihood()), components(components),
+      parameters(parameters) {}
 
 const GeneralLinearParameters GeneralLinearUpdater::updateState(
     const double& new_observation, const double& last_observation

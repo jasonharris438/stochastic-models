@@ -42,8 +42,12 @@ target_include_directories(unit_tests
     )
 target_link_libraries(
     unit_tests
+    PRIVATE
     GTest::gtest_main
     stochastic_models
+    # tests include library-internal headers and call GSL directly
+    nlohmann_json::nlohmann_json
+    GSL::gsl
 )
 
 include(GoogleTest)

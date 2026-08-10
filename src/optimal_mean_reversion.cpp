@@ -276,9 +276,6 @@ const double OptimalMeanReversion::V(
     const double& c
 ) const {
   if ((b_star > x) && (x > stop_loss)) {
-    ModelFunc fnF = funcIntegrateF;
-    ModelFunc fnG = funcIntegrateG;
-
     const double bMinusC = b_star - c;
     const double lMinusC = stop_loss - c;
     const double gL =

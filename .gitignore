@@ -9,6 +9,7 @@ install/
 Makefile
 CMakeCache.txt
 *.cmake
+tests/cmake_test_discovery_*.json
 
 # main.cpp file not required
 *main.cpp

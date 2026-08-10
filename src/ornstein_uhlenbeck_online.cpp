@@ -6,8 +6,8 @@ OrnsteinUhlenbeckUpdater::OrnsteinUhlenbeckUpdater(
     const OrnsteinUhlenbeckLikelihoodComponents components,
     const OrnsteinUhlenbeckParameters parameters
 )
-    : components(components), parameters(parameters),
-      likelihood(OrnsteinUhlenbeckLikelihood()) {}
+    : likelihood(OrnsteinUhlenbeckLikelihood()), components(components),
+      parameters(parameters) {}
 
 const OrnsteinUhlenbeckParameters
 OrnsteinUhlenbeckUpdater::getParameters() const {

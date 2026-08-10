@@ -1,18 +1,15 @@
 #! /usr/bin/env bash
 
-# Install system dependencies.
-# GNU compiler tools, Cmake, the GDB debugger,
-# and GNU scientific lib.
+# Install system dependencies and the prebuilt CMake binary.
+# GNU scientific lib, git for FetchContent, CMake from the
+# official release archive.
 
 set -euo pipefail
 IFS=$'\n\t'
 
 apt-get -yqq update && apt-get -yqq install \
 	git \
-	gdb \
-	libtool \
-	autoconf \
-	unzip \
+	ca-certificates \
 	wget
 
 # Must follow the first install block.
@@ -25,22 +22,18 @@ apt-get remove --purge --auto-remove cmake
 src_url="https://github.com/Kitware/CMake/releases/download"
 version="4.2"
 build="3"
-checksum="7efaccde8c5a6b2968bad6ce0fe60e19b6e10701a12fce948c2bf79bac8a11e9"
+checksum="5bb505d5e0cca0480a330f7f27ccf52c2b8b5214c5bba97df08899f5ef650c23"
+archive="cmake-${version}.${build}-linux-x86_64.tar.gz"
 
-# Install cmake.
+# Install the prebuilt cmake binary.
 mkdir ~/temp
 cd ~/temp || exit 1
 
-wget "${src_url}/v${version}.${build}/cmake-${version}.${build}.tar.gz"
+wget "${src_url}/v${version}.${build}/${archive}"
 
-if ! sha256sum -c <(echo "$checksum cmake-${version}.${build}.tar.gz"); then
+if ! sha256sum -c <(echo "$checksum $archive"); then
 	echo "CMake checksum validation failed."
 	exit 1
 fi
 
-tar -xzvf "cmake-${version}.${build}.tar.gz"
-cd "cmake-${version}.${build}/" || exit 1
-
-./bootstrap
-make -"j$(nproc)"
-make install
+tar -xzf "$archive" --strip-components=1 -C /usr/local

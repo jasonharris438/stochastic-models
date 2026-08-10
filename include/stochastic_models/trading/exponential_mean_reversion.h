@@ -118,7 +118,7 @@ public:
     const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel,
     const double& b_star,
     const double& r,
-    const double& c) const;
+    const double& c) const override;
   /**
    * @brief Calculates the value a, the lower bound for the optimal
    * entry region for the optimal trading strategy for an exponential mean

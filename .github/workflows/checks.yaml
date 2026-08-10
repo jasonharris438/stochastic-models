@@ -20,8 +20,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-checks:
-    timeout-minutes: 60
+  lint:
+    timeout-minutes: 20
     runs-on: ubuntu-24.04
     container:
       image: ubuntu:24.04
@@ -32,10 +32,78 @@ jobs:
       run: ./setup-linters.sh
     - name: check shell scripts
       run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh setup-linters.sh
-    - name: script permissions
-      run: chmod +x ./setup-env.sh ./install-cmake.sh ./install-valgrind.sh
     - name: lint code
       run: find src include tests -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format-20 --dry-run --Werror -style=file {} +
+
+  build-test:
+    name: build-test (${{ matrix.compiler }}, ${{ matrix.config }})
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - gcc-14
+          - clang-18
+        config:
+          - sanitize
+          - release
+        include:
+          - compiler: gcc-14
+            cc: gcc
+            cxx: g++
+          - compiler: clang-18
+            cc: clang-18
+            cxx: clang++-18
+          - config: sanitize
+            build_type: Debug
+            compile_flags: -fsanitize=address,undefined -fno-sanitize-recover=all
+            link_flags: -fsanitize=address,undefined
+          - config: release
+            build_type: Release
+            compile_flags: ''
+            link_flags: ''
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+    - name: script permissions
+      run: chmod +x ./setup-env.sh ./install-cmake.sh
+    - name: Install gcc
+      if: matrix.compiler == 'gcc-14'
+      run: ./setup-env.sh
+    - name: Install clang
+      if: matrix.compiler == 'clang-18'
+      run: apt-get -yqq update && apt-get -yqq install --no-install-recommends clang-18 libclang-rt-18-dev libstdc++-14-dev make ca-certificates
+    - name: Install cmake
+      run: ./install-cmake.sh
+    - name: Create build files
+      env:
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+      run: >
+        cmake -B build
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DSTOCHASTIC_MODELS_WERROR=ON
+        -DCMAKE_CXX_FLAGS="${{ matrix.compile_flags }}"
+        -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.link_flags }}"
+        -DCMAKE_SHARED_LINKER_FLAGS="${{ matrix.link_flags }}"
+    - name: Build application
+      run: cmake --build build -j"$(nproc)"
+    - name: Run tests
+      run: ctest --test-dir build --output-on-failure --no-tests=error
+
+  valgrind:
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:24.04
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+    - name: script permissions
+      run: chmod +x ./setup-env.sh ./install-cmake.sh ./install-valgrind.sh
     - name: Install dependencies
       run: ./setup-env.sh
     - name: Install cmake
@@ -43,10 +111,8 @@ jobs:
     - name: Install valgrind
       run: ./install-valgrind.sh
     - name: Create build files
-      run: cmake .
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DSTOCHASTIC_MODELS_WERROR=ON
     - name: Build application
-      run: cmake --build . --target install
-    - name: Run tests
-      run: ./tests/unit_tests
+      run: cmake --build build -j"$(nproc)"
     - name: Run valgrind
-      run: valgrind -s --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/unit_tests
+      run: valgrind -s --error-exitcode=1 --tool=memcheck --leak-check=full ./build/tests/unit_tests
