@@ -116,3 +116,28 @@ jobs:
       run: cmake --build build -j"$(nproc)"
     - name: Run valgrind
       run: valgrind -s --error-exitcode=1 --tool=memcheck --leak-check=full ./build/tests/unit_tests
+
+  package:
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:24.04
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+    - name: script permissions
+      run: chmod +x ./setup-env.sh ./install-cmake.sh
+    - name: Install dependencies
+      run: ./setup-env.sh
+    - name: Install cmake
+      run: ./install-cmake.sh
+    - name: Create build files
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+    - name: Build library
+      run: cmake --build build -j"$(nproc)"
+    - name: Install library
+      run: cmake --install build --prefix "$PWD/prefix"
+    - name: Build consumer sample
+      run: |
+        cmake -S examples/consumer -B consumer-build -DCMAKE_PREFIX_PATH="$PWD/prefix"
+        cmake --build consumer-build -j"$(nproc)"

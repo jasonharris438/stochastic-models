@@ -36,16 +36,17 @@ FetchContent_Declare(
 )
 # Emit json headers as -isystem so they stay out of the warning gate.
 set(JSON_SystemInclude ON)
+# Off before the fetch, or the dependency configures with conversions on.
+# Recommended by the nlohmann/json maintainers for untrusted input.
+set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
 FetchContent_MakeAvailable(json)
-option(JSON_ImplicitConversions OFF) # Recommended by nlohmann/json maintainers.
 
 # Add GSL package.
 find_package(GSL REQUIRED)
 include(GNUInstallDirs)
-
-# Add the main library.
-add_library(${PROJECT_NAME} .)
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+# Explicit: configure_package_config_file and write_basic_package_version_file
+# must not depend on a fetched dependency including this module first.
+include(CMakePackageConfigHelpers)
 
 # Register tests at the root so ctest works from the build directory.
 enable_testing()
@@ -54,10 +55,18 @@ enable_testing()
 add_subdirectory(src)
 add_subdirectory(tests)
 
+# Namespaced alias: add_subdirectory consumers link the same name the package exports.
+add_library(StochasticModels::StochasticModels ALIAS stochastic_models)
+
 # create config file
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
 )
 
 # CMake sets this variable to a ``TRUE`` value when the
@@ -86,25 +95,20 @@ install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.h"
 )
-install(DIRECTORY "${boost_SOURCE_DIR}/boost/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/boost"
-    FILES_MATCHING PATTERN "*.hpp"
-)
-install(DIRECTORY "${json_SOURCE_DIR}/include/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    FILES_MATCHING PATTERN "*.hpp"
-)
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS stochastic_models
     EXPORT "${PROJECT_NAME}Targets"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
-# generate and install export file
 install(EXPORT "${PROJECT_NAME}Targets"
     FILE "${PROJECT_NAME}Targets.cmake"
+    NAMESPACE StochasticModels::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
