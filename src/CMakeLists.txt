@@ -32,15 +32,23 @@ trading_levels_params.cpp
 type_conversion.cpp
 )
 
+# EXPORT_NAME pairs with the StochasticModels:: namespace, so the exported
+# target is StochasticModels::StochasticModels.
+set_target_properties(stochastic_models PROPERTIES
+    EXPORT_NAME StochasticModels
+    VERSION ${PROJECT_VERSION}
+    SOVERSION 0
+)
+
+# In the export, so consumers on an older standard get one clear diagnostic.
+target_compile_features(stochastic_models PUBLIC cxx_std_20)
+
+# Include root on both sides: consumers write
+# #include <stochastic_models/entrypoints/ou_model.h> in every consumption mode.
 target_include_directories(stochastic_models
-PRIVATE
-# where the library itself will look for its internal headers
-"${PROJECT_SOURCE_DIR}/include"
-PUBLIC
-# where top-level project will look for the library's public headers
-$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/stochastic_models/entrypoints>
-# where external projects will look for the library's public headers
-$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/entrypoints>
+    PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 # Boost is third-party and not warning-clean; SYSTEM keeps its headers out
@@ -53,7 +61,8 @@ target_link_libraries(
     stochastic_models
     PRIVATE
     GSL::gsl
-    nlohmann_json::nlohmann_json
+    # BUILD_INTERFACE keeps nlohmann_json out of the installed export.
+    $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
 )
 
 # Warnings apply to the library target only; fetched dependencies are not

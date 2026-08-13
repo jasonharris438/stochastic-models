@@ -43,6 +43,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /usr/src/app
 
 # Copy source code.
-COPY --from=builder /usr/src/app/install/include/boost /usr/local/lib
 COPY --from=builder /usr/src/app/install/include/stochastic_models /usr/local/lib
 COPY --from=builder /usr/src/app/src/libstochastic_models.so /usr/local/lib
