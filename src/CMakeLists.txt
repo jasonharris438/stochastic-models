@@ -61,10 +61,7 @@ target_link_libraries(
     stochastic_models
     PRIVATE
     GSL::gsl
-    # BUILD_INTERFACE keeps nlohmann_json out of the installed export: it is a
-    # non-imported FetchContent target, and a static build records private
-    # dependencies as LINK_ONLY entries, which install(EXPORT ...) rejects.
-    # Sources still receive its JSON_USE_IMPLICIT_CONVERSIONS define.
+    # BUILD_INTERFACE keeps nlohmann_json out of the installed export.
     $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
 )
 
