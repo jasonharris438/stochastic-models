@@ -1,5 +1,4 @@
-# Minimum version 4.2.
-cmake_minimum_required(VERSION 4.2)
+cmake_minimum_required(VERSION 3.28)
 
 # This is a shared library project.
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
@@ -11,6 +10,13 @@ project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
     VERSION 0.3.0
     LANGUAGES CXX)
+
+# An empty build type compiles with no optimization and no debug info.
+# Multi-config generators pick the configuration at build time instead.
+if(PROJECT_IS_TOP_LEVEL AND NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug RelWithDebInfo MinSizeRel)
+endif()
 
 # specify the C++ standard.
 set(CMAKE_CXX_STANDARD 20)
@@ -24,7 +30,6 @@ FetchContent_Declare(
     Boost
     URL      https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.bz2
     URL_HASH SHA256=49551aff3b22cbc5c5a9ed3dbc92f0e23ea50a0f7325b0d198b705e8ee3fc305
-    EXCLUDE_FROM_ALL
     )
 FetchContent_MakeAvailable(Boost)
 
@@ -48,15 +53,22 @@ include(GNUInstallDirs)
 # must not depend on a fetched dependency including this module first.
 include(CMakePackageConfigHelpers)
 
-# Register tests at the root so ctest works from the build directory.
-enable_testing()
+# CTest defines BUILD_TESTING (default ON) and calls enable_testing() at the root.
+if(PROJECT_IS_TOP_LEVEL)
+    include(CTest)
+endif()
 
-# Add subdirectories.
 add_subdirectory(src)
-add_subdirectory(tests)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 # Namespaced alias: add_subdirectory consumers link the same name the package exports.
 add_library(StochasticModels::StochasticModels ALIAS stochastic_models)
+
+if(PROJECT_IS_TOP_LEVEL)
+    add_subdirectory(examples/quickstart)
+endif()
 
 # create config file
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
@@ -69,26 +81,20 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-# CMake sets this variable to a ``TRUE`` value when the
-# ``CMAKE_INSTALL_PREFIX`` has just been initialized to
-# its default value
-if(DEFINED CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-message(
-        STATUS
-        "CMAKE_INSTALL_PREFIX is not set\n"
-        "Default value: ${CMAKE_INSTALL_PREFIX}\n"
-        "Will set it to ${CMAKE_SOURCE_DIR}/install"
-        )
-        set(CMAKE_INSTALL_PREFIX
-        "${CMAKE_SOURCE_DIR}/install"
-        CACHE PATH "Where the library will be installed to" FORCE
-        )
-else()
-    message(
-        STATUS
-        "CMAKE_INSTALL_PREFIX was already set\n"
-        "Current value: ${CMAKE_INSTALL_PREFIX}"
-        )
+# A consumer's install prefix belongs to the consumer.
+if(PROJECT_IS_TOP_LEVEL)
+    if(DEFINED CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        message(STATUS
+            "CMAKE_INSTALL_PREFIX is not set\n"
+            "Default value: ${CMAKE_INSTALL_PREFIX}\n"
+            "Will set it to ${CMAKE_SOURCE_DIR}/install")
+        set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install"
+            CACHE PATH "Where the library will be installed to" FORCE)
+    else()
+        message(STATUS
+            "CMAKE_INSTALL_PREFIX was already set\n"
+            "Current value: ${CMAKE_INSTALL_PREFIX}")
+    endif()
 endif()
 
 install(DIRECTORY include/
