@@ -184,8 +184,9 @@ There is one subdirectory to be linked ->> `stochastic_models` which contains al
 
 To build and install to an `install` directory, run the following:
 ```
-$ cmake .
-$ cmake --build . --target install
+$ cmake -S . -B build
+$ cmake --build build
+$ cmake --install build
 ```
 
 ### Dependencies
@@ -201,12 +202,12 @@ $ cmake --build . --target install
 These can be imported in your application as shown below.
 
 It is possible to use this application as a shared library within another application should it be
-correctly linked. The `.so` file created in the `src` directory is the most efficient way to use this in another project. The `../install/include` directory is also required. The linker must be able to locate these files to build the application.
+correctly linked. The `.so` file created in the `build/src` directory is the most efficient way to use this in another project. The `../install/include` directory is also required. The linker must be able to locate these files to build the application.
 
 To access in the `main` module of another application a `CMakeLists.txt` can be produced
 and `#include <stochastic_models/sde/ornstein_uhlenbeck.h>` for example to access the `OrnsteinUhlenbeckModel` interface.
 ```
-cmake_minimum_required(VERSION 4.2)
+cmake_minimum_required(VERSION 3.28)
 project(another-application VERSION 0.1.0 DESCRIPTION "A project with external library" LANGUAGES CXX)
 
 # Add the subdirectory to build the library as a subproject to follow how stochastic-models is built.

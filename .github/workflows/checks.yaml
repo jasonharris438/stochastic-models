@@ -33,7 +33,7 @@ jobs:
     - name: check shell scripts
       run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh setup-linters.sh
     - name: lint code
-      run: find src include tests -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format-20 --dry-run --Werror -style=file {} +
+      run: find src include tests examples -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format-20 --dry-run --Werror -style=file {} +
 
   build-test:
     name: build-test (${{ matrix.compiler }}, ${{ matrix.config }})

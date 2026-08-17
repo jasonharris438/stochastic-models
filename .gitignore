@@ -1,48 +1,27 @@
-#IDE
+# IDE
 .vscode/
 
-# CMake
-_deps/
+# Build trees
 build/
-CMakeFiles/
+build-*/
 install/
-Makefile
+
+# In-source configure residue
+_deps/
+CMakeFiles/
 CMakeCache.txt
-*.cmake
+Makefile
+cmake_install.cmake
+CTestTestfile.cmake
 tests/cmake_test_discovery_*.json
 
-# main.cpp file not required
-*main.cpp
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
+# Compiled artifacts
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
 *.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
 *.a
-*.lib
 
-# Executables
-*.exe
-*.out
-*.app
+# Worktrees
+.worktrees/
+
+# Local agent settings
+.claude/settings.local.json

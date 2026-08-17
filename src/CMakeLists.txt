@@ -80,3 +80,9 @@ target_compile_options(
     -Wno-delete-non-virtual-dtor
     $<$<BOOL:${STOCHASTIC_MODELS_WERROR}>:-Werror>
 )
+
+# The library parses untrusted JSON: keep container bounds checks and
+# stack protection on in every configuration.
+target_compile_definitions(stochastic_models PRIVATE _GLIBCXX_ASSERTIONS)
+target_compile_options(stochastic_models PRIVATE
+    $<$<CXX_COMPILER_ID:GNU,Clang>:-fstack-protector-strong>)
