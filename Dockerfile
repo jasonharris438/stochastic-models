@@ -1,7 +1,7 @@
 #### Multistage build: the builder compiles and installs the library,   ####
 #### the final image ships the install prefix as a build-against base.  ####
 
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea AS builder
 
 # Install the gcc toolchain.
 COPY setup-env.sh ./
@@ -30,7 +30,7 @@ RUN cmake --build build -j"$(nproc)"
 RUN cmake --install build --prefix /opt/stochastic-models
 
 # Final image.
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgsl-dev \
