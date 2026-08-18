@@ -1,22 +1,18 @@
-#### Example of Multistage Build for Various C++ Projects ####
-#### Development Environment = builder.
-#### 3rd Party Application = installer,
-#### Production Environment = Final.
+#### Multistage build: the builder compiles and installs the library,   ####
+#### the final image ships the install prefix as a build-against base.  ####
 
-# Parent image ubuntu latest.
-FROM ubuntu:latest AS builder
+FROM ubuntu:24.04 AS builder
 
-# Install initial dependencies.
+# Install the gcc toolchain.
 COPY setup-env.sh ./
 RUN chmod +x setup-env.sh
 RUN ./setup-env.sh
 
-# Copy cmake setup script.
-COPY install-cmake.sh ./
-
-# Run cmake setup commands.
-RUN chmod +x install-cmake.sh
-RUN ./install-cmake.sh
+# Install the build tools and GSL.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cmake \
+    ca-certificates \
+    libgsl-dev
 
 # Set workdir.
 WORKDIR /usr/src/app
@@ -24,24 +20,28 @@ WORKDIR /usr/src/app
 # Copy source code.
 COPY src ./src
 COPY include ./include
-COPY tests ./tests
+COPY examples ./examples
 COPY CMakeLists.txt ./
 COPY Config.cmake.in ./
 
-# Build C++ code.
-RUN cmake .
-RUN cmake --build . --target install
+# Build and stage the install tree.
+RUN cmake -S . -B build -DBUILD_TESTING=OFF
+RUN cmake --build build -j"$(nproc)"
+RUN cmake --install build --prefix /opt/stochastic-models
 
 # Final image.
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libc6 \
-    libgsl-dev
+    libgsl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set workdir.
-WORKDIR /usr/src/app
+# Ship the install prefix.
+COPY --from=builder /opt/stochastic-models/include /usr/local/include
+COPY --from=builder /opt/stochastic-models/lib /usr/local/lib
 
-# Copy source code.
-COPY --from=builder /usr/src/app/install/include/stochastic_models /usr/local/lib
-COPY --from=builder /usr/src/app/src/libstochastic_models.so /usr/local/lib
+# Register the library chain.
+RUN ldconfig
+
+USER ubuntu
+WORKDIR /home/ubuntu

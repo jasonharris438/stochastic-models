@@ -4,10 +4,7 @@
 # Include only files relevant to the build.
 !src/**
 !include/**
-!tests/**
+!examples/**
 !CMakeLists.txt
-!install-cmake.sh
-!install-python.sh
 !setup-env.sh
-!install-valgrind.sh
 !Config.cmake.in
