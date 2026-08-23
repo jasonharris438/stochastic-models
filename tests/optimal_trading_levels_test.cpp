@@ -1,4 +1,5 @@
 #include "stochastic_models/entrypoints/optimal_trading_levels.h"
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
@@ -187,11 +188,11 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialNoSolutionTest) {
        "with invalid parameters.";
 }
 /**
- * @test Tests the output of the optimalEntryLevelLowerExponential function and
- * asserts that it is near the expected value.
+ * @test Tests that the optimalEntryLevelLowerExponential function throws
+ * RootNotBracketedError when the d*-equation has no root in the bracket.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialOutputTest) {
+TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialNoRootTest) {
   // Declare and initialize model and test parameters.
   const double alpha = 5;
   const double mu = 1.3499;
@@ -200,16 +201,13 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialOutputTest) {
   const double b_star = 1.4093;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
 
-  // Calculate d*.
-  const double value =
-      optimalEntryLevelLowerExponential(d_star, b_star, mu, alpha, sigma, r, c);
-
-  // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 1.16016, tolerance)
-      << "Value produced by optimalEntryLevelLowerExponential function "
-         "is not equal to the expected value.";
+  // Assert that the no-root bracket is reported.
+  EXPECT_THROW(
+      optimalEntryLevelLowerExponential(d_star, b_star, mu, alpha, sigma, r, c),
+      RootNotBracketedError
+  ) << "optimalEntryLevelLowerExponential did not throw "
+       "RootNotBracketedError for a bracket with no root.";
 }
 /**
  * @test Tests the output of the optimalEntryLevel function and asserts

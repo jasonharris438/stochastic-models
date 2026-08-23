@@ -19,7 +19,11 @@
 double integrateHittingTimeDensity(double x, void* model);
 
 /**
- * @brief Compute the normalized hitting-time density: (S(x)-S(b))/(S(a)-S(b)).
+ * @brief Computes the normalized hitting-time density.
+ *
+ * The density is the integral of the core over [second, x] divided by the
+ * integral over [second, first]. Exceptions from the integration wrappers
+ * propagate to the caller.
  *
  * @param x Point at which to evaluate (may be modified by integrator routines).
  * @param fn Integrand function pointer.
@@ -27,6 +31,8 @@ double integrateHittingTimeDensity(double x, void* model);
  * @param first Left boundary value.
  * @param second Right boundary value.
  * @return const double Evaluated hitting-time density.
+ * @throws ZeroDivError If the denominator integral is zero.
+ * @throws NonFiniteResultError If the density value is NaN or Inf.
  */
 const double hittingTimeDensity(
     double& x, ModelFunc fn, void* model, double& first, double& second

@@ -8,8 +8,11 @@
  */
 
 /**
- * @brief Compute the derivative of fn at x using an adaptive central
+ * @brief Computes the derivative of fn at x with an adaptive central
  * difference.
+ *
+ * The routine evaluates fn on both sides of x and divides by the step,
+ * with adaptive step refinement.
  *
  * @param fn Function pointer to evaluate.
  * @param model Opaque context pointer passed through to fn. Contains the model
@@ -17,6 +20,7 @@
  * @param x Point at which to compute derivative (may be adjusted by the
  *          adaptive routine in some implementations).
  * @return const double Approximated derivative value f'(x).
+ * @throws NonFiniteResultError If the derivative value is NaN or Inf.
  */
 const double
 adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x);

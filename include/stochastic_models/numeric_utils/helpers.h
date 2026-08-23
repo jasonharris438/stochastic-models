@@ -29,6 +29,17 @@ void check_function_status(
 );
 
 /**
+ * @brief Throws when a numeric routine result is not finite.
+ *
+ * The routine name is a C string, so this header needs no new includes.
+ *
+ * @param value Value to test.
+ * @param routine Routine name used in the exception message.
+ * @throws NonFiniteResultError If value is NaN or Inf.
+ */
+void check_finite_result(const double& value, const char* routine);
+
+/**
  * @brief Return a vector containing element-wise squares of the input.
  *
  * This is a small convenience wrapper around std::transform.

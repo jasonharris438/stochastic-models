@@ -1,9 +1,37 @@
 #include "stochastic_models/numeric_utils/integration.h"
 
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/exceptions/gsl_errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
+#include <algorithm>
+#include <cmath>
 #include <gsl/gsl_errno.h>
+#include <string>
+
+constexpr double kEpsAbs = 0;
+constexpr double kEpsRel = 1e-7;
+constexpr double kToleranceSlack = 10;
+constexpr double kBoundFloor = 1e-10;
+
+namespace {
+  // Gates results whose status was a round-off error: accept only when the
+  // error estimate is inside a slack multiple of the requested tolerance.
+  // The floor accepts integrands that cancel to nearly zero, where a purely
+  // relative bound would collapse.
+  void check_error_estimate(
+      const double& error, const double& result, const char* routine
+  ) {
+    const double bound =
+        kToleranceSlack * std::max(kBoundFloor, kEpsRel * std::abs(result));
+    if (!(error <= bound)) {
+      throw IntegrationToleranceError(
+          std::string(routine) + " error estimate " + std::to_string(error) +
+          " is greater than the accepted bound " + std::to_string(bound) + "."
+      );
+    }
+  }
+} // namespace
 
 IntegrationState::IntegrationState(gsl_integration_workspace& w)
     : workspace(&w) {}
@@ -18,59 +46,47 @@ const double
 adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper) {
   IntegrationState state(*gsl_integration_workspace_alloc(1000));
 
-  double result, error;
+  double result = 0, error = 0;
 
   gsl_function F;
   F.function = *fn;
   F.params = model;
 
-  /* set custom error handler; RAII guard restores the previous handler on
-     every exit path. Behaviour note: the handler now stays installed across
-     check_function_status below, which is harmless as it invokes no GSL
-     routines. */
+  // RAII guard restores the previous GSL handler on every exit path.
   GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_integration_qags(
-      &F, lower, upper, 0, 1e-7, 1000, state.workspace, &result, &error
+      &F, lower, upper, kEpsAbs, kEpsRel, 1000, state.workspace, &result, &error
   );
 
-  // Check the status returned from the integration routine.
-  // We are choosing to ignore a round-off error as it is not critical to the
-  // current use-case.
-  const std::vector<int> ignore_codes = {GSL_EROUND};
-  check_function_status(status, ignore_codes);
+  // A round-off status is tolerated here and gated by the estimate check.
+  check_function_status(status, {GSL_EROUND});
+  check_finite_result(result, "adaptiveIntegration");
+  check_error_estimate(error, result, "adaptiveIntegration");
 
-  const double value = result;
-
-  return value;
+  return result;
 }
 const double
 semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower) {
   IntegrationState state(*gsl_integration_workspace_alloc(1000));
 
-  double result, error = 0;
+  double result = 0, error = 0;
 
   gsl_function F;
   F.function = *fn;
   F.params = model;
 
-  /* set custom error handler; RAII guard restores the previous handler on
-     every exit path. Behaviour note: the handler now stays installed across
-     check_function_status below, which is harmless as it invokes no GSL
-     routines. */
+  // RAII guard restores the previous GSL handler on every exit path.
   GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_integration_qagiu(
-      &F, lower, 0, 1e-7, 1000, state.workspace, &result, &error
+      &F, lower, kEpsAbs, kEpsRel, 1000, state.workspace, &result, &error
   );
 
-  // Check the status returned from the integration routine.
-  // We are choosing to ignore a round-off error as it is not critical to the
-  // current use-case.
-  const std::vector<int> ignore_codes = {GSL_EROUND};
-  check_function_status(status, ignore_codes);
+  // A round-off status is tolerated here and gated by the estimate check.
+  check_function_status(status, {GSL_EROUND});
+  check_finite_result(result, "semiInfiniteIntegrationUpper");
+  check_error_estimate(error, result, "semiInfiniteIntegrationUpper");
 
-  const double value = result;
-
-  return value;
+  return result;
 }

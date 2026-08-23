@@ -7,6 +7,7 @@
 #include <gsl/gsl_errno.h>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 void check_function_status(
     const int& status, const std::vector<int> ignore_codes
@@ -40,6 +41,13 @@ void check_function_status(
       std::cerr << "error: " << gsl_strerror(status) << std::endl;
       throw GslFailedError("GSL mathematical function failed.");
     }
+  }
+}
+void check_finite_result(const double& value, const char* routine) {
+  if (!std::isfinite(value)) {
+    throw NonFiniteResultError(
+        std::string(routine) + " produced a non-finite value."
+    );
   }
 }
 const std::vector<double> valuesSquared(const std::vector<double>& vec) {

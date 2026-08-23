@@ -32,7 +32,10 @@ public:
 };
 
 /**
- * @brief Integrates the function f over a given interval.
+ * @brief Integrates fn over [lower, upper] with adaptive quadrature.
+ *
+ * The routine splits the interval where the error estimate is largest,
+ * until the total estimate meets the tolerance.
  *
  * @param fn Function pointer conforming to ModelFunc that computes f(x).
  * @param model Opaque pointer passed to the function; used to carry model
@@ -41,17 +44,27 @@ public:
  *              adaptive routines to modify it in some callers).
  * @param upper Upper bound of integration.
  * @return const double Value of the integral over [lower, upper].
+ * @throws NonFiniteResultError If the integral value is NaN or Inf.
+ * @throws IntegrationToleranceError If the error estimate is greater than
+ * the accepted bound.
  */
 const double
 adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper);
 /**
- * @brief Integrates the function f over a semi-infinite interval [lower, +inf).
+ * @brief Integrates fn over [lower, +inf) with adaptive quadrature.
+ *
+ * The routine maps the semi-infinite interval onto a finite one, then
+ * splits it where the error estimate is largest, until the total estimate
+ * meets the tolerance.
  *
  * @param fn Function pointer conforming to ModelFunc that computes f(x).
  * @param model Opaque pointer passed to the function; used to carry model
  *              parameters or context.
  * @param lower Lower bound of the semi-infinite integral.
  * @return const double Value of the integral over [lower, +inf).
+ * @throws NonFiniteResultError If the integral value is NaN or Inf.
+ * @throws IntegrationToleranceError If the error estimate is greater than
+ * the accepted bound.
  */
 const double
 semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower);
