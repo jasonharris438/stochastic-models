@@ -1,3 +1,4 @@
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/integration.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
@@ -224,12 +225,12 @@ TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
          "expected value.";
 }
 /**
- * @test Tests the output of the TradingLevels::optimalEntryLower method with an
- * ExponentialMeanReversion optimizer instance and asserts that it is near the
- * expected value.
+ * @test Tests that the TradingLevels::optimalEntryLower method with an
+ * ExponentialMeanReversion optimizer throws RootNotBracketedError when the
+ * d*-equation has no root in the bracket.
  *
  */
-TEST(TradingLevelsTest, entryLevelLowerExponentialOutputTest) {
+TEST(TradingLevelsTest, entryLevelLowerExponentialNoRootTest) {
   // Declare and initialize model and test parameters.
   const double alpha = 5;
   const double mu = 1.3499;
@@ -238,18 +239,14 @@ TEST(TradingLevelsTest, entryLevelLowerExponentialOutputTest) {
   const double b_star = 1.4093;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
-  // Calculate d*.
-  const double value = tradingLevels.optimalEntryLower(d_star, b_star, r, c);
-
-  // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 1.16016, tolerance)
-      << "Value produced by "
-         "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
-         "with ExponentialMeanReversion optimizer is not equal to the "
-         "expected value.";
+  // Assert that the no-root bracket is reported.
+  EXPECT_THROW(
+      tradingLevels.optimalEntryLower(d_star, b_star, r, c),
+      RootNotBracketedError
+  ) << "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower did not "
+       "throw RootNotBracketedError for a bracket with no root.";
 }

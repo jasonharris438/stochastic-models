@@ -1,3 +1,4 @@
+#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/hitting_times/hitting_time_density.h"
 #include "stochastic_models/hitting_times/hitting_time_ornstein_uhlenbeck.h"
 #include "stochastic_models/numeric_utils/helpers.h"
@@ -49,4 +50,26 @@ TEST(HittingTimeDensityTest, CatchErrorTest) {
       std::runtime_error
   ) << "hittingTimeDensity function must throw a runtime_error when a void "
        "pointer to the wrong type is provided.";
+}
+
+// Integrand that makes both density integrals exactly zero.
+double zeroIntegrand(double, void*) {
+  return 0.0;
+}
+
+/**
+ * @test Tests that hittingTimeDensity throws ZeroDivError when the
+ * denominator integral is zero.
+ *
+ */
+TEST(HittingTimeDensityValidationTest, ZeroDenominatorThrowTest) {
+  double first = 1.04;
+  double second = 1;
+  double x = 1.02;
+
+  ModelFunc fn = &zeroIntegrand;
+
+  EXPECT_THROW(hittingTimeDensity(x, fn, nullptr, first, second), ZeroDivError)
+      << "hittingTimeDensity did not throw ZeroDivError for a zero "
+         "denominator integral.";
 }

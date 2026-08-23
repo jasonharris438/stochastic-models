@@ -141,7 +141,7 @@ const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower(
                  "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
                  "without stop loss."
               << std::endl;
-    delete static_cast<ExitLevelParams*>(params);
+    delete static_cast<EntryLevelParams*>(params);
     params = nullptr;
     throw;
   }

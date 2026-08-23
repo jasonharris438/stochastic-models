@@ -67,4 +67,38 @@ public:
       : std::logic_error{msg} {}
 };
 
+/**
+ * @brief Thrown when a root-finding bracket does not contain a sign change.
+ */
+class RootNotBracketedError final : public std::runtime_error {
+public:
+  RootNotBracketedError(const std::string& msg) : std::runtime_error{msg} {}
+};
+
+/**
+ * @brief Thrown when a root solver reaches the iteration limit before the
+ * interval test passes.
+ */
+class SolverConvergenceError final : public std::runtime_error {
+public:
+  SolverConvergenceError(const std::string& msg) : std::runtime_error{msg} {}
+};
+
+/**
+ * @brief Thrown when a numeric routine produces a NaN or Inf result.
+ */
+class NonFiniteResultError final : public std::runtime_error {
+public:
+  NonFiniteResultError(const std::string& msg) : std::runtime_error{msg} {}
+};
+
+/**
+ * @brief Thrown when an integration error estimate is greater than the
+ * accepted bound.
+ */
+class IntegrationToleranceError final : public std::runtime_error {
+public:
+  IntegrationToleranceError(const std::string& msg) : std::runtime_error{msg} {}
+};
+
 #endif // STOCHASTIC_MODELS_EXCEPTIONS_ERRORS_H

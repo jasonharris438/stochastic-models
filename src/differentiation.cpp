@@ -7,23 +7,19 @@
 #include <gsl/gsl_errno.h>
 const double
 adaptiveCentralDifferentiation(ModelFunc fn, void* model, double& x) {
-  double result, error;
+  double result = 0, error = 0;
 
   gsl_function F;
   F.function = *fn;
   F.params = model;
 
-  // Set custom error handler; RAII guard restores the previous handler on
-  // every exit path (including exceptions).
+  // RAII guard restores the previous GSL handler on every exit path.
   GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_deriv_central(&F, x, 1e-5, &result, &error);
 
-  // No codes to ignore.
-  const std::vector<int> ignore_codes = {};
-  check_function_status(status, ignore_codes);
+  check_function_status(status, {});
+  check_finite_result(result, "adaptiveCentralDifferentiation");
 
-  const double value = result;
-
-  return value;
+  return result;
 }

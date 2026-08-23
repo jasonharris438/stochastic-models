@@ -19,6 +19,9 @@ BrentSolverState::~BrentSolverState() {
   }
 }
 
+constexpr double kEpsAbs = 1e-8;
+constexpr double kEpsRel = 1e-4;
+
 const double
 brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
   if (lower >= upper) {
@@ -29,7 +32,6 @@ brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
 
   BrentSolverState solver_state;
 
-  // Catch error if solver cannot be allocated.
   if (solver_state.fsolver == nullptr) {
     std::cerr << "Error: failed to allocate memory for solver." << std::endl;
     throw NoMemoryError();
@@ -39,30 +41,39 @@ brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
   F.function = fn;
   F.params = model;
 
-  // Set custom error handler; RAII guard restores the previous handler on
-  // every exit path (including exceptions).
+  // RAII guard restores the previous GSL handler on every exit path.
   GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_root_fsolver_set(solver_state.fsolver, &F, lower, upper);
 
-  // We are choosing to ignore an invalid interval as we aren't always
-  // straddling y = 0.
-  const std::vector<int> ignore_codes = {GSL_EINVAL};
-  check_function_status(status, ignore_codes);
+  if (status == GSL_EINVAL) {
+    throw RootNotBracketedError(
+        "Function does not change sign over [" + std::to_string(lower) + ", " +
+        std::to_string(upper) + "]."
+    );
+  }
+  check_function_status(status, {});
 
   int iter = 0, max_iter = 100;
   double result = 0, x_lo = 0, x_hi = 0;
   do {
     iter++;
     status = gsl_root_fsolver_iterate(solver_state.fsolver);
+    check_function_status(status, {});
     result = gsl_root_fsolver_root(solver_state.fsolver);
     x_lo = gsl_root_fsolver_x_lower(solver_state.fsolver);
     x_hi = gsl_root_fsolver_x_upper(solver_state.fsolver);
-    status = gsl_root_test_interval(x_lo, x_hi, 0, 0.0001);
-
+    status = gsl_root_test_interval(x_lo, x_hi, kEpsAbs, kEpsRel);
   } while (status == GSL_CONTINUE && iter < max_iter);
 
-  const double value = result;
+  if (status == GSL_CONTINUE) {
+    throw SolverConvergenceError(
+        "Root solver did not converge after " + std::to_string(max_iter) +
+        " iterations."
+    );
+  }
+  check_function_status(status, {});
+  check_finite_result(result, "brentSolver");
 
-  return value;
+  return result;
 }
