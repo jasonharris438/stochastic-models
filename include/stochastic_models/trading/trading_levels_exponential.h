@@ -71,15 +71,14 @@ public:
    */
   const double optimalExitUpperBound() const;
   /**
-   * @brief Calculates the optimal exit level b*
-   * for an optimal trading strategy with a stop loss level.
+   * @brief Rejects the stop-loss exit level, which has no mathematical
+   * definition for the exponential model.
    *
    * @param stop_loss The stop loss level.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The optimal trading exit level given a stop loss @f[
-   b*.
+   * @throws std::logic_error Always.
    */
   const double
   optimalExit(const double& stop_loss, const double& r, const double& c) const;
@@ -100,15 +99,15 @@ public:
    */
   const double optimalExit(const double& r, const double& c) const;
   /**
-   * @brief Calculates the optimal entry level d*
-   * for an optimal trading strategy when a stop loss level is provided.
+   * @brief Rejects the stop-loss entry level d*, which has no mathematical
+   * definition for the exponential model.
    *
    * @param b_star The optimal exit level b*.
    * @param stop_loss The stop loss level.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The optimal trading entry level d*.
+   * @throws std::logic_error Always.
    */
   const double optimalEntry(
       const double& b_star,
@@ -141,8 +140,8 @@ public:
       const double& c
   ) const;
   /**
-   * @brief Calculates the lower bound optimal entry level a*
-   * for an optimal trading strategy when a stop loss level is provided.
+   * @brief Rejects the stop-loss lower entry level a*, which has no
+   * mathematical definition for the exponential model.
    *
    * @param d_star The upper optimal entry level d*.
    * @param b_star The optimal exit level b*.
@@ -150,8 +149,7 @@ public:
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The lower bound optimal trading entry level a*
-   *.
+   * @throws std::logic_error Always.
    */
   const double optimalEntryLower(
       const double& d_star,

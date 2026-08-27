@@ -16,7 +16,7 @@ TEST(ExponentialMeanReversionTest, stopLossBNotImplementedTest) {
   const double alpha = 8;
   const double mu = 0.3;
   const double sigma = 0.3;
-  const double stop_loss = 0.05;
+  const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
 
@@ -43,7 +43,7 @@ TEST(ExponentialMeanReversionTest, stopLossDNotImplementedTest) {
   const double mu = 0.3;
   const double sigma = 0.3;
   const double b_star = 0.466;
-  const double stop_loss = 0.05;
+  const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
 
@@ -70,7 +70,7 @@ TEST(ExponentialMeanReversionTest, stopLossANotImplementedTest) {
   const double mu = 0.3;
   const double sigma = 0.3;
   const double b_star = 0.466;
-  const double stop_loss = 0.05;
+  const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
 
@@ -97,7 +97,7 @@ TEST(ExponentialMeanReversionTest, stopLossVNotImplementedTest) {
   const double mu = 0.3;
   const double sigma = 0.3;
   const double b_star = 0.466;
-  const double stop_loss = 0.05;
+  const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
   // Create core model and optimal mean reversion instances.
@@ -126,7 +126,7 @@ TEST(
   const double mu = 0.3;
   const double sigma = 0.3;
   const double b_star = 0.466;
-  const double stop_loss = 0.05;
+  const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
   ModelFunc fn = funcIntegrateF;

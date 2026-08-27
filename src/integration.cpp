@@ -9,10 +9,10 @@
 #include <gsl/gsl_errno.h>
 #include <string>
 
-constexpr double kEpsAbs = 0;
-constexpr double kEpsRel = 1e-7;
-constexpr double kToleranceSlack = 10;
-constexpr double kBoundFloor = 1e-10;
+constexpr double eps_abs = 0;
+constexpr double eps_rel = 1e-7;
+constexpr double tolerance_slack = 10;
+constexpr double bound_floor = 1e-10;
 
 namespace {
   // Gates results whose status was a round-off error: accept only when the
@@ -23,7 +23,7 @@ namespace {
       const double& error, const double& result, const char* routine
   ) {
     const double bound =
-        kToleranceSlack * std::max(kBoundFloor, kEpsRel * std::abs(result));
+        tolerance_slack * std::max(bound_floor, eps_rel * std::abs(result));
     if (!(error <= bound)) {
       throw IntegrationToleranceError(
           std::string(routine) + " error estimate " + std::to_string(error) +
@@ -56,7 +56,7 @@ adaptiveIntegration(ModelFunc fn, void* model, double& lower, double& upper) {
   GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_integration_qags(
-      &F, lower, upper, kEpsAbs, kEpsRel, 1000, state.workspace, &result, &error
+      &F, lower, upper, eps_abs, eps_rel, 1000, state.workspace, &result, &error
   );
 
   // A round-off status is tolerated here and gated by the estimate check.
@@ -80,7 +80,7 @@ semiInfiniteIntegrationUpper(ModelFunc fn, void* model, double& lower) {
   GslHandlerGuard gsl_guard{&custom_gsl_exception_handler};
 
   int status = gsl_integration_qagiu(
-      &F, lower, kEpsAbs, kEpsRel, 1000, state.workspace, &result, &error
+      &F, lower, eps_abs, eps_rel, 1000, state.workspace, &result, &error
   );
 
   // A round-off status is tolerated here and gated by the estimate check.

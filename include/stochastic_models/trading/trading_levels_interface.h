@@ -16,6 +16,11 @@
  */
 class TradingLevels {
 public:
+  /**
+   * @brief Virtual destructor so deletion through the base pointer is
+   * defined.
+   */
+  virtual ~TradingLevels() = default;
   virtual const OptimalTrading* getOptimizer() const = 0;
   virtual const OptimalTrading* newOptimizer() const = 0;
   virtual const StochasticModel* getModel() const = 0;

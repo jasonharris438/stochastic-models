@@ -66,18 +66,18 @@ target_link_libraries(
 )
 
 # Warnings apply to the library target only; fetched dependencies are not
-# warning-clean. Each suppression is temporary and has an owning fix:
+# warning-clean. -Wnon-virtual-dtor is outside -Wall and guards every
+# polymorphic base. Each suppression is temporary and has an owning fix:
 #   -Wno-ignored-qualifiers      const-qualified value returns (API cleanup)
 #   -Wno-unused-parameter        not-implemented stubs
-#   -Wno-delete-non-virtual-dtor pending virtual-destructor fix
 target_compile_options(
     stochastic_models
     PRIVATE
     -Wall
     -Wextra
+    -Wnon-virtual-dtor
     -Wno-ignored-qualifiers
     -Wno-unused-parameter
-    -Wno-delete-non-virtual-dtor
     $<$<BOOL:${STOCHASTIC_MODELS_WERROR}>:-Werror>
 )
 

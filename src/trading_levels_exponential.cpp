@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
 
 OrnsteinUhlenbeckTradingLevelsExponential::
     OrnsteinUhlenbeckTradingLevelsExponential(
@@ -56,34 +57,12 @@ OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLowerBound() const {
 const double OrnsteinUhlenbeckTradingLevelsExponential::optimalExit(
     const double& stop_loss, const double& r, const double& c
 ) const {
-  // We need deep copies of the model and optimizer pointers to initialise the
-  // params instance. This is because GSL requires a pointer to void and we
-  // cannot use smart pointers with much benefit here. So we create deep
-  // copies and then free that memory in the destructor of the
-  // ExitLevelStopLossParams struct.
-  void* params = new ExitLevelStopLossParams{
-      getOptimizer()->clone(), getHittingTimeKernel()->clone(), stop_loss, r, c
-  };
-  ModelFunc fn = funcOptimalMeanReversionB;
-  double value{0.0};
-  try {
-    double upper = optimalExitUpperBound();
-    double lower = optimalExitLowerBound(r, c);
-    value = brentSolver(fn, params, lower, upper);
-  } catch (const std::exception& e) {
-    std::cout << "Exception " << e.what()
-              << " caught in "
-                 "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
-                 "with stop loss."
-              << std::endl;
-    delete static_cast<ExitLevelStopLossParams*>(params);
-    params = nullptr;
-    throw;
-  }
-  // Then cast the void pointer back to the original type and free the memory.
-  delete static_cast<ExitLevelStopLossParams*>(params);
-  params = nullptr;
-  return value;
+  // There is no mathematical definition for the optimal exit level of
+  // an exponential model with a stop loss parameter.
+  throw std::logic_error(
+      "OrnsteinUhlenbeckTradingLevelsExponential does not implement "
+      "optimalExit with stop_loss parameter"
+  );
 }
 const double OrnsteinUhlenbeckTradingLevelsExponential::optimalExit(
     const double& r, const double& c
@@ -158,34 +137,12 @@ const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower(
     const double& r,
     const double& c
 ) const {
-  // We need deep copies of the model and optimizer pointers to initialise the
-  // params instance. This is because GSL requires a pointer to void and we
-  // cannot use smart pointers with much benefit here. So we create deep
-  // copies and then free that memory in the destructor of the
-  // EntryLevelStopLossParams struct.
-  void* params = new EntryLevelStopLossParams{
-      newOptimizer(), newHittingTimeKernel(), b_star, stop_loss, r, c
-  };
-  ModelFunc fn = funcOptimalMeanReversionStopLossA;
-  double value{0.0};
-  try {
-    double lower = stop_loss;
-    double upper = d_star;
-    value = brentSolver(fn, params, lower, upper);
-  } catch (const std::exception& e) {
-    std::cout << "Exception " << e.what()
-              << " caught in "
-                 "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
-                 "with stop loss."
-              << std::endl;
-    delete static_cast<EntryLevelStopLossParams*>(params);
-    params = nullptr;
-    throw;
-  }
-  // Then cast the void pointer back to the original type and free the memory.
-  delete static_cast<EntryLevelStopLossParams*>(params);
-  params = nullptr;
-  return value;
+  // There is no mathematical definition for the lower optimal entry level of
+  // an exponential model with a stop loss parameter.
+  throw std::logic_error(
+      "OrnsteinUhlenbeckTradingLevelsExponential does not implement "
+      "optimalEntryLower with stop_loss parameter"
+  );
 }
 const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry(
     const double& b_star,
@@ -193,29 +150,12 @@ const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry(
     const double& r,
     const double& c
 ) const {
-  void* params = new EntryLevelStopLossParams{
-      newOptimizer(), newHittingTimeKernel(), b_star, stop_loss, r, c
-  };
-  ModelFunc fn = funcOptimalMeanReversionStopLossD;
-  double value{0.0};
-  try {
-    double lower = stop_loss;
-    double upper = b_star;
-    value = brentSolver(fn, params, lower, upper);
-  } catch (const std::exception& e) {
-    std::cout << "Exception " << e.what()
-              << " caught in "
-                 "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower "
-                 "with stop loss."
-              << std::endl;
-    delete static_cast<EntryLevelStopLossParams*>(params);
-    params = nullptr;
-    throw;
-  }
-  // Then cast the void pointer back to the original type and free the memory.
-  delete static_cast<EntryLevelStopLossParams*>(params);
-  params = nullptr;
-  return value;
+  // There is no mathematical definition for the optimal entry level of
+  // an exponential model with a stop loss parameter.
+  throw std::logic_error(
+      "OrnsteinUhlenbeckTradingLevelsExponential does not implement "
+      "optimalEntry with stop_loss parameter"
+  );
 }
 const double OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry(
     const double& b_star, const double& r, const double& c

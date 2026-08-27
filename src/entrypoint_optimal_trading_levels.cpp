@@ -59,29 +59,6 @@ const double optimalExitLevelExponential(
     const double mu,
     const double alpha,
     const double sigma,
-    const double stop_loss,
-    const double r,
-    const double c
-) {
-  // Object with outer/controller layer logic for trading levels.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
-
-  double value{0.0};
-  try {
-    // Calculate b*.
-    value = tradingLevels.optimalExit(stop_loss, r, c);
-  } catch (const std::runtime_error& e) {
-    std::cout << "Exception " << e.what()
-              << " caught in optimalExitLevelExponential with stop loss."
-              << std::endl;
-    throw;
-  }
-  return value;
-}
-const double optimalExitLevelExponential(
-    const double mu,
-    const double alpha,
-    const double sigma,
     const double r,
     const double c
 ) {
