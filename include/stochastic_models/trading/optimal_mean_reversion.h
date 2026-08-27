@@ -10,12 +10,14 @@
  * numerical integration.
  * @param x The current value of the stochastic model.
  * @param r The discount rate to apply to the optimal trading problem.
+ * @param tag Tag that identifies this struct to its callbacks.
  *
  */
 struct OptimalMeanReversionParams {
   const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
   const double& x;
   const double& r;
+  const TradingParamsTag tag = TradingParamsTag::OptimalMeanReversion;
 
   ~OptimalMeanReversionParams();
 };

@@ -281,7 +281,7 @@ TEST(AdaptersValidationTest, DimensionsDeserializeRejectsNonNumericOffset) {
 namespace {
   // Baseline-valid 3-dim KCA state JSON; each hostile-state test perturbs one
   // field. Matches the fixed kinematic scheme dims (3, 3, 3, 1, 3, 1, 1).
-  const FilterSystemDimensions kKcaSchemeDimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  const FilterSystemDimensions kca_scheme_dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
 } // namespace
 
 /**
@@ -291,7 +291,7 @@ namespace {
 TEST(AdaptersValidationTest, StateDeserializeRejectsUnparseableJson) {
   const KcaStatesJsonAdapter adapter;
   EXPECT_THROW(
-      adapter.deserialize("{not json", kKcaSchemeDimensions), json_parse_error
+      adapter.deserialize("{not json", kca_scheme_dimensions), json_parse_error
   ) << "Unparseable state JSON did not raise json_parse_error.";
 }
 
@@ -309,7 +309,7 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsOversizedMatrix) {
       "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0],
       [9.0,9.0,9.0]]})";
   EXPECT_THROW(
-      adapter.deserialize(oversized, kKcaSchemeDimensions), json_parse_error
+      adapter.deserialize(oversized, kca_scheme_dimensions), json_parse_error
   ) << "An oversized transition_matrix did not raise json_parse_error.";
 }
 
@@ -325,7 +325,7 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsRaggedMatrix) {
       "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
       "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
   EXPECT_THROW(
-      adapter.deserialize(ragged, kKcaSchemeDimensions), json_parse_error
+      adapter.deserialize(ragged, kca_scheme_dimensions), json_parse_error
   ) << "A ragged current_state_covariance did not raise json_parse_error.";
 }
 
@@ -342,7 +342,7 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsWrongLengthMean) {
       "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
       "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
   EXPECT_THROW(
-      adapter.deserialize(short_mean, kKcaSchemeDimensions), json_parse_error
+      adapter.deserialize(short_mean, kca_scheme_dimensions), json_parse_error
   ) << "A 2-element current_state_mean did not raise json_parse_error.";
 }
 
@@ -362,7 +362,7 @@ TEST(
       "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
       "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
   EXPECT_THROW(
-      adapter.deserialize(wrong_shape, kKcaSchemeDimensions), json_parse_error
+      adapter.deserialize(wrong_shape, kca_scheme_dimensions), json_parse_error
   ) << "A 2x3 observation_matrix did not raise json_parse_error for 1x3 "
        "dimensions.";
 }
@@ -379,6 +379,6 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsNonNumericOffset) {
       "transition_covariance":[[0.1,0.0,0.0],[0.0,0.001,0.0],[0.0,0.0,0.001]],
       "transition_matrix":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]})";
   EXPECT_THROW(
-      adapter.deserialize(bad_offset, kKcaSchemeDimensions), json_parse_error
+      adapter.deserialize(bad_offset, kca_scheme_dimensions), json_parse_error
   ) << "A string observation_offset did not raise json_parse_error.";
 }

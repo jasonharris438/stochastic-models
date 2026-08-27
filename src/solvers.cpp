@@ -19,8 +19,8 @@ BrentSolverState::~BrentSolverState() {
   }
 }
 
-constexpr double kEpsAbs = 1e-8;
-constexpr double kEpsRel = 1e-4;
+constexpr double eps_abs = 1e-8;
+constexpr double eps_rel = 1e-4;
 
 const double
 brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
@@ -63,7 +63,7 @@ brentSolver(ModelFunc fn, void* model, double& lower, double& upper) {
     result = gsl_root_fsolver_root(solver_state.fsolver);
     x_lo = gsl_root_fsolver_x_lower(solver_state.fsolver);
     x_hi = gsl_root_fsolver_x_upper(solver_state.fsolver);
-    status = gsl_root_test_interval(x_lo, x_hi, kEpsAbs, kEpsRel);
+    status = gsl_root_test_interval(x_lo, x_hi, eps_abs, eps_rel);
   } while (status == GSL_CONTINUE && iter < max_iter);
 
   if (status == GSL_CONTINUE) {

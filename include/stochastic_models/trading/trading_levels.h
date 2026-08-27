@@ -129,16 +129,15 @@ public:
       const double& c
   ) const;
   /**
-   * @brief Calculates the lower bound optimal entry level a*
-   * for an optimal trading strategy.
+   * @brief Rejects the lower entry level a*, which has no mathematical
+   * definition for the Ornstein-Uhlenbeck model with no stop loss parameter.
    *
    * @param d_star The upper optimal entry level d*.
    * @param b_star The optimal exit level b*.
    * @param r The discount rate to apply to the optimal mean reversion trading
    * problem.
    * @param c The cost of trading.
-   * @return const double The lower bound optimal trading entry level a*
-   *.
+   * @throws std::logic_error Always.
    */
   const double optimalEntryLower(
       const double& d_star,

@@ -21,7 +21,7 @@ namespace {
   // Upper bound for any deserialized filter dimension. Large enough for any
   // real filter system while preventing hostile JSON from driving pathological
   // matrix allocations.
-  constexpr std::int64_t kMaxFilterDimension{1024};
+  constexpr std::int64_t max_filter_dimension{1024};
 
   int getValidatedDimension(const nlohmann::json& json_obj, const char* key) {
     const nlohmann::json& field = json_obj.at(key);
@@ -31,10 +31,10 @@ namespace {
       );
     }
     const std::int64_t value = field.template get<std::int64_t>();
-    if (value < 1 || value > kMaxFilterDimension) {
+    if (value < 1 || value > max_filter_dimension) {
       throw json_parse_error(
           "Dimension field '" + std::string{key} + "' must be in [1, " +
-          std::to_string(kMaxFilterDimension) + "]; got " +
+          std::to_string(max_filter_dimension) + "]; got " +
           std::to_string(value) + "."
       );
     }

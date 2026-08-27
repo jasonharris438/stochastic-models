@@ -12,6 +12,7 @@
  * @param stop_loss The stop loss level.
  * @param r The discount rate to apply to the optimal trading problem.
  * @param c The cost of trading.
+ * @param tag Tag that identifies this struct to its callbacks.
  */
 struct ExitLevelStopLossParams {
   const OptimalTrading* optimizer;
@@ -19,6 +20,7 @@ struct ExitLevelStopLossParams {
   const double& stop_loss;
   const double& r;
   const double& c;
+  const TradingParamsTag tag = TradingParamsTag::ExitLevelStopLoss;
 
   ~ExitLevelStopLossParams();
 };
@@ -32,12 +34,14 @@ struct ExitLevelStopLossParams {
  * exit level.
  * @param r The discount rate to apply to the optimal trading problem.
  * @param c The cost of trading.
+ * @param tag Tag that identifies this struct to its callbacks.
  */
 struct ExitLevelParams {
   const OptimalTrading* optimizer;
   const HittingTimeOrnsteinUhlenbeck* hitting_time_kernel;
   const double& r;
   const double& c;
+  const TradingParamsTag tag = TradingParamsTag::ExitLevel;
 
   ~ExitLevelParams();
 };
@@ -53,6 +57,7 @@ struct ExitLevelParams {
  * @param stop_loss The stop loss level.
  * @param r The discount rate to apply to the optimal trading problem.
  * @param c The cost of trading.
+ * @param tag Tag that identifies this struct to its callbacks.
  */
 struct EntryLevelStopLossParams {
   const OptimalTrading* optimizer;
@@ -61,6 +66,7 @@ struct EntryLevelStopLossParams {
   const double& stop_loss;
   const double& r;
   const double& c;
+  const TradingParamsTag tag = TradingParamsTag::EntryLevelStopLoss;
 
   ~EntryLevelStopLossParams();
 };
@@ -75,6 +81,7 @@ struct EntryLevelStopLossParams {
  * @param b_star The optimal exit level.
  * @param r The discount rate to apply to the optimal trading problem.
  * @param c The cost of trading.
+ * @param tag Tag that identifies this struct to its callbacks.
  */
 struct EntryLevelParams {
   const OptimalTrading* optimizer;
@@ -82,6 +89,7 @@ struct EntryLevelParams {
   const double& b_star;
   const double& r;
   const double& c;
+  const TradingParamsTag tag = TradingParamsTag::EntryLevel;
 
   ~EntryLevelParams();
 };
@@ -142,7 +150,7 @@ double funcOptimalMeanReversionD(double x, void* params);
 double funcOptimalMeanReversionStopLossB(double x, void* params);
 /**
  * @brief Function to evaluate the optimal exit level function b in the
- * optimal trading problem when a stop loss is provided.
+ * optimal trading problem when no stop loss is provided.
  *
  * @param x The value at which to evaluate the optimal exit level function.
  * @param params Pointer to the ExitLevelParams struct containing the

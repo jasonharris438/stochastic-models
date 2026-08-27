@@ -128,7 +128,7 @@ TEST(OptimalMeanReversionTest, methodDOutputTest) {
   const double b_star = 0.46683583;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-3;
+  const double tolerance = 1e-3;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -139,7 +139,7 @@ TEST(OptimalMeanReversionTest, methodDOutputTest) {
       mean_reversion.d(guess, &hitting_time_kernel, b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), -129.094, tolerance)
+  EXPECT_NEAR(value, -129.0961, tolerance)
       << "Value produced by OptimalMeanReversion::d is not equal to the "
          "expected value.";
 }
@@ -154,11 +154,11 @@ TEST(OptimalMeanReversionTest, methodDStopLossOutputTest) {
   const double mu = 0.3;
   const double sigma = 0.3;
   const double guess = 0.4;
-  const double stop_loss = -0.3;
+  const double stop_loss = 0.1;
   const double b_star = 0.466836;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-3;
+  const double tolerance = 1e-3;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -169,7 +169,7 @@ TEST(OptimalMeanReversionTest, methodDStopLossOutputTest) {
       mean_reversion.d(guess, &hitting_time_kernel, b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), -129.094, tolerance)
+  EXPECT_NEAR(value, -61.8326, tolerance)
       << "Value produced by OptimalMeanReversion::d is not equal to the "
          "expected value when a stop loss is provided.";
 }
@@ -188,7 +188,7 @@ TEST(OptimalMeanReversionTest, methodAStopLossOutputTest) {
   const double b_star = 0.466836;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-3;
+  const double tolerance = 1e-3;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -199,7 +199,7 @@ TEST(OptimalMeanReversionTest, methodAStopLossOutputTest) {
       mean_reversion.a(guess, &hitting_time_kernel, b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), -132.55, tolerance)
+  EXPECT_NEAR(value, -132.5528, tolerance)
       << "Value produced by OptimalMeanReversion::a is not equal to the "
          "expected value when a stop loss is provided.";
 }
@@ -292,8 +292,8 @@ TEST(OptimalMeanReversionTest, methodAboveVStopLossOutputTest) {
 }
 /**
  * @test Tests the output of the OptimalMeanReversion::V method when a stop loss
- * is provided and the x value is below b*. Asserts that it is near the
- * expected value.
+ * is provided and the x value is between the stop loss and b*. Asserts that it
+ * is near the expected value.
  *
  */
 TEST(OptimalMeanReversionTest, methodBelowVStopLossOutputTest) {
@@ -305,18 +305,19 @@ TEST(OptimalMeanReversionTest, methodBelowVStopLossOutputTest) {
   const double b_star = 0.567304;
   const double c = 0.05;
   const double r = 0.05;
-  const double x = 0.15;
-  const float tolerance = 1e-5;
+  const double x = 0.5;
+  const double tolerance = 1e-5;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
   OptimalMeanReversion mean_reversion;
 
   // Calculate V(x).
-  const double value = mean_reversion.V(&hitting_time_kernel, x, b_star, r, c);
+  const double value =
+      mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.508892, tolerance)
+  EXPECT_NEAR(value, 0.4693219, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
-         "expected value when x is below b* and a stop loss is provided.";
+         "expected value when x is between the stop loss and b*.";
 }

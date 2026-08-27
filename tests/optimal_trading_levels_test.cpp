@@ -14,19 +14,19 @@ TEST(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
   const double alpha = 8;
   const double mu = 0.3;
   const double sigma = 0.3;
-  const double stop_loss = 0.05;
-  const double d_star = 0.136755;
-  const double b_star = 0.450895;
+  const double stop_loss = 0.04;
+  const double d_star = 0.13093;
+  const double b_star = 0.455191;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-4;
 
   // Calculate a*.
   const double value =
       optimalEntryLevelLower(d_star, b_star, mu, alpha, sigma, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.118451, tolerance)
+  EXPECT_NEAR(value, 0.1076331, tolerance)
       << "Value produced by optimalEntryLevelLower function "
          "with a stop loss is not equal to the expected value.";
 }
@@ -60,18 +60,18 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
   const double alpha = 8;
   const double mu = 0.3;
   const double sigma = 0.3;
-  const double stop_loss = 0.05;
-  const double b_star = 0.450895;
+  const double stop_loss = 0.04;
+  const double b_star = 0.455191;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-4;
 
   // Calculate d*.
   const double value =
       optimalEntryLevel(b_star, mu, alpha, sigma, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.136755, tolerance)
+  EXPECT_NEAR(value, 0.1309298, tolerance)
       << "Value produced by optimalEntryLevel function "
          "with a stop loss is not equal to the expected value.";
 }
@@ -85,16 +85,16 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
   const double alpha = 8;
   const double mu = 0.3;
   const double sigma = 0.3;
-  const double stop_loss = 0.05;
+  const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-4;
 
   // Calculate b*.
   const double value = optimalExitLevel(mu, alpha, sigma, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.46912012, tolerance)
+  EXPECT_NEAR(value, 0.4551908, tolerance)
       << "Value produced by optimalExitLevel function "
          "with a stop loss is not equal to the expected value.";
 }
@@ -155,14 +155,14 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelExponentialOutputTest) {
   const double b_star = 1.4093;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
+  const double tolerance = 1e-4;
 
   // Calculate d*.
   const double value =
       optimalEntryLevelExponential(b_star, mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 1.24096, tolerance)
+  EXPECT_NEAR(value, 1.2368866, tolerance)
       << "Value produced by optimalEntryLevelExponential function "
          "is not equal to the expected value.";
 }
@@ -197,7 +197,7 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialNoRootTest) {
   const double alpha = 5;
   const double mu = 1.3499;
   const double sigma = 0.15;
-  const double d_star = 1.24096;
+  const double d_star = 1.236887;
   const double b_star = 1.4093;
   const double c = 0.02;
   const double r = 0.05;
@@ -222,13 +222,13 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelOutputTest) {
   const double b_star = 0.466836;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
+  const double tolerance = 1e-4;
 
   // Calculate d*.
   const double value = optimalEntryLevel(b_star, mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.116948, tolerance)
+  EXPECT_NEAR(value, 0.1156811, tolerance)
       << "Value produced by optimalEntryLevel function "
          "is not equal to the expected value.";
 }

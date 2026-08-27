@@ -5,12 +5,30 @@
 #include "stochastic_models/sde/stochastic_model.h"
 
 /**
+ * @brief Identifies which params struct a GSL callback receives.
+ */
+enum class TradingParamsTag {
+  // Non-zero values, so a tag read through the wrong struct type does not
+  // match zeroed memory by accident.
+  ExitLevelStopLoss = 0xA1,
+  ExitLevel = 0xA2,
+  EntryLevelStopLoss = 0xA3,
+  EntryLevel = 0xA4,
+  OptimalMeanReversion = 0xA5
+};
+
+/**
  * @brief The OptimalTrading class is an abstract class that defines methods
  * that are used in calculating the optimal trading strategy.
  *
  */
 class OptimalTrading {
 public:
+  /**
+   * @brief Virtual destructor so deletion through the base pointer is
+   * defined.
+   */
+  virtual ~OptimalTrading() = default;
   /**
    * @brief Construct a new OptimalTrading object and return on heap memory
    * using the class' copy constructor in the caller instance

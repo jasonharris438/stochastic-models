@@ -5,6 +5,7 @@
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/trading_levels_params.h"
 
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 OptimalMeanReversionParams::~OptimalMeanReversionParams() {
@@ -14,12 +15,14 @@ OptimalMeanReversionParams::~OptimalMeanReversionParams() {
 double funcOptimalMeanReversionF(double x, void* params) {
   struct OptimalMeanReversionParams* p =
       static_cast<OptimalMeanReversionParams*>(params);
+  assert(p->tag == TradingParamsTag::OptimalMeanReversion);
   double value = p->hitting_time_kernel->optimalTradingFCore(p->x, x, p->r);
   return value;
 }
 double valueFuncStopLoss(double x, void* params) {
   struct EntryLevelStopLossParams* p =
       static_cast<EntryLevelStopLossParams*>(params);
+  assert(p->tag == TradingParamsTag::EntryLevelStopLoss);
   double value = p->optimizer->V(
       p->hitting_time_kernel, x, p->b_star, p->stop_loss, p->r, p->c
   );
@@ -27,23 +30,27 @@ double valueFuncStopLoss(double x, void* params) {
 }
 double valueFunc(double x, void* params) {
   struct EntryLevelParams* p = static_cast<EntryLevelParams*>(params);
+  assert(p->tag == TradingParamsTag::EntryLevel);
   double value =
       p->optimizer->V(p->hitting_time_kernel, x, p->b_star, p->r, p->c);
   return value;
 }
 double funcIntegrateF(double x, void* params) {
   struct ExitLevelParams* p = static_cast<ExitLevelParams*>(params);
+  assert(p->tag == TradingParamsTag::ExitLevel);
   double value = p->optimizer->F(p->hitting_time_kernel, x, p->r, p->c);
   return value;
 }
 double funcIntegrateG(double x, void* params) {
   struct ExitLevelParams* p = static_cast<ExitLevelParams*>(params);
+  assert(p->tag == TradingParamsTag::ExitLevel);
   double value = p->optimizer->G(p->hitting_time_kernel, x, p->r, p->c);
   return value;
 }
 double funcOptimalMeanReversionG(double x, void* params) {
   struct OptimalMeanReversionParams* p =
       static_cast<OptimalMeanReversionParams*>(params);
+  assert(p->tag == TradingParamsTag::OptimalMeanReversion);
   double value = p->hitting_time_kernel->optimalTradingGCore(p->x, x, p->r);
   return value;
 }
@@ -181,9 +188,8 @@ const double OptimalMeanReversion::d(
       funcV, hitting_time_kernel, value, b_star, stop_loss, r, c
   );
   const double g = OptimalMeanReversion::G(hitting_time_kernel, value, r, c);
-  const double differential = instantaneousDifferential(
-      funcG, hitting_time_kernel, value, b_star, r, c
-  );
+  const double differential =
+      instantaneousDifferential(funcG, hitting_time_kernel, value, r, c);
   const double v = OptimalMeanReversion::V(
       hitting_time_kernel, value, b_star, stop_loss, r, c
   );
@@ -207,9 +213,7 @@ const double OptimalMeanReversion::d(
             funcV, hitting_time_kernel, value, b_star, r, c
         ) -
         1)) -
-      (instantaneousDifferential(
-           funcG, hitting_time_kernel, value, b_star, r, c
-       ) *
+      (instantaneousDifferential(funcG, hitting_time_kernel, value, r, c) *
        (OptimalMeanReversion::V(hitting_time_kernel, value, b_star, r, c) -
         value - c));
 
@@ -243,9 +247,8 @@ const double OptimalMeanReversion::a(
       funcV, hitting_time_kernel, value, b_star, stop_loss, r, c
   );
   const double f = OptimalMeanReversion::F(hitting_time_kernel, value, r, c);
-  const double differential = instantaneousDifferential(
-      funcF, hitting_time_kernel, value, b_star, r, c
-  );
+  const double differential =
+      instantaneousDifferential(funcF, hitting_time_kernel, value, r, c);
   const double v = OptimalMeanReversion::V(
       hitting_time_kernel, value, b_star, stop_loss, r, c
   );

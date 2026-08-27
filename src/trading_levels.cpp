@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
 OrnsteinUhlenbeckTradingLevels::OrnsteinUhlenbeckTradingLevels(
     const double mu, const double alpha, const double sigma
 )
@@ -59,7 +60,7 @@ const double OrnsteinUhlenbeckTradingLevels::optimalExit(
   void* params = new ExitLevelStopLossParams{
       newOptimizer(), newHittingTimeKernel(), stop_loss, r, c
   };
-  ModelFunc fn = funcOptimalMeanReversionB;
+  ModelFunc fn = funcOptimalMeanReversionStopLossB;
   double value{0.0};
   try {
     double upper = optimalExitUpperBound();
@@ -113,35 +114,12 @@ const double OrnsteinUhlenbeckTradingLevels::optimalExit(
 const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
     const double& d_star, const double& b_star, const double& r, const double& c
 ) const {
-  // We need deep copies of the model and optimizer pointers to initialise the
-  // params instance. This is because GSL requires a pointer to void and we
-  // cannot use smart pointers with much benefit here. So we create deep
-  // copies and then free that memory in the destructor of the
-  // EntryLevelParams struct.
-  void* params = new EntryLevelParams{
-      newOptimizer(), newHittingTimeKernel(), b_star, r, c
-  };
-  ModelFunc fn = funcOptimalMeanReversionA;
-
-  double value{0.0};
-  try {
-    double lower = optimalEntryLowerBound();
-    double upper = d_star;
-    value = brentSolver(fn, params, lower, upper);
-  } catch (const std::exception& e) {
-    std::cout << "Exception " << e.what()
-              << " caught in OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
-                 "without stop loss."
-              << std::endl;
-    delete static_cast<EntryLevelParams*>(params);
-    params = nullptr;
-    throw;
-  }
-
-  // Then cast the void pointer back to the original type and free the memory.
-  delete static_cast<EntryLevelParams*>(params);
-  params = nullptr;
-  return value;
+  // There is no mathematical definition for the lower optimal entry level of
+  // an Ornstein-Uhlenbeck model with no stop loss parameter.
+  throw std::logic_error(
+      "OrnsteinUhlenbeckTradingLevels does not implement optimalEntryLower "
+      "with no stop_loss parameter"
+  );
 }
 const double OrnsteinUhlenbeckTradingLevels::optimalEntryLower(
     const double& d_star,

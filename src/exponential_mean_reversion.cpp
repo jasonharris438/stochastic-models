@@ -147,9 +147,7 @@ const double ExponentialMeanReversion::d(
             funcV, hitting_time_kernel, value, b_star, r, c
         ) -
         std::exp(value))) -
-      (instantaneousDifferential(
-           funcG, hitting_time_kernel, value, b_star, r, c
-       ) *
+      (instantaneousDifferential(funcG, hitting_time_kernel, value, r, c) *
        (ExponentialMeanReversion::V(hitting_time_kernel, value, b_star, r, c) -
         std::exp(value) - c));
 
@@ -229,9 +227,7 @@ const double ExponentialMeanReversion::a(
             funcV, hitting_time_kernel, value, b_star, r, c
         ) -
         std::exp(value))) -
-      (instantaneousDifferential(
-           funcF, hitting_time_kernel, value, b_star, r, c
-       ) *
+      (instantaneousDifferential(funcF, hitting_time_kernel, value, r, c) *
        (ExponentialMeanReversion::V(hitting_time_kernel, value, b_star, r, c) -
         std::exp(value) - c));
   return result;
