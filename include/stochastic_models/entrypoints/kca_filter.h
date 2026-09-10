@@ -17,6 +17,7 @@
  * state.
  * @throws json_parse_error If the JSON is malformed or the dimensions do not
  *         match the fixed 3-state KCA scheme.
+ * @throws InvalidNumberObservationsError If data_series is empty.
  */
 const std::string getInitializedKcaState(
     const std::vector<double> data_series,

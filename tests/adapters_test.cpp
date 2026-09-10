@@ -11,36 +11,36 @@
  */
 TEST(AdaptersTest, FilterSystemDimensionsJsonAdapterDeserializeTest) {
   const std::string state =
-      "{\"state_mean_dimension\": 8, \"state_covariance_rows\": 7, "
-      "\"state_covariance_columns\": 6, \"observation_matrix_rows\": 5, "
+      "{\"state_mean_dimension\": 4, \"state_covariance_rows\": 4, "
+      "\"state_covariance_columns\": 4, \"observation_matrix_rows\": 1, "
       "\"observation_matrix_columns\": 4, \"observation_covariance_rows\": "
-      "3, \"observation_covariance_columns\": 2, \"observation_offset\": "
+      "1, \"observation_covariance_columns\": 1, \"observation_offset\": "
       "1.0}";
   FilterSystemDimensionsJsonAdapter adapter;
 
   const FilterSystemDimensions dimensions = adapter.deserialize(state);
-  EXPECT_EQ(dimensions.state_mean_dimension, 8)
+  EXPECT_EQ(dimensions.getStateMeanDimension(), 4u)
       << "The state mean dimension produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.state_covariance_rows, 7)
+  EXPECT_EQ(dimensions.getStateCovarianceRows(), 4u)
       << "The state covariance rows produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.state_covariance_columns, 6)
+  EXPECT_EQ(dimensions.getStateCovarianceColumns(), 4u)
       << "The state covariance columns produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.observation_matrix_rows, 5)
+  EXPECT_EQ(dimensions.getObservationMatrixRows(), 1u)
       << "The observation matrix rows produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.observation_matrix_columns, 4)
+  EXPECT_EQ(dimensions.getObservationMatrixColumns(), 4u)
       << "The observation matrix columns produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.observation_covariance_rows, 3)
+  EXPECT_EQ(dimensions.getObservationCovarianceRows(), 1u)
       << "The observation covariance rows produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.observation_covariance_columns, 2)
+  EXPECT_EQ(dimensions.getObservationCovarianceColumns(), 1u)
       << "The observation covariance columns produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
-  EXPECT_EQ(dimensions.observation_offset, 1.0)
+  EXPECT_EQ(dimensions.getObservationOffset(), 1.0)
       << "The observation offset produced by the "
          "FilterSystemDimensions.deserialize method is incorrect.";
 }
@@ -50,12 +50,12 @@ TEST(AdaptersTest, FilterSystemDimensionsJsonAdapterDeserializeTest) {
  * returns the correct result.
  */
 TEST(AdaptersTest, FilterSystemDimensionsJsonAdapterSerializeTest) {
-  const FilterSystemDimensions dimensions = {8, 7, 6, 5, 4, 3, 2, 1.0};
+  const FilterSystemDimensions dimensions(4, 4, 4, 1, 4, 1, 1, 1.0);
   const std::string state =
-      "{\"observation_covariance_columns\":2,\"observation_covariance_rows\":"
-      "3,\"observation_matrix_columns\":4,\"observation_matrix_rows\":5,"
-      "\"observation_offset\":1.0,\"state_covariance_columns\":6,\"state_"
-      "covariance_rows\":7,\"state_mean_dimension\":8}";
+      "{\"observation_covariance_columns\":1,\"observation_covariance_rows\":"
+      "1,\"observation_matrix_columns\":4,\"observation_matrix_rows\":1,"
+      "\"observation_offset\":1.0,\"state_covariance_columns\":4,\"state_"
+      "covariance_rows\":4,\"state_mean_dimension\":4}";
   FilterSystemDimensionsJsonAdapter adapter;
   const std::string json_string = adapter.serialize(dimensions);
   EXPECT_EQ(json_string, state)
@@ -278,6 +278,21 @@ TEST(AdaptersValidationTest, DimensionsDeserializeRejectsNonNumericOffset) {
       << "A string observation_offset did not raise json_parse_error.";
 }
 
+/**
+ * @test In-range dimensions that break a consistency rule must surface as
+ * json_parse_error, so the JSON boundary keeps a single exception type.
+ */
+TEST(AdaptersValidationTest, DimensionsDeserializeRejectsInconsistentFields) {
+  const FilterSystemDimensionsJsonAdapter adapter;
+  const std::string inconsistent = R"({"state_mean_dimension": 3,
+      "state_covariance_rows": 1, "state_covariance_columns": 3,
+      "observation_matrix_rows": 1, "observation_matrix_columns": 3,
+      "observation_covariance_rows": 1, "observation_covariance_columns": 1,
+      "observation_offset": 0.0})";
+  EXPECT_THROW(adapter.deserialize(inconsistent), json_parse_error)
+      << "Inconsistent dimensions did not raise json_parse_error.";
+}
+
 namespace {
   // Baseline-valid 3-dim KCA state JSON; each hostile-state test perturbs one
   // field. Matches the fixed kinematic scheme dims (3, 3, 3, 1, 3, 1, 1).
@@ -293,6 +308,19 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsUnparseableJson) {
   EXPECT_THROW(
       adapter.deserialize("{not json", kca_scheme_dimensions), json_parse_error
   ) << "Unparseable state JSON did not raise json_parse_error.";
+}
+
+/**
+ * @test The state adapter constructs a KcaStates, so a vector-observation
+ * dimension set must surface as json_parse_error.
+ */
+TEST(
+    AdaptersValidationTest, StateDeserializeRejectsVectorObservationDimensions
+) {
+  const KcaStatesJsonAdapter adapter;
+  const FilterSystemDimensions vector_observation(3, 3, 3, 2, 3, 2, 2, 0.0);
+  EXPECT_THROW(adapter.deserialize("{}", vector_observation), json_parse_error)
+      << "A 2-row observation dimension set did not raise json_parse_error.";
 }
 
 /**

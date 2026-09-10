@@ -122,6 +122,45 @@ TEST(NumericUtilHelperTest, CheckFiniteResultMessageNamesRoutineTest) {
   }
 }
 
+/**
+ * @test Tests that check_minimum_observations executes without throwing when
+ * the series meets the minimum.
+ */
+TEST(NumericUtilHelperTest, CheckMinimumObservationsNoThrowTest) {
+  EXPECT_NO_THROW(check_minimum_observations({1.0, 2.0}, 2, "test_routine"))
+      << "check_minimum_observations threw for a series at the minimum.";
+}
+
+/**
+ * @test Tests that check_minimum_observations throws
+ * InvalidNumberObservationsError when the series is shorter than the minimum.
+ */
+TEST(NumericUtilHelperTest, CheckMinimumObservationsThrowTest) {
+  EXPECT_THROW(
+      check_minimum_observations({}, 1, "test_routine"),
+      InvalidNumberObservationsError
+  ) << "check_minimum_observations did not throw for an empty series.";
+  EXPECT_THROW(
+      check_minimum_observations({1.0}, 2, "test_routine"),
+      InvalidNumberObservationsError
+  ) << "check_minimum_observations did not throw for a series below the "
+       "minimum.";
+}
+
+/**
+ * @test Tests that the exception message thrown by check_minimum_observations
+ * names the routine passed to it.
+ */
+TEST(NumericUtilHelperTest, CheckMinimumObservationsMessageNamesRoutineTest) {
+  try {
+    check_minimum_observations({}, 1, "test_routine");
+    FAIL() << "check_minimum_observations did not throw for an empty series.";
+  } catch (const InvalidNumberObservationsError& error) {
+    EXPECT_NE(std::string(error.what()).find("test_routine"), std::string::npos)
+        << "check_minimum_observations message does not name the routine.";
+  }
+}
+
 // Example function and type used by the brentSolver test.
 struct QuadraticParams {
   double a, b, c;

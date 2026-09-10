@@ -50,6 +50,18 @@ void check_finite_result(const double& value, const char* routine) {
     );
   }
 }
+void check_minimum_observations(
+    const std::vector<double>& data,
+    const std::size_t minimum,
+    const char* routine
+) {
+  if (data.size() < minimum) {
+    throw InvalidNumberObservationsError(
+        std::string(routine) + " requires at least " + std::to_string(minimum) +
+        " observations; got " + std::to_string(data.size()) + "."
+    );
+  }
+}
 const std::vector<double> valuesSquared(const std::vector<double>& vec) {
   std::vector<double> squared(vec.size());
   std::transform(vec.begin(), vec.end(), squared.begin(), [](double x) {

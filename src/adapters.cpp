@@ -18,12 +18,8 @@
 
 namespace {
 
-  // Upper bound for any deserialized filter dimension. Large enough for any
-  // real filter system while preventing hostile JSON from driving pathological
-  // matrix allocations.
-  constexpr std::int64_t max_filter_dimension{1024};
-
-  int getValidatedDimension(const nlohmann::json& json_obj, const char* key) {
+  std::size_t
+  getValidatedDimension(const nlohmann::json& json_obj, const char* key) {
     const nlohmann::json& field = json_obj.at(key);
     if (!field.is_number_integer()) {
       throw json_parse_error(
@@ -31,14 +27,13 @@ namespace {
       );
     }
     const std::int64_t value = field.template get<std::int64_t>();
-    if (value < 1 || value > max_filter_dimension) {
+    if (value < 0) {
       throw json_parse_error(
-          "Dimension field '" + std::string{key} + "' must be in [1, " +
-          std::to_string(max_filter_dimension) + "]; got " +
-          std::to_string(value) + "."
+          "Dimension field '" + std::string{key} +
+          "' must not be negative; got " + std::to_string(value) + "."
       );
     }
-    return static_cast<int>(value);
+    return static_cast<std::size_t>(value);
   }
 
   double getValidatedNumber(const nlohmann::json& json_obj, const char* key) {
@@ -125,26 +120,32 @@ FilterSystemDimensionsJsonAdapter::deserialize(const std::string& state) const {
   try {
     const nlohmann::json json_obj = nlohmann::json::parse(state);
 
-    FilterSystemDimensions dimensions;
-    dimensions.state_mean_dimension =
+    const std::size_t state_mean_dimension =
         getValidatedDimension(json_obj, "state_mean_dimension");
-    dimensions.state_covariance_rows =
+    const std::size_t state_covariance_rows =
         getValidatedDimension(json_obj, "state_covariance_rows");
-    dimensions.state_covariance_columns =
+    const std::size_t state_covariance_columns =
         getValidatedDimension(json_obj, "state_covariance_columns");
-    dimensions.observation_matrix_rows =
+    const std::size_t observation_matrix_rows =
         getValidatedDimension(json_obj, "observation_matrix_rows");
-    dimensions.observation_matrix_columns =
+    const std::size_t observation_matrix_columns =
         getValidatedDimension(json_obj, "observation_matrix_columns");
-    dimensions.observation_covariance_rows =
+    const std::size_t observation_covariance_rows =
         getValidatedDimension(json_obj, "observation_covariance_rows");
-    dimensions.observation_covariance_columns =
+    const std::size_t observation_covariance_columns =
         getValidatedDimension(json_obj, "observation_covariance_columns");
-    dimensions.observation_offset =
+    const double observation_offset =
         getValidatedNumber(json_obj, "observation_offset");
 
-    return dimensions;
+    return FilterSystemDimensions(
+        state_mean_dimension, state_covariance_rows, state_covariance_columns,
+        observation_matrix_rows, observation_matrix_columns,
+        observation_covariance_rows, observation_covariance_columns,
+        observation_offset
+    );
   } catch (const nlohmann::json::exception& exc) {
+    throw json_parse_error(exc.what());
+  } catch (const invalid_filter_dimensions& exc) {
     throw json_parse_error(exc.what());
   }
 }
@@ -152,15 +153,16 @@ const std::string FilterSystemDimensionsJsonAdapter::serialize(
     const FilterSystemDimensions& dimensions
 ) const {
   nlohmann::json json_obj = {
-      {"state_mean_dimension", dimensions.state_mean_dimension},
-      {"state_covariance_rows", dimensions.state_covariance_rows},
-      {"state_covariance_columns", dimensions.state_covariance_columns},
-      {"observation_matrix_rows", dimensions.observation_matrix_rows},
-      {"observation_matrix_columns", dimensions.observation_matrix_columns},
-      {"observation_covariance_rows", dimensions.observation_covariance_rows},
+      {"state_mean_dimension", dimensions.getStateMeanDimension()},
+      {"state_covariance_rows", dimensions.getStateCovarianceRows()},
+      {"state_covariance_columns", dimensions.getStateCovarianceColumns()},
+      {"observation_matrix_rows", dimensions.getObservationMatrixRows()},
+      {"observation_matrix_columns", dimensions.getObservationMatrixColumns()},
+      {"observation_covariance_rows",
+       dimensions.getObservationCovarianceRows()},
       {"observation_covariance_columns",
-       dimensions.observation_covariance_columns},
-      {"observation_offset", dimensions.observation_offset}
+       dimensions.getObservationCovarianceColumns()},
+      {"observation_offset", dimensions.getObservationOffset()}
   };
   return json_obj.dump();
 }
@@ -186,16 +188,12 @@ const KcaStates KcaStatesJsonAdapter::deserialize(
   try {
     const nlohmann::json json_obj = nlohmann::json::parse(state);
 
-    const std::size_t state_rows =
-        static_cast<std::size_t>(dimensions.state_covariance_rows);
-    const std::size_t state_columns =
-        static_cast<std::size_t>(dimensions.state_covariance_columns);
-    const std::size_t mean_length =
-        static_cast<std::size_t>(dimensions.state_mean_dimension);
-    const std::size_t observation_rows =
-        static_cast<std::size_t>(dimensions.observation_matrix_rows);
+    const std::size_t state_rows = dimensions.getStateCovarianceRows();
+    const std::size_t state_columns = dimensions.getStateCovarianceColumns();
+    const std::size_t mean_length = dimensions.getStateMeanDimension();
+    const std::size_t observation_rows = dimensions.getObservationMatrixRows();
     const std::size_t observation_columns =
-        static_cast<std::size_t>(dimensions.observation_matrix_columns);
+        dimensions.getObservationMatrixColumns();
 
     KcaStates kca_states(dimensions);
 
@@ -231,6 +229,8 @@ const KcaStates KcaStatesJsonAdapter::deserialize(
     kca_states.setInitialized();
     return kca_states;
   } catch (const nlohmann::json::exception& exc) {
+    throw json_parse_error(exc.what());
+  } catch (const invalid_filter_dimensions& exc) {
     throw json_parse_error(exc.what());
   }
 }

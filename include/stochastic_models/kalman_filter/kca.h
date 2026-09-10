@@ -25,7 +25,7 @@ public:
    * @brief Construct a KineticComponents instance with the given dimensions.
    * @param dimensions Dimensions that determine internal buffer sizes.
    */
-  KineticComponents(const FilterSystemDimensions& dimensions);
+  explicit KineticComponents(const FilterSystemDimensions& dimensions);
 
   /**
    * @brief Replace the internal `KcaStates` with an externally-constructed
@@ -59,6 +59,7 @@ public:
    * @param data_series Series used to estimate initial state.
    * @param h finite-difference spacing used by the KCA estimator.
    * @param q transition covariance scaling.
+   * @throws InvalidNumberObservationsError If data_series is empty.
    */
   void initialiseFilter(
       const std::vector<double>& data_series, const double& h, const double& q

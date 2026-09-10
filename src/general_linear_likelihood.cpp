@@ -6,7 +6,6 @@
 
 #include <cmath>
 #include <numeric>
-#include <string>
 
 const double GeneralLinearLikelihoodComponentCalculator::calculateSeriesMean(
     const double& numerator, const double& denominator
@@ -22,6 +21,7 @@ const double
 GeneralLinearLikelihoodComponentCalculator::calculateLeadLagInnerProduct(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLeadLagInnerProduct");
   std::vector<double>::const_iterator iter_y = data.cbegin();
   std::advance(iter_y, 1);
 
@@ -34,6 +34,7 @@ GeneralLinearLikelihoodComponentCalculator::calculateLeadLagInnerProduct(
 const double GeneralLinearLikelihoodComponentCalculator::calculateLagSquared(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLagSquared");
   const std::vector<double> squared = valuesSquared(data);
   std::vector<double>::const_iterator iter = squared.cbegin();
   std::advance(iter, 1);
@@ -42,19 +43,14 @@ const double GeneralLinearLikelihoodComponentCalculator::calculateLagSquared(
 const double GeneralLinearLikelihoodComponentCalculator::calculateSquaredError(
     const std::vector<double>& data, const double& mu
 ) const {
+  check_minimum_observations(data, 2, "calculateSquaredError");
   const double exp_mean = std::exp(mu);
   double squared_diff_accumulated = 0.0;
-  if (data.size() > 1) {
-    for (size_t idx_lead = 1; idx_lead < data.size(); idx_lead++) {
-      size_t idx_lag = idx_lead - 1;
-      const double lag_factored = data.at(idx_lag) * exp_mean;
+  for (size_t idx_lead = 1; idx_lead < data.size(); idx_lead++) {
+    size_t idx_lag = idx_lead - 1;
+    const double lag_factored = data.at(idx_lag) * exp_mean;
 
-      squared_diff_accumulated += std::pow(data.at(idx_lead) - lag_factored, 2);
-    }
-  } else {
-    throw InvalidNumberObservationsError(
-        "Number of observations must be greater than 1."
-    );
+    squared_diff_accumulated += std::pow(data.at(idx_lead) - lag_factored, 2);
   }
   return squared_diff_accumulated;
 };
@@ -112,13 +108,7 @@ const GeneralLinearLikelihoodComponents
 GeneralLinearLikelihood::calculateComponents(
     const std::vector<double>& data
 ) const {
-  if (data.size() < 2) {
-    throw InvalidNumberObservationsError(
-        "General linear maximum likelihood requires at least 2 observations "
-        "to form a lead/lag pair; got " +
-        std::to_string(data.size()) + "."
-    );
-  }
+  check_minimum_observations(data, 2, "General linear maximum likelihood");
   const uint32_t n_obs = static_cast<uint32_t>(data.size());
   const double lead_lag_inner_product =
       component_calculator.calculateLeadLagInnerProduct(data);

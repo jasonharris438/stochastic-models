@@ -10,23 +10,22 @@
 #include "stochastic_models/kalman_filter/states.h"
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
 namespace {
 
   // KCA models a fixed 3-state kinematic system (position, velocity,
-  // acceleration) observed through a single 1x3 row; KcaStates::setInitialState
-  // writes exactly that scheme. Dimensions that disagree would size the
-  // internal matrices differently from the data written into them.
+  // acceleration) observed through one scalar. KcaStates::setInitialState
+  // writes exactly that scheme.
+  constexpr std::size_t kca_state_dimension{3};
+
   void validateKcaSystemDimensions(const FilterSystemDimensions& dimensions) {
-    const bool matches_scheme = dimensions.state_mean_dimension == 3 &&
-                                dimensions.state_covariance_rows == 3 &&
-                                dimensions.state_covariance_columns == 3 &&
-                                dimensions.observation_matrix_rows == 1 &&
-                                dimensions.observation_matrix_columns == 3 &&
-                                dimensions.observation_covariance_rows == 1 &&
-                                dimensions.observation_covariance_columns == 1;
+    const bool matches_scheme =
+        dimensions.getStateMeanDimension() == kca_state_dimension &&
+        dimensions.getObservationMatrixRows() ==
+            KcaStates::observation_dimension;
     if (!matches_scheme) {
       throw json_parse_error(
           "KCA system dimensions must match the fixed kinematic scheme: "

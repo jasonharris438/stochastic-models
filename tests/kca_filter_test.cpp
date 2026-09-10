@@ -1,4 +1,6 @@
 #include "stochastic_models/entrypoints/kca_filter.h"
+#include "stochastic_models/exceptions/errors.h"
+#include "stochastic_models/kalman_filter/kca.h"
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 
 #include <cstdlib>
@@ -140,4 +142,33 @@ TEST(KcaValidationTest, getUpdatedKcaStateRejectsShapeMismatchedState) {
       getUpdatedKcaState(oversized_state, scheme_dimensions, 10.3, 0.1),
       json_parse_error
   ) << "getUpdatedKcaState accepted a 4-row transition_matrix.";
+}
+
+/**
+ * @test The facade forwards an empty series to setInitialState, so it must
+ * surface the same typed exception.
+ */
+TEST(KcaValidationTest, initialiseFilterRejectsEmptySeries) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KineticComponents kinetic_components(dimensions);
+  EXPECT_THROW(
+      kinetic_components.initialiseFilter({}, 1.0, 0.001),
+      InvalidNumberObservationsError
+  ) << "initialiseFilter accepted an empty data series.";
+}
+
+/**
+ * @test The C entry point must reject an empty series with the typed
+ * exception before it touches the filter state.
+ */
+TEST(KcaValidationTest, getInitializedKcaStateRejectsEmptySeries) {
+  const std::string scheme_dimensions = R"({
+      "observation_covariance_columns":1,"observation_covariance_rows":1,
+      "observation_matrix_columns":3,"observation_matrix_rows":1,
+      "observation_offset":0.0,"state_covariance_columns":3,
+      "state_covariance_rows":3,"state_mean_dimension":3})";
+  EXPECT_THROW(
+      getInitializedKcaState({}, 1.0, 0.001, scheme_dimensions),
+      InvalidNumberObservationsError
+  ) << "getInitializedKcaState accepted an empty data series.";
 }

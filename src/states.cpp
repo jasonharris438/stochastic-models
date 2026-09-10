@@ -2,17 +2,129 @@
 
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 #include "stochastic_models/kalman_filter/type_conversion.h"
+#include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/linalg.h"
 
+#include <algorithm>
 #include <boost/numeric/ublas/expression_types.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <cmath>
 #include <cstddef>
-#include <stdexcept>
-#include <utility>
+#include <string>
+#include <string_view>
 
 // Just for this module as we do not introduce any other namespaces.
 using namespace boost::numeric::ublas;
+
+namespace {
+
+  void requireDimensionInRange(std::string_view name, std::size_t value) {
+    if (value == 0 || value > FilterSystemDimensions::max_dimension) {
+      throw invalid_filter_dimensions(
+          "Dimension '" + std::string{name} + "' must be in [1, " +
+          std::to_string(FilterSystemDimensions::max_dimension) + "]; got " +
+          std::to_string(value) + "."
+      );
+    }
+  }
+
+  void requireDimensionsEqual(
+      std::string_view name,
+      std::size_t value,
+      std::string_view reference_name,
+      std::size_t reference
+  ) {
+    if (value != reference) {
+      throw invalid_filter_dimensions(
+          "Dimension '" + std::string{name} + "' (" + std::to_string(value) +
+          ") must equal '" + std::string{reference_name} + "' (" +
+          std::to_string(reference) + ")."
+      );
+    }
+  }
+
+  void requireScalarObservation(const FilterSystemDimensions& dimensions) {
+    requireDimensionsEqual(
+        "observation_matrix_rows", dimensions.getObservationMatrixRows(),
+        "observation_dimension", KcaStates::observation_dimension
+    );
+  }
+
+  void requireLength(
+      std::string_view name,
+      std::size_t source_length,
+      std::size_t target_length
+  ) {
+    if (source_length != target_length) {
+      throw filter_shape_mismatch(
+          "Source length " + std::to_string(source_length) + " for '" +
+          std::string{name} + "' does not match target length " +
+          std::to_string(target_length) + "."
+      );
+    }
+  }
+
+  void assignChecked(
+      std::string_view name,
+      const vector<double>& source,
+      vector<double>& target
+  ) {
+    requireLength(name, source.size(), target.size());
+    target.assign(source);
+  }
+
+  void assignChecked(
+      std::string_view name,
+      const std::vector<double>& source,
+      vector<double>& target
+  ) {
+    requireLength(name, source.size(), target.size());
+    std::copy(source.begin(), source.end(), target.begin());
+  }
+
+  void requireShape(
+      std::string_view name,
+      std::size_t source_rows,
+      std::size_t source_columns,
+      const matrix<double>& target
+  ) {
+    if (source_rows != target.size1() || source_columns != target.size2()) {
+      throw filter_shape_mismatch(
+          "Source shape " + std::to_string(source_rows) + "x" +
+          std::to_string(source_columns) + " for '" + std::string{name} +
+          "' does not match target shape " + std::to_string(target.size1()) +
+          "x" + std::to_string(target.size2()) + "."
+      );
+    }
+  }
+
+  void assignChecked(
+      std::string_view name,
+      const matrix<double>& source,
+      matrix<double>& target
+  ) {
+    requireShape(name, source.size1(), source.size2(), target);
+    target.assign(source);
+  }
+
+  void assignChecked(
+      std::string_view name,
+      const std::vector<std::vector<double>>& source,
+      matrix<double>& target
+  ) {
+    const std::size_t source_columns =
+        source.empty() ? 0 : source.front().size();
+    requireShape(name, source.size(), source_columns, target);
+    for (const std::vector<double>& source_row : source) {
+      requireLength(name, source_row.size(), target.size2());
+    }
+    for (std::size_t i{0}; i < target.size1(); i++) {
+      std::copy(source[i].begin(), source[i].end(), row(target, i).begin());
+    }
+  }
+
+} // namespace
 
 // Prior predicted state class functionality implementation.
 PredictedState::PredictedState(matrix<double> transition_matrix)
@@ -109,16 +221,16 @@ const matrix<double> CurrentState::calculateCovariance(
 
 // Prior state data class / struct implementation.
 PriorState::PriorState(
-    const int& state_mean_dimension,
-    const int& state_covariance_rows,
-    const int& state_covariance_columns,
-    const int& observation_matrix_rows,
-    const int& observation_matrix_columns,
-    const int& observation_covariance_rows,
-    const int& observation_covariance_columns,
+    std::size_t state_mean_dimension,
+    std::size_t state_covariance_rows,
+    std::size_t state_covariance_columns,
+    std::size_t observation_matrix_rows,
+    std::size_t observation_matrix_columns,
+    std::size_t observation_covariance_rows,
+    std::size_t observation_covariance_columns,
     const double& observation_offset
 )
-    : predicted_observation_mean(vector<double>(state_mean_dimension)),
+    : predicted_observation_mean(vector<double>(observation_matrix_rows)),
       predicted_state_mean(vector<double>(state_mean_dimension)),
       predicted_observation_covariance(
           matrix<double>(
@@ -135,9 +247,9 @@ PriorState::PriorState(
 
 // Posterior state data class / struct implementation.
 PosteriorState::PosteriorState(
-    const int& state_mean_dimension,
-    const int& state_covariance_rows,
-    const int& state_covariance_columns
+    std::size_t state_mean_dimension,
+    std::size_t state_covariance_rows,
+    std::size_t state_covariance_columns
 )
     : current_state_mean(vector<double>(state_mean_dimension)),
       current_state_covariance(
@@ -146,7 +258,7 @@ PosteriorState::PosteriorState(
 
 // Transition state data class / struct implementation
 TransitionState::TransitionState(
-    const int& state_covariance_rows, const int& state_covariance_columns
+    std::size_t state_covariance_rows, std::size_t state_covariance_columns
 )
     : transition_matrix(
           matrix<double>(state_covariance_rows, state_covariance_columns)
@@ -158,20 +270,15 @@ TransitionState::TransitionState(
 // Filter boolean state data class / struct implementation
 FilterState::FilterState() : initialised(false), priors_set(false) {}
 
-// Type that contains internal dimensions of a Kalman Filter system.
-FilterSystemDimensions::FilterSystemDimensions()
-    : state_mean_dimension(0), state_covariance_rows(0),
-      state_covariance_columns(0), observation_matrix_rows(0),
-      observation_matrix_columns(0), observation_covariance_rows(0),
-      observation_covariance_columns(0), observation_offset(0.0) {}
+// Type that contains the validated dimensions of a Kalman Filter system.
 FilterSystemDimensions::FilterSystemDimensions(
-    int state_mean_dimension,
-    int state_covariance_rows,
-    int state_covariance_columns,
-    int observation_matrix_rows,
-    int observation_matrix_columns,
-    int observation_covariance_rows,
-    int observation_covariance_columns,
+    std::size_t state_mean_dimension,
+    std::size_t state_covariance_rows,
+    std::size_t state_covariance_columns,
+    std::size_t observation_matrix_rows,
+    std::size_t observation_matrix_columns,
+    std::size_t observation_covariance_rows,
+    std::size_t observation_covariance_columns,
     double observation_offset
 )
     : state_mean_dimension(state_mean_dimension),
@@ -181,67 +288,98 @@ FilterSystemDimensions::FilterSystemDimensions(
       observation_matrix_columns(observation_matrix_columns),
       observation_covariance_rows(observation_covariance_rows),
       observation_covariance_columns(observation_covariance_columns),
-      observation_offset(observation_offset) {}
+      observation_offset(observation_offset) {
+  requireDimensionInRange("state_mean_dimension", state_mean_dimension);
+  requireDimensionInRange("state_covariance_rows", state_covariance_rows);
+  requireDimensionInRange("state_covariance_columns", state_covariance_columns);
+  requireDimensionInRange("observation_matrix_rows", observation_matrix_rows);
+  requireDimensionInRange(
+      "observation_matrix_columns", observation_matrix_columns
+  );
+  requireDimensionInRange(
+      "observation_covariance_rows", observation_covariance_rows
+  );
+  requireDimensionInRange(
+      "observation_covariance_columns", observation_covariance_columns
+  );
+  requireDimensionsEqual(
+      "state_covariance_rows", state_covariance_rows, "state_mean_dimension",
+      state_mean_dimension
+  );
+  requireDimensionsEqual(
+      "state_covariance_columns", state_covariance_columns,
+      "state_mean_dimension", state_mean_dimension
+  );
+  requireDimensionsEqual(
+      "observation_matrix_columns", observation_matrix_columns,
+      "state_mean_dimension", state_mean_dimension
+  );
+  requireDimensionsEqual(
+      "observation_covariance_rows", observation_covariance_rows,
+      "observation_matrix_rows", observation_matrix_rows
+  );
+  requireDimensionsEqual(
+      "observation_covariance_columns", observation_covariance_columns,
+      "observation_matrix_rows", observation_matrix_rows
+  );
+}
+std::size_t FilterSystemDimensions::getStateMeanDimension() const noexcept {
+  return state_mean_dimension;
+}
+std::size_t FilterSystemDimensions::getStateCovarianceRows() const noexcept {
+  return state_covariance_rows;
+}
+std::size_t FilterSystemDimensions::getStateCovarianceColumns() const noexcept {
+  return state_covariance_columns;
+}
+std::size_t FilterSystemDimensions::getObservationMatrixRows() const noexcept {
+  return observation_matrix_rows;
+}
+std::size_t
+FilterSystemDimensions::getObservationMatrixColumns() const noexcept {
+  return observation_matrix_columns;
+}
+std::size_t
+FilterSystemDimensions::getObservationCovarianceRows() const noexcept {
+  return observation_covariance_rows;
+}
+std::size_t
+FilterSystemDimensions::getObservationCovarianceColumns() const noexcept {
+  return observation_covariance_columns;
+}
+double FilterSystemDimensions::getObservationOffset() const noexcept {
+  return observation_offset;
+}
 
 // State handler for the KCA implementation.
 KcaStates::KcaStates(const FilterSystemDimensions& dimensions)
     : prior_state(
-          dimensions.state_mean_dimension,
-          dimensions.state_covariance_rows,
-          dimensions.state_covariance_columns,
-          dimensions.observation_matrix_rows,
-          dimensions.observation_matrix_columns,
-          dimensions.observation_covariance_rows,
-          dimensions.observation_covariance_columns,
-          dimensions.observation_offset
+          dimensions.getStateMeanDimension(),
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns(),
+          dimensions.getObservationMatrixRows(),
+          dimensions.getObservationMatrixColumns(),
+          dimensions.getObservationCovarianceRows(),
+          dimensions.getObservationCovarianceColumns(),
+          dimensions.getObservationOffset()
       ),
       posterior_state(
-          dimensions.state_mean_dimension,
-          dimensions.state_covariance_rows,
-          dimensions.state_covariance_columns
+          dimensions.getStateMeanDimension(),
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns()
       ),
       transition_state(
-          dimensions.state_covariance_rows, dimensions.state_covariance_columns
-      ) {}
-
-void KcaStates::move_std_vectors_to_matrix(
-    std::vector<std::vector<double>>&& matrix_as_vectors, matrix<double>& target
-) {
-  if (matrix_as_vectors.size() != target.size1()) {
-    throw std::invalid_argument(
-        "Source row count does not match the target matrix row count."
-    );
-  }
-  for (const std::vector<double>& source_row : matrix_as_vectors) {
-    if (source_row.size() != target.size2()) {
-      throw std::invalid_argument(
-          "Source row length does not match the target matrix column count."
-      );
-    }
-  }
-
-  // Move the vectors into the target matrix.
-  for (std::size_t i{0}; i < target.size1(); i++) {
-    std::move(
-        matrix_as_vectors.at(i).begin(), matrix_as_vectors.at(i).end(),
-        row(target, i).begin()
-    );
-  }
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns()
+      ) {
+  requireScalarObservation(dimensions);
 }
-void KcaStates::move_std_vector_to_vector(
-    std::vector<double>&& vector_as_vector, vector<double>& target
-) {
-  if (vector_as_vector.size() != target.size()) {
-    throw std::invalid_argument(
-        "Source vector length does not match the target vector length."
-    );
-  }
-  // Move the vector into the target vector.
-  std::move(vector_as_vector.begin(), vector_as_vector.end(), target.begin());
-}
+
 void KcaStates::setInitialState(
     const std::vector<double>& data_series, const double& h, const double& q
 ) {
+  check_minimum_observations(data_series, 1, "KCA initialisation");
+
   // Initial transition state.
   std::vector<std::vector<double>> transition_matrix_as_vectors{
       {1.0, h, 0.5 * std::pow(h, 2)}, {0.0, 1.0, h}, {0.0, 0.0, 1.0}
@@ -256,7 +394,7 @@ void KcaStates::setInitialState(
 
   // Initial current state.
   std::vector<double> current_state_mean_as_vector{
-      data_series.at(data_series.size() - 1), 0.0, 0.0
+      data_series.back(), 0.0, 0.0
   };
   std::vector<std::vector<double>> current_state_covariance_as_vectors{
       {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}
@@ -423,38 +561,45 @@ void KcaStates::setPriorsFalse() {
   filter_state.priors_set = false;
 }
 void KcaStates::setCurrentStateMean(const vector<double>& current_state_mean) {
-  for (u_int32_t i{0}; i < current_state_mean.size(); i++)
-    posterior_state.current_state_mean(i) = current_state_mean(i);
+  assignChecked(
+      "current_state_mean", current_state_mean,
+      posterior_state.current_state_mean
+  );
 }
-void KcaStates::setCurrentStateMean(std::vector<double>& current_state_mean) {
-  move_std_vector_to_vector(
-      std::move(current_state_mean), posterior_state.current_state_mean
+void KcaStates::setCurrentStateMean(
+    const std::vector<double>& current_state_mean
+) {
+  assignChecked(
+      "current_state_mean", current_state_mean,
+      posterior_state.current_state_mean
   );
 }
 void KcaStates::setCurrentStateCovariance(
     const matrix<double>& current_state_covariance
 ) {
-  for (u_int32_t i{0}; i < current_state_covariance.size1(); i++)
-    row(posterior_state.current_state_covariance, i) =
-        row(current_state_covariance, i);
+  assignChecked(
+      "current_state_covariance", current_state_covariance,
+      posterior_state.current_state_covariance
+  );
 }
 void KcaStates::setCurrentStateCovariance(
-    std::vector<std::vector<double>>& current_state_covariance
+    const std::vector<std::vector<double>>& current_state_covariance
 ) {
-  move_std_vectors_to_matrix(
-      std::move(current_state_covariance),
+  assignChecked(
+      "current_state_covariance", current_state_covariance,
       posterior_state.current_state_covariance
   );
 }
 void KcaStates::setObservationMatrix(const matrix<double>& observation_matrix) {
-  for (u_int32_t i{0}; i < observation_matrix.size1(); i++)
-    row(prior_state.observation_matrix, i) = row(observation_matrix, i);
+  assignChecked(
+      "observation_matrix", observation_matrix, prior_state.observation_matrix
+  );
 }
 void KcaStates::setObservationMatrix(
-    std::vector<std::vector<double>>& observation_matrix
+    const std::vector<std::vector<double>>& observation_matrix
 ) {
-  move_std_vectors_to_matrix(
-      std::move(observation_matrix), prior_state.observation_matrix
+  assignChecked(
+      "observation_matrix", observation_matrix, prior_state.observation_matrix
   );
 }
 void KcaStates::setObservationOffset(const double& observation_offset) {
@@ -463,82 +608,92 @@ void KcaStates::setObservationOffset(const double& observation_offset) {
 void KcaStates::setPredictedObservationCovariance(
     const matrix<double>& predicted_observation_covariance
 ) {
-  for (u_int32_t i{0}; i < predicted_observation_covariance.size1(); i++)
-    row(prior_state.predicted_observation_covariance, i) =
-        row(predicted_observation_covariance, i);
+  assignChecked(
+      "predicted_observation_covariance", predicted_observation_covariance,
+      prior_state.predicted_observation_covariance
+  );
 }
 void KcaStates::setPredictedObservationCovariance(
-    std::vector<std::vector<double>>& predicted_observation_covariance
+    const std::vector<std::vector<double>>& predicted_observation_covariance
 ) {
-  move_std_vectors_to_matrix(
-      std::move(predicted_observation_covariance),
+  assignChecked(
+      "predicted_observation_covariance", predicted_observation_covariance,
       prior_state.predicted_observation_covariance
   );
 }
 void KcaStates::setPredictedObservationMean(
     const vector<double>& predicted_observation_mean
 ) {
-  for (u_int32_t i{0}; i < predicted_observation_mean.size(); i++)
-    prior_state.predicted_observation_mean(i) = predicted_observation_mean(i);
+  assignChecked(
+      "predicted_observation_mean", predicted_observation_mean,
+      prior_state.predicted_observation_mean
+  );
 }
 void KcaStates::setPredictedObservationMean(
-    std::vector<double>& predicted_observation_mean
+    const std::vector<double>& predicted_observation_mean
 ) {
-  move_std_vector_to_vector(
-      std::move(predicted_observation_mean),
+  assignChecked(
+      "predicted_observation_mean", predicted_observation_mean,
       prior_state.predicted_observation_mean
   );
 }
 void KcaStates::setPredictedStateCovariance(
     const matrix<double>& predicted_state_covariance
 ) {
-  for (u_int32_t i{0}; i < predicted_state_covariance.size1(); i++)
-    row(prior_state.predicted_state_covariance, i) =
-        row(predicted_state_covariance, i);
+  assignChecked(
+      "predicted_state_covariance", predicted_state_covariance,
+      prior_state.predicted_state_covariance
+  );
 }
 void KcaStates::setPredictedStateCovariance(
-    std::vector<std::vector<double>>& predicted_state_covariance
+    const std::vector<std::vector<double>>& predicted_state_covariance
 ) {
-  move_std_vectors_to_matrix(
-      std::move(predicted_state_covariance),
+  assignChecked(
+      "predicted_state_covariance", predicted_state_covariance,
       prior_state.predicted_state_covariance
   );
 }
 void KcaStates::setPredictedStateMean(
     const vector<double>& predicted_state_mean
 ) {
-  for (u_int32_t i{0}; i < predicted_state_mean.size(); i++)
-    prior_state.predicted_state_mean(i) = predicted_state_mean(i);
+  assignChecked(
+      "predicted_state_mean", predicted_state_mean,
+      prior_state.predicted_state_mean
+  );
 }
 void KcaStates::setPredictedStateMean(
-    std::vector<double>& predicted_state_mean
+    const std::vector<double>& predicted_state_mean
 ) {
-  move_std_vector_to_vector(
-      std::move(predicted_state_mean), prior_state.predicted_state_mean
+  assignChecked(
+      "predicted_state_mean", predicted_state_mean,
+      prior_state.predicted_state_mean
   );
 }
 void KcaStates::setTransitionCovariance(
     const matrix<double>& transition_covariance
 ) {
-  for (u_int32_t i{0}; i < transition_covariance.size1(); i++)
-    row(transition_state.transition_covariance, i) =
-        row(transition_covariance, i);
+  assignChecked(
+      "transition_covariance", transition_covariance,
+      transition_state.transition_covariance
+  );
 }
 void KcaStates::setTransitionCovariance(
-    std::vector<std::vector<double>>& transition_covariance
+    const std::vector<std::vector<double>>& transition_covariance
 ) {
-  move_std_vectors_to_matrix(
-      std::move(transition_covariance), transition_state.transition_covariance
+  assignChecked(
+      "transition_covariance", transition_covariance,
+      transition_state.transition_covariance
   );
 }
 void KcaStates::setTransitionMatrix(const matrix<double>& transition_matrix) {
-  for (u_int32_t i{0}; i < transition_matrix.size1(); i++)
-    row(transition_state.transition_matrix, i) = row(transition_matrix, i);
+  assignChecked(
+      "transition_matrix", transition_matrix, transition_state.transition_matrix
+  );
 }
 void KcaStates::setTransitionMatrix(
-    std::vector<std::vector<double>>& transition_matrix
+    const std::vector<std::vector<double>>& transition_matrix
 ) {
-  move_std_vectors_to_matrix(
-      std::move(transition_matrix), transition_state.transition_matrix
+  assignChecked(
+      "transition_matrix", transition_matrix, transition_state.transition_matrix
   );
 }
