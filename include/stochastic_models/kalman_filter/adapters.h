@@ -40,6 +40,7 @@ public:
    * @param state JSON string containing the state fields.
    * @param dimensions Dimensions object used to size the internal matrices.
    * @return KcaStates Reconstructed KCA state.
+   * @throws invalid_filter_dimensions If `dimensions` is not the KCA scheme.
    * @throws json_parse_error If the JSON is unparseable, a field is missing
    *         or has the wrong type, or any array's shape does not match
    *         `dimensions`.

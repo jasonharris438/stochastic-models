@@ -5,6 +5,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <cstddef>
+#include <vector>
 
 // Just for this module as we do not introduce any other namespaces.
 using namespace boost::numeric::ublas;
@@ -35,11 +36,6 @@ public:
    * @param transition_matrix The transition matrix of the Kalman Filter.
    */
   PredictedState(matrix<double> transition_matrix);
-  /**
-   * @brief Method to set the transition matrix of the prior predicted state.
-   * @param transition_matrix The transition matrix for the predicted state.
-   */
-  void setTransitionMatrix(const matrix<double>& transition_matrix);
   /**
    * @brief Method to calculate the mean of the predicted state.
    * @param current_state_mean The mean of the current state.
@@ -88,21 +84,7 @@ public:
   PredictedObservation(
       matrix<double> observation_matrix, double observation_offset
   );
-  /**
-   * @brief Method to set the observation matrix of the prior predicted
-   * observation.
-   * @param observation_matrix The observation matrix of the predicted
-   * observation.
-   */
-  void setObservationMatrix(const matrix<double>& observation_matrix);
   const matrix<double>& getObservationMatrix() const;
-  /**
-   * @brief Method to set the observation offset of the prior predicted
-   * observation.
-   * @param observation_offset The offset value to add to the predicted
-   * observation mean.
-   */
-  void setObservationOffset(const double& observation_offset);
   /**
    * @brief Method to calculate the mean of the prior predicted observation.
    * @param predicted_state_mean The mean of the prior predicted state.
@@ -191,102 +173,6 @@ public:
 };
 
 /**
- * @brief Struct to represent the prior state of the Kalman Filter.
- *
- * Contains the predicted observation and state mean and covariance matrices.
- *
- * @param state_mean_dimension The dimension of the state mean vector.
- * @param state_covariance_rows The number of rows in the state covariance
- * matrix.
- * @param state_covariance_columns The number of columns in the state covariance
- * matrix.
- * @param observation_matrix_rows The number of rows in the observation matrix.
- * @param observation_matrix_columns The number of columns in the observation
- * matrix.
- * @param observation_covariance_rows The number of rows in the observation
- * covariance matrix.
- * @param observation_covariance_columns The number of columns in the
- * observation covariance matrix.
- * @param observation_offset The offset value to add to the predicted
- * observation mean.
- *
- */
-struct PriorState {
-  vector<double> predicted_observation_mean;
-  vector<double> predicted_state_mean;
-  matrix<double> predicted_observation_covariance;
-  matrix<double> predicted_state_covariance;
-  matrix<double> observation_matrix;
-  double observation_offset;
-
-  PriorState(
-      std::size_t state_mean_dimension,
-      std::size_t state_covariance_rows,
-      std::size_t state_covariance_columns,
-      std::size_t observation_matrix_rows,
-      std::size_t observation_matrix_columns,
-      std::size_t observation_covariance_rows,
-      std::size_t observation_covariance_columns,
-      const double& observation_offset
-  );
-};
-
-/**
- * @brief Struct to represent the posterior state of the Kalman Filter.
- *
- * Contains the current state mean and covariance matrices.
- *
- * @param current_state_mean The current state mean vector.
- * @param current_state_covariance The current state covariance matrix.
- */
-struct PosteriorState {
-  vector<double> current_state_mean;
-  matrix<double> current_state_covariance;
-
-  PosteriorState(
-      std::size_t state_mean_dimension,
-      std::size_t state_covariance_rows,
-      std::size_t state_covariance_columns
-  );
-};
-
-/**
- * @brief Struct to represent the transition state of the Kalman Filter.
- *
- * Contains components that determine the transition between states. The
- * transition matrix and covariance matrices are stored.
- *
- * @param transition_matrix The transition matrix of the Kalman Filter.
- * @param transition_covariance The transition covariance matrix of the Kalman
- * Filter.
- */
-struct TransitionState {
-  matrix<double> transition_matrix;
-  matrix<double> transition_covariance;
-
-  TransitionState(
-      std::size_t state_covariance_rows, std::size_t state_covariance_columns
-  );
-};
-
-/**
- * @brief Struct to represent the boolean state of the Kalman Filter.
- *
- * Contains boolean flags to determine the state of the Kalman Filter.
- *
- * @param initialised Flag to determine if the Kalman Filter has been
- * initialised.
- * @param priors_set Flag to determine if the Kalman Filter priors have been
- * set.
- */
-struct FilterState {
-  bool initialised;
-  bool priors_set;
-
-  FilterState();
-};
-
-/**
  * @brief Contains the validated dimensions of a Kalman Filter system.
  *
  * The constructor establishes three rules. Every dimension is in
@@ -350,6 +236,70 @@ private:
 };
 
 /**
+ * @brief Struct to represent the prior state of the Kalman Filter.
+ *
+ * Contains the predicted observation and state mean and covariance matrices.
+ *
+ * @param dimensions The validated dimensions of the Kalman Filter system.
+ */
+struct PriorState {
+  vector<double> predicted_observation_mean;
+  vector<double> predicted_state_mean;
+  matrix<double> predicted_observation_covariance;
+  matrix<double> predicted_state_covariance;
+  matrix<double> observation_matrix;
+  double observation_offset;
+
+  explicit PriorState(const FilterSystemDimensions& dimensions);
+};
+
+/**
+ * @brief Struct to represent the posterior state of the Kalman Filter.
+ *
+ * Contains the current state mean and covariance matrices.
+ *
+ * @param dimensions The validated dimensions of the Kalman Filter system.
+ */
+struct PosteriorState {
+  vector<double> current_state_mean;
+  matrix<double> current_state_covariance;
+
+  explicit PosteriorState(const FilterSystemDimensions& dimensions);
+};
+
+/**
+ * @brief Struct to represent the transition state of the Kalman Filter.
+ *
+ * Contains components that determine the transition between states. The
+ * transition matrix and covariance matrices are stored.
+ *
+ * @param dimensions The validated dimensions of the Kalman Filter system.
+ */
+struct TransitionState {
+  matrix<double> transition_matrix;
+  matrix<double> transition_covariance;
+
+  explicit TransitionState(const FilterSystemDimensions& dimensions);
+};
+
+/**
+ * @brief Struct to represent the boolean state of the Kalman Filter.
+ *
+ * Contains boolean flags to determine the state of the Kalman Filter.
+ *
+ * @param initialised Flag to determine if the Kalman Filter has been
+ * initialised.
+ * @param priors_set Flag to determine if the Kalman Filter priors have been
+ * set.
+ */
+struct FilterState {
+  bool initialised;
+  bool priors_set;
+
+  FilterState();
+};
+
+/**
  * @brief Class to represent the state handler for the kinetic components
  * analysis (KCA) implementation.
  *
@@ -367,12 +317,14 @@ private:
   FilterState filter_state;
 
 public:
+  static constexpr std::size_t state_dimension{3};
   static constexpr std::size_t observation_dimension{1};
 
   /**
    * @param dimensions The validated dimensions of the Kalman Filter system.
-   * @throws invalid_filter_dimensions If the observation matrix row count is
-   *         not observation_dimension.
+   * @throws invalid_filter_dimensions If the state mean dimension is not
+   *         state_dimension, or the observation matrix row count is not
+   *         observation_dimension.
    */
   explicit KcaStates(const FilterSystemDimensions& dimensions);
 

@@ -1,7 +1,6 @@
 
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
 
-#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <cmath>

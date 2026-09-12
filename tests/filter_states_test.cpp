@@ -814,7 +814,7 @@ TEST(FilterStatesValidationTest, dimensionsAcceptVectorObservationScheme) {
  * dimension set behind the first reported heap write.
  */
 TEST(FilterStatesValidationTest, kcaStatesRejectVectorObservationDimensions) {
-  const FilterSystemDimensions dimensions(1, 1, 1, 2, 1, 2, 2, 0.0);
+  const FilterSystemDimensions dimensions(3, 3, 3, 2, 3, 2, 2, 0.0);
   EXPECT_THROW(KcaStates rejected(dimensions), invalid_filter_dimensions)
       << "KcaStates accepted a 2-row observation matrix.";
 }
@@ -959,54 +959,182 @@ TEST(FilterStatesValidationTest, setTransitionMatrixUblasCopiesMatchingSource) {
 }
 
 /**
- * @test A consistent 4-state system must run the prediction and the update
- * step with no exception and keep every dimension. This is the only test that
- * drives the filter algebra through a non-3x3 shape under the sanitizers.
+ * @test KcaStates writes a fixed three-state kinematic scheme, so it must
+ * reject a consistent four-state dimension set at construction.
  */
-TEST(KalmanFilterStateTest, KcaStatesRunsConsistentFourStateSystem) {
+TEST(FilterStatesValidationTest, kcaStatesRejectFourStateDimensions) {
   const FilterSystemDimensions dimensions(4, 4, 4, 1, 4, 1, 1, 0.0);
+  EXPECT_THROW(KcaStates rejected(dimensions), invalid_filter_dimensions)
+      << "KcaStates accepted a 4-state dimension set.";
+}
+
+/**
+ * @test A PriorState built from a dimensions object must size every buffer
+ * from that object, so no raw size can reach uBLAS.
+ */
+TEST(FilterStatesValidationTest, priorStateSizesBuffersFromDimensions) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.5);
+  const PriorState prior_state(dimensions);
+  EXPECT_EQ(prior_state.predicted_observation_mean.size(), 1u)
+      << "predicted_observation_mean was not sized by the observation rows.";
+  EXPECT_EQ(prior_state.predicted_state_mean.size(), 3u)
+      << "predicted_state_mean was not sized by the state mean dimension.";
+  EXPECT_EQ(prior_state.predicted_observation_covariance.size1(), 1u)
+      << "predicted_observation_covariance rows were not sized by the "
+         "dimensions.";
+  EXPECT_EQ(prior_state.predicted_state_covariance.size2(), 3u)
+      << "predicted_state_covariance columns were not sized by the dimensions.";
+  EXPECT_EQ(prior_state.observation_matrix.size2(), 3u)
+      << "observation_matrix columns were not sized by the dimensions.";
+  EXPECT_DOUBLE_EQ(prior_state.observation_offset, 0.5)
+      << "observation_offset was not copied from the dimensions.";
+}
+
+/**
+ * @test A PosteriorState built from a dimensions object must size both
+ * buffers from that object.
+ */
+TEST(FilterStatesValidationTest, posteriorStateSizesBuffersFromDimensions) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  const PosteriorState posterior_state(dimensions);
+  EXPECT_EQ(posterior_state.current_state_mean.size(), 3u)
+      << "current_state_mean was not sized by the state mean dimension.";
+  EXPECT_EQ(posterior_state.current_state_covariance.size1(), 3u)
+      << "current_state_covariance rows were not sized by the dimensions.";
+  EXPECT_EQ(posterior_state.current_state_covariance.size2(), 3u)
+      << "current_state_covariance columns were not sized by the dimensions.";
+}
+
+/**
+ * @test A TransitionState built from a dimensions object must size both
+ * matrices from that object.
+ */
+TEST(FilterStatesValidationTest, transitionStateSizesBuffersFromDimensions) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  const TransitionState transition_state(dimensions);
+  EXPECT_EQ(transition_state.transition_matrix.size1(), 3u)
+      << "transition_matrix rows were not sized by the dimensions.";
+  EXPECT_EQ(transition_state.transition_covariance.size2(), 3u)
+      << "transition_covariance columns were not sized by the dimensions.";
+}
+
+/**
+ * @test The std::vector overload of setTransitionCovariance must reject a
+ * source with more rows than the target.
+ */
+TEST(
+    FilterStatesValidationTest, setTransitionCovarianceVectorRejectsRowMismatch
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
   KcaStates kca_states(dimensions);
+  const std::vector<std::vector<double>> oversized(
+      4, std::vector<double>(3, 1.0)
+  );
+  EXPECT_THROW(
+      kca_states.setTransitionCovariance(oversized), filter_shape_mismatch
+  ) << "setTransitionCovariance accepted a 4x3 source for a 3x3 target.";
+}
 
-  const std::vector<std::vector<double>> transition_matrix{
-      {1.0, 0.0, 0.0, 0.0},
-      {0.0, 1.0, 0.0, 0.0},
-      {0.0, 0.0, 1.0, 0.0},
-      {0.0, 0.0, 0.0, 1.0}
-  };
-  const std::vector<std::vector<double>> transition_covariance{
-      {0.001, 0.0, 0.0, 0.0},
-      {0.0, 0.001, 0.0, 0.0},
-      {0.0, 0.0, 0.001, 0.0},
-      {0.0, 0.0, 0.0, 0.001}
-  };
-  const std::vector<double> current_state_mean{1.0, 0.0, 0.0, 0.0};
-  const std::vector<std::vector<double>> current_state_covariance{
-      {0.0, 0.0, 0.0, 0.0},
-      {0.0, 0.0, 0.0, 0.0},
-      {0.0, 0.0, 0.0, 0.0},
-      {0.0, 0.0, 0.0, 0.0}
-  };
-  const std::vector<std::vector<double>> observation_matrix{
-      {1.0, 0.0, 0.0, 0.0}
-  };
+/**
+ * @test The std::vector overload of setCurrentStateCovariance must reject a
+ * source with more columns than the target.
+ */
+TEST(
+    FilterStatesValidationTest,
+    setCurrentStateCovarianceVectorRejectsColumnMismatch
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  const std::vector<std::vector<double>> oversized(
+      3, std::vector<double>(4, 1.0)
+  );
+  EXPECT_THROW(
+      kca_states.setCurrentStateCovariance(oversized), filter_shape_mismatch
+  ) << "setCurrentStateCovariance accepted a 3x4 source for a 3x3 target.";
+}
 
-  kca_states.setTransitionMatrix(transition_matrix);
-  kca_states.setTransitionCovariance(transition_covariance);
-  kca_states.setCurrentStateMean(current_state_mean);
-  kca_states.setCurrentStateCovariance(current_state_covariance);
-  kca_states.setObservationMatrix(observation_matrix);
-  kca_states.setObservationOffset(0.0);
-  kca_states.setInitialized();
+/**
+ * @test The std::vector overload of setObservationMatrix must reject a source
+ * with more rows than the 1x3 target.
+ */
+TEST(FilterStatesValidationTest, setObservationMatrixVectorRejectsRowMismatch) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  const std::vector<std::vector<double>> oversized(
+      2, std::vector<double>(3, 1.0)
+  );
+  EXPECT_THROW(
+      kca_states.setObservationMatrix(oversized), filter_shape_mismatch
+  ) << "setObservationMatrix accepted a 2x3 source for a 1x3 target.";
+}
 
-  EXPECT_NO_THROW(kca_states.updatePredictedState())
-      << "updatePredictedState threw for a consistent 4-state system.";
-  EXPECT_NO_THROW(kca_states.updateCurrentState(1.5, 0.5))
-      << "updateCurrentState threw for a consistent 4-state system.";
-  EXPECT_EQ(kca_states.getCurrentStateMean().size(), 4u)
-      << "The current state mean changed length during the update.";
-  EXPECT_EQ(kca_states.getCurrentStateCovariance().size1(), 4u)
-      << "The current state covariance changed row count during the update.";
-  EXPECT_EQ(kca_states.getCurrentStateCovariance().size2(), 4u)
-      << "The current state covariance changed column count during the "
-         "update.";
+/**
+ * @test The std::vector overload of setPredictedObservationCovariance must
+ * reject a source larger than the 1x1 target.
+ */
+TEST(
+    FilterStatesValidationTest,
+    setPredictedObservationCovarianceVectorRejectsShapeMismatch
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  const std::vector<std::vector<double>> oversized(
+      2, std::vector<double>(2, 1.0)
+  );
+  EXPECT_THROW(
+      kca_states.setPredictedObservationCovariance(oversized),
+      filter_shape_mismatch
+  ) << "setPredictedObservationCovariance accepted a 2x2 source for a 1x1 "
+       "target.";
+}
+
+/**
+ * @test The std::vector overload of setPredictedObservationMean must reject a
+ * source longer than the length-1 target.
+ */
+TEST(
+    FilterStatesValidationTest,
+    setPredictedObservationMeanVectorRejectsLengthMismatch
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  const std::vector<double> oversized(2, 1.0);
+  EXPECT_THROW(
+      kca_states.setPredictedObservationMean(oversized), filter_shape_mismatch
+  ) << "setPredictedObservationMean accepted a length-2 source for a length-1 "
+       "target.";
+}
+
+/**
+ * @test The std::vector overload of setPredictedStateCovariance must reject a
+ * source with more rows than the target.
+ */
+TEST(
+    FilterStatesValidationTest,
+    setPredictedStateCovarianceVectorRejectsRowMismatch
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  const std::vector<std::vector<double>> oversized(
+      4, std::vector<double>(3, 1.0)
+  );
+  EXPECT_THROW(
+      kca_states.setPredictedStateCovariance(oversized), filter_shape_mismatch
+  ) << "setPredictedStateCovariance accepted a 4x3 source for a 3x3 target.";
+}
+
+/**
+ * @test The std::vector overload of setPredictedStateMean must reject a source
+ * longer than the target.
+ */
+TEST(
+    FilterStatesValidationTest, setPredictedStateMeanVectorRejectsLengthMismatch
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  KcaStates kca_states(dimensions);
+  const std::vector<double> oversized(4, 1.0);
+  EXPECT_THROW(
+      kca_states.setPredictedStateMean(oversized), filter_shape_mismatch
+  ) << "setPredictedStateMean accepted a length-4 source for a length-3 "
+       "target.";
 }

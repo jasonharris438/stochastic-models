@@ -71,6 +71,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double The sum of squared errors for the data series.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateSquaredError(
       const std::vector<double>& data, const double& mu

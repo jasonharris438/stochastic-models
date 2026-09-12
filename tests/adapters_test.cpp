@@ -311,16 +311,19 @@ TEST(AdaptersValidationTest, StateDeserializeRejectsUnparseableJson) {
 }
 
 /**
- * @test The state adapter constructs a KcaStates, so a vector-observation
- * dimension set must surface as json_parse_error.
+ * @test The state adapter constructs a KcaStates, so a dimension set that
+ * breaks the KCA scheme must surface the typed dimensions exception, not a
+ * parse error.
  */
 TEST(
     AdaptersValidationTest, StateDeserializeRejectsVectorObservationDimensions
 ) {
   const KcaStatesJsonAdapter adapter;
   const FilterSystemDimensions vector_observation(3, 3, 3, 2, 3, 2, 2, 0.0);
-  EXPECT_THROW(adapter.deserialize("{}", vector_observation), json_parse_error)
-      << "A 2-row observation dimension set did not raise json_parse_error.";
+  EXPECT_THROW(
+      adapter.deserialize("{}", vector_observation), invalid_filter_dimensions
+  ) << "A 2-row observation dimension set did not raise "
+       "invalid_filter_dimensions.";
 }
 
 /**

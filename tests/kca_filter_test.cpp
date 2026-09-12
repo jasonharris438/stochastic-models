@@ -86,39 +86,38 @@ TEST(KcaTest, getUpdatedKcaStateTest) {
 }
 
 /**
- * @test Dimensions alone were previously sufficient for an out-of-bounds
- * write: setInitialState writes a fixed 3-state kinematic system into
- * matrices sized from caller dimensions. Non-scheme dimensions must be
- * rejected with json_parse_error.
+ * @test A consistent dimension set that is not the fixed three-state KCA
+ * scheme must be rejected by the initialise entrypoint with the typed
+ * dimensions exception.
  */
 TEST(KcaValidationTest, getInitializedKcaStateRejectsNonSchemeDimensions) {
   const std::vector<double> data_series{10.5, 10.6, 10.7};
-  const std::string undersized_dimensions = R"({
+  const std::string four_state_dimensions = R"({
       "observation_covariance_columns":1,"observation_covariance_rows":1,
-      "observation_matrix_columns":3,"observation_matrix_rows":1,
-      "observation_offset":0.0,"state_covariance_columns":3,
-      "state_covariance_rows":1,"state_mean_dimension":3})";
+      "observation_matrix_columns":4,"observation_matrix_rows":1,
+      "observation_offset":0.0,"state_covariance_columns":4,
+      "state_covariance_rows":4,"state_mean_dimension":4})";
   EXPECT_THROW(
-      getInitializedKcaState(data_series, 1.0, 0.001, undersized_dimensions),
-      json_parse_error
-  ) << "getInitializedKcaState accepted state_covariance_rows == 1.";
+      getInitializedKcaState(data_series, 1.0, 0.001, four_state_dimensions),
+      invalid_filter_dimensions
+  ) << "getInitializedKcaState accepted a 4-state dimension set.";
 }
 
 /**
- * @test The update entrypoint must also reject non-scheme dimensions before
- * deserializing any state.
+ * @test The update entrypoint must reject a non-scheme dimension set with the
+ * typed dimensions exception before it reads any state.
  */
 TEST(KcaValidationTest, getUpdatedKcaStateRejectsNonSchemeDimensions) {
   const std::string state = "{}";
-  const std::string oversized_dimensions = R"({
+  const std::string five_state_dimensions = R"({
       "observation_covariance_columns":1,"observation_covariance_rows":1,
-      "observation_matrix_columns":3,"observation_matrix_rows":1,
+      "observation_matrix_columns":5,"observation_matrix_rows":1,
       "observation_offset":0.0,"state_covariance_columns":5,
       "state_covariance_rows":5,"state_mean_dimension":5})";
   EXPECT_THROW(
-      getUpdatedKcaState(state, oversized_dimensions, 10.3, 0.1),
-      json_parse_error
-  ) << "getUpdatedKcaState accepted 5x5 state covariance dimensions.";
+      getUpdatedKcaState(state, five_state_dimensions, 10.3, 0.1),
+      invalid_filter_dimensions
+  ) << "getUpdatedKcaState accepted a 5-state dimension set.";
 }
 
 /**

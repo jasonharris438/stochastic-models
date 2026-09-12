@@ -15,8 +15,10 @@
  * components.
  * @return const std::string The JSON string containing the initialized KCA
  * state.
- * @throws json_parse_error If the JSON is malformed or the dimensions do not
- *         match the fixed 3-state KCA scheme.
+ * @throws json_parse_error If the JSON is malformed, a dimension is not an
+ *         integer in [1, 1024], or the dimensions are inconsistent.
+ * @throws invalid_filter_dimensions If the dimensions are not the fixed
+ *         3-state KCA scheme.
  * @throws InvalidNumberObservationsError If data_series is empty.
  */
 const std::string getInitializedKcaState(
@@ -37,8 +39,11 @@ const std::string getInitializedKcaState(
  * @param innovation_sigma The sigma value of the innovation of the observed
  * data.
  * @return const std::string The JSON string containing the updated KCA state.
- * @throws json_parse_error If the JSON is malformed or the dimensions do not
- *         match the fixed 3-state KCA scheme.
+ * @throws json_parse_error If the JSON is malformed, a dimension is not an
+ *         integer in [1, 1024], the dimensions are inconsistent, or a state
+ *         array does not match the dimensions.
+ * @throws invalid_filter_dimensions If the dimensions are not the fixed
+ *         3-state KCA scheme.
  */
 const std::string getUpdatedKcaState(
     const std::string state,

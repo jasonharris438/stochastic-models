@@ -44,7 +44,11 @@ namespace {
     }
   }
 
-  void requireScalarObservation(const FilterSystemDimensions& dimensions) {
+  void requireKcaScheme(const FilterSystemDimensions& dimensions) {
+    requireDimensionsEqual(
+        "state_mean_dimension", dimensions.getStateMeanDimension(),
+        "state_dimension", KcaStates::state_dimension
+    );
     requireDimensionsEqual(
         "observation_matrix_rows", dimensions.getObservationMatrixRows(),
         "observation_dimension", KcaStates::observation_dimension
@@ -130,11 +134,6 @@ namespace {
 PredictedState::PredictedState(matrix<double> transition_matrix)
     : transition_matrix(transition_matrix) {}
 
-void PredictedState::setTransitionMatrix(
-    const matrix<double>& transition_matrix
-) {
-  this->transition_matrix = transition_matrix;
-}
 const vector<double>
 PredictedState::calculateMean(const vector<double>& current_state_mean) const {
   const vector<double> new_mean = prod(transition_matrix, current_state_mean);
@@ -160,16 +159,6 @@ PredictedObservation::PredictedObservation(
       observation_offset(observation_offset) {}
 const matrix<double>& PredictedObservation::getObservationMatrix() const {
   return observation_matrix;
-}
-void PredictedObservation::setObservationMatrix(
-    const matrix<double>& observation_matrix
-) {
-  this->observation_matrix = observation_matrix;
-}
-void PredictedObservation::setObservationOffset(
-    const double& observation_offset
-) {
-  this->observation_offset = observation_offset;
 }
 const vector<double> PredictedObservation::calculateMean(
     const vector<double>& predicted_state_mean
@@ -220,51 +209,40 @@ const matrix<double> CurrentState::calculateCovariance(
 }
 
 // Prior state data class / struct implementation.
-PriorState::PriorState(
-    std::size_t state_mean_dimension,
-    std::size_t state_covariance_rows,
-    std::size_t state_covariance_columns,
-    std::size_t observation_matrix_rows,
-    std::size_t observation_matrix_columns,
-    std::size_t observation_covariance_rows,
-    std::size_t observation_covariance_columns,
-    const double& observation_offset
-)
-    : predicted_observation_mean(vector<double>(observation_matrix_rows)),
-      predicted_state_mean(vector<double>(state_mean_dimension)),
+PriorState::PriorState(const FilterSystemDimensions& dimensions)
+    : predicted_observation_mean(dimensions.getObservationMatrixRows()),
+      predicted_state_mean(dimensions.getStateMeanDimension()),
       predicted_observation_covariance(
-          matrix<double>(
-              observation_covariance_rows, observation_covariance_columns
-          )
+          dimensions.getObservationCovarianceRows(),
+          dimensions.getObservationCovarianceColumns()
       ),
       predicted_state_covariance(
-          matrix<double>(state_covariance_rows, state_covariance_columns)
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns()
       ),
       observation_matrix(
-          matrix<double>(observation_matrix_rows, observation_matrix_columns)
+          dimensions.getObservationMatrixRows(),
+          dimensions.getObservationMatrixColumns()
       ),
-      observation_offset(observation_offset) {}
+      observation_offset(dimensions.getObservationOffset()) {}
 
 // Posterior state data class / struct implementation.
-PosteriorState::PosteriorState(
-    std::size_t state_mean_dimension,
-    std::size_t state_covariance_rows,
-    std::size_t state_covariance_columns
-)
-    : current_state_mean(vector<double>(state_mean_dimension)),
+PosteriorState::PosteriorState(const FilterSystemDimensions& dimensions)
+    : current_state_mean(dimensions.getStateMeanDimension()),
       current_state_covariance(
-          matrix<double>(state_covariance_rows, state_covariance_columns)
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns()
       ) {}
 
 // Transition state data class / struct implementation
-TransitionState::TransitionState(
-    std::size_t state_covariance_rows, std::size_t state_covariance_columns
-)
+TransitionState::TransitionState(const FilterSystemDimensions& dimensions)
     : transition_matrix(
-          matrix<double>(state_covariance_rows, state_covariance_columns)
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns()
       ),
       transition_covariance(
-          matrix<double>(state_covariance_rows, state_covariance_columns)
+          dimensions.getStateCovarianceRows(),
+          dimensions.getStateCovarianceColumns()
       ) {}
 
 // Filter boolean state data class / struct implementation
@@ -353,26 +331,9 @@ double FilterSystemDimensions::getObservationOffset() const noexcept {
 
 // State handler for the KCA implementation.
 KcaStates::KcaStates(const FilterSystemDimensions& dimensions)
-    : prior_state(
-          dimensions.getStateMeanDimension(),
-          dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns(),
-          dimensions.getObservationMatrixRows(),
-          dimensions.getObservationMatrixColumns(),
-          dimensions.getObservationCovarianceRows(),
-          dimensions.getObservationCovarianceColumns(),
-          dimensions.getObservationOffset()
-      ),
-      posterior_state(
-          dimensions.getStateMeanDimension(),
-          dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns()
-      ),
-      transition_state(
-          dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns()
-      ) {
-  requireScalarObservation(dimensions);
+    : prior_state(dimensions), posterior_state(dimensions),
+      transition_state(dimensions) {
+  requireKcaScheme(dimensions);
 }
 
 void KcaStates::setInitialState(
@@ -406,17 +367,17 @@ void KcaStates::setInitialState(
   };
   const double observation_offset = 0.0;
 
-  // Move the current state and transition state to the target matrices.
+  // Copy the current state mean and covariance into the posterior state.
   setCurrentStateMean(current_state_mean_as_vector);
   setCurrentStateCovariance(current_state_covariance_as_vectors);
 
-  // Move the the transition and transition covariance matrices to the
-  // target objects.
+  // Copy the transition and transition covariance matrices into the
+  // transition state.
   setTransitionMatrix(transition_matrix_as_vectors);
   setTransitionCovariance(transition_covariance_as_vectors);
 
-  // Move the the observation matrix to the target matrix, and copy the
-  // observation offset.
+  // Copy the observation matrix and the observation offset into the prior
+  // state.
   setObservationMatrix(observation_matrix_as_vectors);
   setObservationOffset(observation_offset);
 
