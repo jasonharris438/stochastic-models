@@ -2,6 +2,7 @@
 #define STOCHASTIC_MODELS_NUMERIC_UTILS_HELPERS_H
 #include "stochastic_models/sde/stochastic_model.h"
 
+#include <cstddef>
 #include <vector>
 
 /**
@@ -38,6 +39,19 @@ void check_function_status(
  * @throws NonFiniteResultError If value is NaN or Inf.
  */
 void check_finite_result(const double& value, const char* routine);
+
+/**
+ * @brief Throws when a data series is shorter than a routine requires.
+ *
+ * @param data Series to test.
+ * @param minimum Smallest accepted number of observations.
+ * @param routine Routine name used in the exception message.
+ * @throws InvalidNumberObservationsError If data has fewer than minimum
+ *         values.
+ */
+void check_minimum_observations(
+    const std::vector<double>& data, std::size_t minimum, const char* routine
+);
 
 /**
  * @brief Return a vector containing element-wise squares of the input.

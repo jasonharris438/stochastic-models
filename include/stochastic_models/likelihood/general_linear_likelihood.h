@@ -52,6 +52,7 @@ public:
    * @param data Data series used to calculate.
    * @return const double The inner product of the lead and lag of the data
    * series.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double
   calculateLeadLagInnerProduct(const std::vector<double>& data) const;
@@ -61,6 +62,7 @@ public:
    * @param data Data series used to calculate.
    * @return const double The sum of the squares of the lag of the data
    * series.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateLagSquared(const std::vector<double>& data) const;
   /**
@@ -69,6 +71,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double The sum of squared errors for the data series.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateSquaredError(
       const std::vector<double>& data, const double& mu

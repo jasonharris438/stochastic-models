@@ -44,6 +44,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double Likelihood component value.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateLeadSum(const std::vector<double>& data) const;
   /**
@@ -52,6 +53,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double Likelihood component value.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateLagSum(const std::vector<double>& data) const;
   /**
@@ -60,6 +62,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double Likelihood component value.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateLeadSumSquared(const std::vector<double>& data) const;
   /**
@@ -68,6 +71,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double Likelihood component value.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double calculateLagSumSquared(const std::vector<double>& data) const;
   /**
@@ -76,6 +80,7 @@ public:
    *
    * @param data Data series used to calculate.
    * @return const double Likelihood component value.
+   * @throws InvalidNumberObservationsError If data has fewer than 2 values.
    */
   const double
   calculateLeadLagSumProduct(const std::vector<double>& data) const;

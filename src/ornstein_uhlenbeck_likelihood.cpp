@@ -1,17 +1,16 @@
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
 
-#include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <cmath>
 #include <iterator>
 #include <new>
 #include <numeric>
-#include <string>
 
 const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadSum(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLeadSum");
   std::vector<double>::const_iterator iter = data.cbegin();
   std::advance(iter, 1);
   return std::reduce(iter, data.cend(), 0.0);
@@ -19,6 +18,7 @@ const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadSum(
 const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLagSum(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLagSum");
   std::vector<double>::const_iterator iter = data.cend();
   std::advance(iter, -1);
   return std::reduce(data.cbegin(), iter, 0.0);
@@ -27,6 +27,7 @@ const double
 OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadSumSquared(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLeadSumSquared");
   const std::vector<double> squared = valuesSquared(data);
   std::vector<double>::const_iterator iter = squared.cbegin();
   std::advance(iter, 1);
@@ -36,6 +37,7 @@ const double
 OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLagSumSquared(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLagSumSquared");
   const std::vector<double> squared = valuesSquared(data);
   std::vector<double>::const_iterator iter = squared.cend();
   std::advance(iter, -1);
@@ -45,6 +47,7 @@ const double
 OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateLeadLagSumProduct(
     const std::vector<double>& data
 ) const {
+  check_minimum_observations(data, 2, "calculateLeadLagSumProduct");
   std::vector<double>::const_iterator iter_lead = data.cbegin();
   std::advance(iter_lead, 1);
 
@@ -88,13 +91,7 @@ OrnsteinUhlenbeckLikelihoodComponents
 OrnsteinUhlenbeckLikelihood::calculateComponents(
     const std::vector<double>& data
 ) const {
-  if (data.size() < 2) {
-    throw InvalidNumberObservationsError(
-        "Ornstein-Uhlenbeck maximum likelihood requires at least 2 "
-        "observations to form a lead/lag pair; got " +
-        std::to_string(data.size()) + "."
-    );
-  }
+  check_minimum_observations(data, 2, "Ornstein-Uhlenbeck maximum likelihood");
   return OrnsteinUhlenbeckLikelihoodComponents{
       component_calculator.calculateLeadSum(data),
       component_calculator.calculateLagSum(data),

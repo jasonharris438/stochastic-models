@@ -194,3 +194,69 @@ TEST(OuLikelihoodValidationTest, calculateComponentsRejectsSingleObservation) {
       likelihood.calculateComponents({1.0}), InvalidNumberObservationsError
   ) << "calculateComponents accepted a single-observation series.";
 }
+
+/**
+ * @test calculateLeadSum must reject a series that cannot form a lead/lag
+ * pair before any iterator arithmetic runs.
+ */
+TEST(OuLikelihoodValidationTest, calculateLeadSumRejectsShortSeries) {
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(calculator.calculateLeadSum({}), InvalidNumberObservationsError)
+      << "calculateLeadSum accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLeadSum({1.0}), InvalidNumberObservationsError
+  ) << "calculateLeadSum accepted a single-observation series.";
+}
+
+/**
+ * @test calculateLagSum previously advanced cend() by -1 on an empty series.
+ * It must reject a short series.
+ */
+TEST(OuLikelihoodValidationTest, calculateLagSumRejectsShortSeries) {
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(calculator.calculateLagSum({}), InvalidNumberObservationsError)
+      << "calculateLagSum accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLagSum({1.0}), InvalidNumberObservationsError
+  ) << "calculateLagSum accepted a single-observation series.";
+}
+
+/**
+ * @test calculateLeadSumSquared must reject a short series.
+ */
+TEST(OuLikelihoodValidationTest, calculateLeadSumSquaredRejectsShortSeries) {
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(
+      calculator.calculateLeadSumSquared({}), InvalidNumberObservationsError
+  ) << "calculateLeadSumSquared accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLeadSumSquared({1.0}), InvalidNumberObservationsError
+  ) << "calculateLeadSumSquared accepted a single-observation series.";
+}
+
+/**
+ * @test calculateLagSumSquared must reject a short series.
+ */
+TEST(OuLikelihoodValidationTest, calculateLagSumSquaredRejectsShortSeries) {
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(
+      calculator.calculateLagSumSquared({}), InvalidNumberObservationsError
+  ) << "calculateLagSumSquared accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLagSumSquared({1.0}), InvalidNumberObservationsError
+  ) << "calculateLagSumSquared accepted a single-observation series.";
+}
+
+/**
+ * @test calculateLeadLagSumProduct must reject a short series.
+ */
+TEST(OuLikelihoodValidationTest, calculateLeadLagSumProductRejectsShortSeries) {
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(
+      calculator.calculateLeadLagSumProduct({}), InvalidNumberObservationsError
+  ) << "calculateLeadLagSumProduct accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLeadLagSumProduct({1.0}),
+      InvalidNumberObservationsError
+  ) << "calculateLeadLagSumProduct accepted a single-observation series.";
+}

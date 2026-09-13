@@ -4,6 +4,8 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <cstddef>
+#include <vector>
 
 // Just for this module as we do not introduce any other namespaces.
 using namespace boost::numeric::ublas;
@@ -34,11 +36,6 @@ public:
    * @param transition_matrix The transition matrix of the Kalman Filter.
    */
   PredictedState(matrix<double> transition_matrix);
-  /**
-   * @brief Method to set the transition matrix of the prior predicted state.
-   * @param transition_matrix The transition matrix for the predicted state.
-   */
-  void setTransitionMatrix(const matrix<double>& transition_matrix);
   /**
    * @brief Method to calculate the mean of the predicted state.
    * @param current_state_mean The mean of the current state.
@@ -87,21 +84,7 @@ public:
   PredictedObservation(
       matrix<double> observation_matrix, double observation_offset
   );
-  /**
-   * @brief Method to set the observation matrix of the prior predicted
-   * observation.
-   * @param observation_matrix The observation matrix of the predicted
-   * observation.
-   */
-  void setObservationMatrix(const matrix<double>& observation_matrix);
   const matrix<double>& getObservationMatrix() const;
-  /**
-   * @brief Method to set the observation offset of the prior predicted
-   * observation.
-   * @param observation_offset The offset value to add to the predicted
-   * observation mean.
-   */
-  void setObservationOffset(const double& observation_offset);
   /**
    * @brief Method to calculate the mean of the prior predicted observation.
    * @param predicted_state_mean The mean of the prior predicted state.
@@ -190,25 +173,74 @@ public:
 };
 
 /**
+ * @brief Contains the validated dimensions of a Kalman Filter system.
+ *
+ * The constructor establishes three rules. Every dimension is in
+ * [1, max_dimension]. The state mean dimension, both state covariance
+ * dimensions, and the observation matrix column count are equal. The
+ * observation matrix row count and both observation covariance dimensions are
+ * equal. An instance that breaks a rule cannot exist.
+ */
+class FilterSystemDimensions final {
+public:
+  static constexpr std::size_t max_dimension{1024};
+
+  /**
+   * @param state_mean_dimension The dimension of the state mean vector.
+   * @param state_covariance_rows The number of rows in the state covariance
+   * matrix.
+   * @param state_covariance_columns The number of columns in the state
+   * covariance matrix.
+   * @param observation_matrix_rows The number of rows in the observation
+   * matrix.
+   * @param observation_matrix_columns The number of columns in the observation
+   * matrix.
+   * @param observation_covariance_rows The number of rows in the observation
+   * covariance matrix.
+   * @param observation_covariance_columns The number of columns in the
+   * observation covariance matrix.
+   * @param observation_offset The offset value to add to the predicted
+   * observation mean.
+   * @throws invalid_filter_dimensions If a dimension is outside
+   *         [1, max_dimension] or the set breaks a consistency rule.
+   */
+  explicit FilterSystemDimensions(
+      std::size_t state_mean_dimension,
+      std::size_t state_covariance_rows,
+      std::size_t state_covariance_columns,
+      std::size_t observation_matrix_rows,
+      std::size_t observation_matrix_columns,
+      std::size_t observation_covariance_rows,
+      std::size_t observation_covariance_columns,
+      double observation_offset
+  );
+
+  [[nodiscard]] std::size_t getStateMeanDimension() const noexcept;
+  [[nodiscard]] std::size_t getStateCovarianceRows() const noexcept;
+  [[nodiscard]] std::size_t getStateCovarianceColumns() const noexcept;
+  [[nodiscard]] std::size_t getObservationMatrixRows() const noexcept;
+  [[nodiscard]] std::size_t getObservationMatrixColumns() const noexcept;
+  [[nodiscard]] std::size_t getObservationCovarianceRows() const noexcept;
+  [[nodiscard]] std::size_t getObservationCovarianceColumns() const noexcept;
+  [[nodiscard]] double getObservationOffset() const noexcept;
+
+private:
+  std::size_t state_mean_dimension;
+  std::size_t state_covariance_rows;
+  std::size_t state_covariance_columns;
+  std::size_t observation_matrix_rows;
+  std::size_t observation_matrix_columns;
+  std::size_t observation_covariance_rows;
+  std::size_t observation_covariance_columns;
+  double observation_offset;
+};
+
+/**
  * @brief Struct to represent the prior state of the Kalman Filter.
  *
  * Contains the predicted observation and state mean and covariance matrices.
  *
- * @param state_mean_dimension The dimension of the state mean vector.
- * @param state_covariance_rows The number of rows in the state covariance
- * matrix.
- * @param state_covariance_columns The number of columns in the state covariance
- * matrix.
- * @param observation_matrix_rows The number of rows in the observation matrix.
- * @param observation_matrix_columns The number of columns in the observation
- * matrix.
- * @param observation_covariance_rows The number of rows in the observation
- * covariance matrix.
- * @param observation_covariance_columns The number of columns in the
- * observation covariance matrix.
- * @param observation_offset The offset value to add to the predicted
- * observation mean.
- *
+ * @param dimensions The validated dimensions of the Kalman Filter system.
  */
 struct PriorState {
   vector<double> predicted_observation_mean;
@@ -218,16 +250,7 @@ struct PriorState {
   matrix<double> observation_matrix;
   double observation_offset;
 
-  PriorState(
-      const int& state_mean_dimension,
-      const int& state_covariance_rows,
-      const int& state_covariance_columns,
-      const int& observation_matrix_rows,
-      const int& observation_matrix_columns,
-      const int& observation_covariance_rows,
-      const int& observation_covariance_columns,
-      const double& observation_offset
-  );
+  explicit PriorState(const FilterSystemDimensions& dimensions);
 };
 
 /**
@@ -235,18 +258,13 @@ struct PriorState {
  *
  * Contains the current state mean and covariance matrices.
  *
- * @param current_state_mean The current state mean vector.
- * @param current_state_covariance The current state covariance matrix.
+ * @param dimensions The validated dimensions of the Kalman Filter system.
  */
 struct PosteriorState {
   vector<double> current_state_mean;
   matrix<double> current_state_covariance;
 
-  PosteriorState(
-      const int& state_mean_dimension,
-      const int& state_covariance_rows,
-      const int& state_covariance_columns
-  );
+  explicit PosteriorState(const FilterSystemDimensions& dimensions);
 };
 
 /**
@@ -255,17 +273,13 @@ struct PosteriorState {
  * Contains components that determine the transition between states. The
  * transition matrix and covariance matrices are stored.
  *
- * @param transition_matrix The transition matrix of the Kalman Filter.
- * @param transition_covariance The transition covariance matrix of the Kalman
- * Filter.
+ * @param dimensions The validated dimensions of the Kalman Filter system.
  */
 struct TransitionState {
   matrix<double> transition_matrix;
   matrix<double> transition_covariance;
 
-  TransitionState(
-      const int& state_covariance_rows, const int& state_covariance_columns
-  );
+  explicit TransitionState(const FilterSystemDimensions& dimensions);
 };
 
 /**
@@ -286,49 +300,6 @@ struct FilterState {
 };
 
 /**
- * @brief Contains the dimensions of a Kalman Filter system.
- *
- * Internal system state dimensions are stored in this struct.
- *
- * @param state_mean_dimension The dimension of the state mean vector.
- * @param state_covariance_rows The number of rows in the state covariance
- * matrix.
- * @param state_covariance_columns The number of columns in the state covariance
- * matrix.
- * @param observation_matrix_rows The number of rows in the observation matrix.
- * @param observation_matrix_columns The number of columns in the observation
- * matrix.
- * @param observation_covariance_rows The number of rows in the observation
- * covariance matrix.
- * @param observation_covariance_columns The number of columns in the
- * observation covariance matrix.
- * @param observation_offset The offset value to add to the predicted
- * observation mean.
- */
-struct FilterSystemDimensions {
-  int state_mean_dimension;
-  int state_covariance_rows;
-  int state_covariance_columns;
-  int observation_matrix_rows;
-  int observation_matrix_columns;
-  int observation_covariance_rows;
-  int observation_covariance_columns;
-  double observation_offset;
-
-  FilterSystemDimensions();
-  FilterSystemDimensions(
-      int state_mean_dimension,
-      int state_covariance_rows,
-      int state_covariance_columns,
-      int observation_matrix_rows,
-      int observation_matrix_columns,
-      int observation_covariance_rows,
-      int observation_covariance_columns,
-      double observation_offset
-  );
-};
-
-/**
  * @brief Class to represent the state handler for the kinetic components
  * analysis (KCA) implementation.
  *
@@ -345,30 +316,17 @@ private:
   TransitionState transition_state;
   FilterState filter_state;
 
-  /**
-   * @brief Moves a std::vector of std::vectors to a boost uBLAS matrix.
-   * @param matrix_as_vectors The matrix represented as a vector of vectors.
-   * @param target The target boost matrix to move the vectors to.
-   * @throws std::invalid_argument If the source dimensions do not exactly
-   *         match the target dimensions.
-   */
-  void move_std_vectors_to_matrix(
-      std::vector<std::vector<double>>&& matrix_as_vectors,
-      matrix<double>& target
-  );
-  /**
-   * @brief Moves a std::vector to a boost uBLAS vector.
-   * @param vector_as_vector The vector represented as a vector.
-   * @param target The target boost vector to move the vector to.
-   * @throws std::invalid_argument If the source dimensions do not exactly
-   *         match the target dimensions.
-   */
-  void move_std_vector_to_vector(
-      std::vector<double>&& vector_as_vector, vector<double>& target
-  );
-
 public:
-  KcaStates(const FilterSystemDimensions& dimensions);
+  static constexpr std::size_t state_dimension{3};
+  static constexpr std::size_t observation_dimension{1};
+
+  /**
+   * @param dimensions The validated dimensions of the Kalman Filter system.
+   * @throws invalid_filter_dimensions If the state mean dimension is not
+   *         state_dimension, or the observation matrix row count is not
+   *         observation_dimension.
+   */
+  explicit KcaStates(const FilterSystemDimensions& dimensions);
 
   /**
    * @brief Initializes the initial KCA system state by setting the starting
@@ -379,6 +337,7 @@ public:
    * @param h A value determining the first and second derivative values of
    * the KCA system.
    * @param q A value determining the transition covariance of the KCA system.
+   * @throws InvalidNumberObservationsError If data_series is empty.
    */
   void setInitialState(
       const std::vector<double>& data_series, const double& h, const double& q
@@ -493,17 +452,21 @@ public:
    * object.
    * @param current_state_mean The current state mean uBLAS vector to copy
    * into the system's current state mean.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setCurrentStateMean(const vector<double>& current_state_mean);
   /**
    * @brief Sets the current state mean of the KCA system with a std::vector.
    *
-   * The values of the vector are moved to the system's current state mean
+   * The values of the vector are copied to the system's current state mean
    * object.
-   * @param current_state_mean The current state mean std::vector to move into
+   * @param current_state_mean The current state mean std::vector to copy into
    * the system's current state mean.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
-  void setCurrentStateMean(std::vector<double>& current_state_mean);
+  void setCurrentStateMean(const std::vector<double>& current_state_mean);
   /**
    * @brief Sets the current state covariance of the KCA system with a boost
    * uBLAS matrix.
@@ -512,6 +475,8 @@ public:
    * covariance object.
    * @param current_state_covariance The current state covariance uBLAS matrix
    * to copy into the system's current state covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void
   setCurrentStateCovariance(const matrix<double>& current_state_covariance);
@@ -519,13 +484,15 @@ public:
    * @brief Sets the current state covariance of the KCA system with a
    * std::vector of std::vectors.
    *
-   * The values of the vector are moved to the system's current state
+   * The values of the vector are copied to the system's current state
    * covariance object.
    * @param current_state_covariance The current state covariance std::vector
-   * of std::vectors to move into the system's current state covariance.
+   * of std::vectors to copy into the system's current state covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setCurrentStateCovariance(
-      std::vector<std::vector<double>>& current_state_covariance
+      const std::vector<std::vector<double>>& current_state_covariance
   );
   /**
    * @brief Sets the observation matrix of the KCA system with a boost uBLAS
@@ -535,19 +502,24 @@ public:
    * object.
    * @param observation_matrix The observation matrix uBLAS matrix to copy
    * into the system's observation matrix.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setObservationMatrix(const matrix<double>& observation_matrix);
   /**
    * @brief Sets the observation matrix of the KCA system with a std::vector
    * of std::vectors.
    *
-   * The values of the vector are moved to the system's observation matrix
+   * The values of the vector are copied to the system's observation matrix
    * object.
    * @param observation_matrix The observation matrix std::vector of
-   * std::vectors to move into the system's observation matrix.
+   * std::vectors to copy into the system's observation matrix.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
-  void
-  setObservationMatrix(std::vector<std::vector<double>>& observation_matrix);
+  void setObservationMatrix(
+      const std::vector<std::vector<double>>& observation_matrix
+  );
   /**
    * @brief Sets the observation offset value of the KCA system.
    * @param observation_offset The observation offset value to set.
@@ -562,6 +534,8 @@ public:
    * @param predicted_observation_covariance The predicted observation
    * covariance uBLAS matrix to copy into the system's predicted observation
    * covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setPredictedObservationCovariance(
       const matrix<double>& predicted_observation_covariance
@@ -570,14 +544,16 @@ public:
    * @brief Sets the predicted observation covariance of the KCA system with a
    * std::vector of std::vectors.
    *
-   * The values of the vector are moved to the system's predicted observation
+   * The values of the vector are copied to the system's predicted observation
    * covariance object.
    * @param predicted_observation_covariance The predicted observation
-   * covariance std::vector of std::vectors to move into the system's
+   * covariance std::vector of std::vectors to copy into the system's
    * predicted observation covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setPredictedObservationCovariance(
-      std::vector<std::vector<double>>& predicted_observation_covariance
+      const std::vector<std::vector<double>>& predicted_observation_covariance
   );
   /**
    * @brief Sets the predicted observation mean of the KCA system with a boost
@@ -587,6 +563,8 @@ public:
    * mean object.
    * @param predicted_observation_mean The predicted observation mean uBLAS
    * vector to copy into the system's predicted observation mean.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void
   setPredictedObservationMean(const vector<double>& predicted_observation_mean);
@@ -594,13 +572,16 @@ public:
    * @brief Sets the predicted observation mean of the KCA system with a
    * std::vector.
    *
-   * The values of the vector are moved to the system's predicted observation
+   * The values of the vector are copied to the system's predicted observation
    * mean object.
    * @param predicted_observation_mean The predicted observation mean
-   * std::vector to move into the system's predicted observation mean.
+   * std::vector to copy into the system's predicted observation mean.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
-  void
-  setPredictedObservationMean(std::vector<double>& predicted_observation_mean);
+  void setPredictedObservationMean(
+      const std::vector<double>& predicted_observation_mean
+  );
   /**
    * @brief Sets the predicted state covariance of the KCA system with a boost
    * uBLAS matrix.
@@ -609,6 +590,8 @@ public:
    * covariance object.
    * @param predicted_state_covariance The predicted state covariance uBLAS
    * matrix to copy into the system's predicted state covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void
   setPredictedStateCovariance(const matrix<double>& predicted_state_covariance);
@@ -616,14 +599,16 @@ public:
    * @brief Sets the predicted state covariance of the KCA system with a
    * std::vector of std::vectors.
    *
-   * The values of the vector are moved to the system's predicted state
+   * The values of the vector are copied to the system's predicted state
    * covariance object.
    * @param predicted_state_covariance The predicted state covariance
-   * std::vector of std::vectors to move into the system's predicted state
+   * std::vector of std::vectors to copy into the system's predicted state
    * covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setPredictedStateCovariance(
-      std::vector<std::vector<double>>& predicted_state_covariance
+      const std::vector<std::vector<double>>& predicted_state_covariance
   );
   /**
    * @brief Sets the predicted state mean of the KCA system with a boost uBLAS
@@ -633,18 +618,22 @@ public:
    * object.
    * @param predicted_state_mean The predicted state mean uBLAS vector to copy
    * into the system's predicted state mean.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setPredictedStateMean(const vector<double>& predicted_state_mean);
   /**
    * @brief Sets the predicted state mean of the KCA system with a
    * std::vector.
    *
-   * The values of the vector are moved to the system's predicted state mean
+   * The values of the vector are copied to the system's predicted state mean
    * object.
-   * @param predicted_state_mean The predicted state mean std::vector to move
+   * @param predicted_state_mean The predicted state mean std::vector to copy
    * into the system's predicted state mean.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
-  void setPredictedStateMean(std::vector<double>& predicted_state_mean);
+  void setPredictedStateMean(const std::vector<double>& predicted_state_mean);
   /**
    * @brief Sets the transition covariance of the KCA system with a boost
    * uBLAS matrix.
@@ -653,19 +642,23 @@ public:
    * object.
    * @param transition_covariance The transition covariance uBLAS matrix to
    * copy into the system's transition covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setTransitionCovariance(const matrix<double>& transition_covariance);
   /**
    * @brief Sets the transition covariance of the KCA system with a
    * std::vector of std::vectors.
    *
-   * The values of the vector are moved to the system's transition covariance
+   * The values of the vector are copied to the system's transition covariance
    * object.
    * @param transition_covariance The transition covariance std::vector of
-   * std::vectors to move into the system's transition covariance.
+   * std::vectors to copy into the system's transition covariance.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setTransitionCovariance(
-      std::vector<std::vector<double>>& transition_covariance
+      const std::vector<std::vector<double>>& transition_covariance
   );
   /**
    * @brief Sets the transition matrix of the KCA system with a boost uBLAS
@@ -675,17 +668,23 @@ public:
    * object.
    * @param transition_matrix The transition matrix uBLAS matrix to copy into
    * the system's transition matrix.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
   void setTransitionMatrix(const matrix<double>& transition_matrix);
   /**
    * @brief Sets the transition matrix of the KCA system with a std::vector of
    * std::vectors.
    *
-   * The values of the vector are moved to the system's transition matrix
+   * The values of the vector are copied to the system's transition matrix
    * object.
    * @param transition_matrix The transition matrix std::vector of
-   * std::vectors to move into the system's transition matrix.
+   * std::vectors to copy into the system's transition matrix.
+   * @throws filter_shape_mismatch If the source length or shape differs from
+   *         the target.
    */
-  void setTransitionMatrix(std::vector<std::vector<double>>& transition_matrix);
+  void setTransitionMatrix(
+      const std::vector<std::vector<double>>& transition_matrix
+  );
 };
 #endif // STOCHASTIC_MODELS_KALMAN_FILTER_STATES_H

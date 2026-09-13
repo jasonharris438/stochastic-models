@@ -62,3 +62,55 @@ TEST(
       likelihood.calculateComponents({1.0}), InvalidNumberObservationsError
   ) << "calculateComponents accepted a single-observation series.";
 }
+
+/**
+ * @test calculateLeadLagInnerProduct previously advanced cend() by -1 on an
+ * empty series. It must reject a short series.
+ */
+TEST(
+    GeneralLinearLikelihoodValidationTest,
+    calculateLeadLagInnerProductRejectsShortSeries
+) {
+  const GeneralLinearLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(
+      calculator.calculateLeadLagInnerProduct({}),
+      InvalidNumberObservationsError
+  ) << "calculateLeadLagInnerProduct accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLeadLagInnerProduct({1.0}),
+      InvalidNumberObservationsError
+  ) << "calculateLeadLagInnerProduct accepted a single-observation series.";
+}
+
+/**
+ * @test calculateLagSquared must reject a short series.
+ */
+TEST(
+    GeneralLinearLikelihoodValidationTest, calculateLagSquaredRejectsShortSeries
+) {
+  const GeneralLinearLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(
+      calculator.calculateLagSquared({}), InvalidNumberObservationsError
+  ) << "calculateLagSquared accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateLagSquared({1.0}), InvalidNumberObservationsError
+  ) << "calculateLagSquared accepted a single-observation series.";
+}
+
+/**
+ * @test calculateSquaredError must reject an empty series and a one-element
+ * series with the library's observation-count exception.
+ */
+TEST(
+    GeneralLinearLikelihoodValidationTest,
+    calculateSquaredErrorRejectsShortSeries
+) {
+  const GeneralLinearLikelihoodComponentCalculator calculator{};
+  EXPECT_THROW(
+      calculator.calculateSquaredError({}, 0.0), InvalidNumberObservationsError
+  ) << "calculateSquaredError accepted an empty series.";
+  EXPECT_THROW(
+      calculator.calculateSquaredError({1.0}, 0.0),
+      InvalidNumberObservationsError
+  ) << "calculateSquaredError accepted a one-element series.";
+}
