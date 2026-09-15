@@ -3,8 +3,38 @@
 #include "stochastic_models/kalman_filter/kca.h"
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+namespace {
+
+  using Matrix = std::vector<std::vector<double>>;
+
+  void expectVectorNear(
+      const nlohmann::json& actual,
+      const std::vector<double>& expected,
+      const char* field
+  ) {
+    ASSERT_EQ(actual.size(), expected.size())
+        << "Field '" << field << "' has the wrong length.";
+    for (std::size_t i{0}; i < expected.size(); i++) {
+      EXPECT_NEAR(actual.at(i).get<double>(), expected.at(i), 1e-12)
+          << "Field '" << field << "' differs at index " << i << ".";
+    }
+  }
+  void expectMatrixNear(
+      const nlohmann::json& actual, const Matrix& expected, const char* field
+  ) {
+    ASSERT_EQ(actual.size(), expected.size())
+        << "Field '" << field << "' has the wrong row count.";
+    for (std::size_t i{0}; i < expected.size(); i++) {
+      expectVectorNear(actual.at(i), expected.at(i), field);
+    }
+  }
+
+} // namespace
 
 /**
  * @test Tests that the getInitializedKcaState function correctly initialises
@@ -27,21 +57,34 @@ TEST(KcaTest, getInitializedKcaStateTest) {
       "\"observation_offset\":0.0,\"state_covariance_columns\":3,\"state_"
       "covariance_rows\":3,\"state_mean_dimension\":3}";
 
-  // Get the initialised internal state as a JSON string from the KCA system.
-  const std::string internal_state =
-      getInitializedKcaState(data_series, h, q, system_dimension);
-  std::cout << internal_state << std::endl;
-  EXPECT_EQ(
-      internal_state,
-      "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
-      "0.0,0.0]],\"current_state_mean\":[10.27645,0.0,0.0],"
-      "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
-      "0,\"transition_covariance\":[[5e-05,0.000125,0.00016666666666666666],"
-      "[0.000125,0.0003333333333333333,0.0005],[0.00016666666666666666,0.0005,"
-      "0.001]],"
-      "\"transition_matrix\":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
-  ) << "The JSON string produced by the getInitializedKcaState "
-       "function is incorrect.";
+  const nlohmann::json state = nlohmann::json::parse(
+      getInitializedKcaState(data_series, h, q, system_dimension)
+  );
+
+  expectMatrixNear(
+      state.at("transition_matrix"),
+      {{1.0, 1.0, 0.5}, {0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}}, "transition_matrix"
+  );
+  expectMatrixNear(
+      state.at("transition_covariance"),
+      {{5e-05, 0.000125, 0.00016666666666666666},
+       {0.000125, 0.0003333333333333333, 0.0005},
+       {0.00016666666666666666, 0.0005, 0.001}},
+      "transition_covariance"
+  );
+  expectVectorNear(
+      state.at("current_state_mean"), {10.27645, 0.0, 0.0}, "current_state_mean"
+  );
+  expectMatrixNear(
+      state.at("current_state_covariance"),
+      {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}},
+      "current_state_covariance"
+  );
+  expectMatrixNear(
+      state.at("observation_matrix"), {{1.0, 0.0, 0.0}}, "observation_matrix"
+  );
+  EXPECT_NEAR(state.at("observation_offset").get<double>(), 0.0, 1e-12)
+      << "Field 'observation_offset' is not zero.";
 }
 /**
  * @test Tests that the getUpdatedKcaState function correctly performs single
@@ -66,23 +109,35 @@ TEST(KcaTest, getUpdatedKcaStateTest) {
   const double observation{10.3};
   const double innovation_sigma{0.1};
 
-  // Get the updated internal kinetic components state.
-  const std::string updated_state = getUpdatedKcaState(
-      state, system_dimension, observation, innovation_sigma
+  const nlohmann::json updated_state = nlohmann::json::parse(
+      getUpdatedKcaState(state, system_dimension, observation, innovation_sigma)
   );
 
-  std::cout << updated_state << std::endl;
-  EXPECT_EQ(
-      updated_state,
-      "{\"current_state_covariance\":[[0.009269818720519449,0.0,0.0],[0.0,0."
-      "001,0.0],[0.0,0.0,0.001]],\"current_state_mean\":[10.3000765492722,0."
-      "0,0.0],\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":"
-      "0.0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,0."
-      "001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1.0011961162353782,"
-      "1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
-  ) << "The JSON string produced "
-       "by the getUpdatedKcaState "
-       "function is incorrect.";
+  expectVectorNear(
+      updated_state.at("current_state_mean"), {10.3000765492722, 0.0, 0.0},
+      "current_state_mean"
+  );
+  expectMatrixNear(
+      updated_state.at("current_state_covariance"),
+      {{0.009269818720519452, 0.0, 0.0}, {0.0, 0.001, 0.0}, {0.0, 0.0, 0.001}},
+      "current_state_covariance"
+  );
+  expectMatrixNear(
+      updated_state.at("transition_matrix"),
+      {{1.0011961162353782, 1.0, 0.5}, {0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}},
+      "transition_matrix"
+  );
+  expectMatrixNear(
+      updated_state.at("transition_covariance"),
+      {{0.12695229227341848, 0.0, 0.0}, {0.0, 0.001, 0.0}, {0.0, 0.0, 0.001}},
+      "transition_covariance"
+  );
+  expectMatrixNear(
+      updated_state.at("observation_matrix"), {{1.0, 0.0, 0.0}},
+      "observation_matrix"
+  );
+  EXPECT_NEAR(updated_state.at("observation_offset").get<double>(), 0.0, 1e-12)
+      << "Field 'observation_offset' is not zero.";
 }
 
 /**

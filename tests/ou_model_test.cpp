@@ -1,6 +1,5 @@
 #include "stochastic_models/entrypoints/ou_model.h"
 #include "stochastic_models/exceptions/errors.h"
-#include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -41,14 +40,14 @@ TEST(OuModelTest, hittingTimeDensityOutputTest) {
   double first = 1.04;
   double second = 1;
   double x = 1.02;
-  double tolerance = 1e-5;
+  const double tolerance = 5e-7;
 
   // Calculate the hitting time density.
   const double value =
       hittingTimeDensityOrnsteinUhlenbeck(x, mu, alpha, sigma, first, second);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.43046005, tolerance)
+  EXPECT_NEAR(value, 0.4304600561745479, tolerance)
       << "The value of the hitting time density calculated by "
          "hittingTimeDensityOrnsteinUhlenbeck is not equal to the expected "
          "value.";
@@ -59,7 +58,7 @@ TEST(OuModelTest, hittingTimeDensityOutputTest) {
  *
  */
 TEST(OuModelTest, ornsteinUhlenbeckMaximumLikelihoodOutputTest) {
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
   // Generate mock vector.
   const std::vector<double> test_vec{0.5, 0.25, 0.5, 0.75, 1.5, 0.5};
 
@@ -68,15 +67,15 @@ TEST(OuModelTest, ornsteinUhlenbeckMaximumLikelihoodOutputTest) {
       ornsteinUhlenbeckMaximumLikelihood(test_vec);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(roundToDecimals(likelihood.at("mu"), 8), 0.70000000, tolerance)
+  EXPECT_NEAR(likelihood.at("mu"), 0.7, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "mu.";
   // Expect equality for alpha value.
-  EXPECT_NEAR(roundToDecimals(likelihood.at("alpha"), 8), 2.91777073, tolerance)
+  EXPECT_NEAR(likelihood.at("alpha"), 2.917770732084274, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "alpha.";
   // Expect equality for sigma value.
-  EXPECT_NEAR(roundToDecimals(likelihood.at("sigma"), 8), 1.03902607, tolerance)
+  EXPECT_NEAR(likelihood.at("sigma"), 1.0390260684271504, tolerance)
       << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
          "sigma.";
 }

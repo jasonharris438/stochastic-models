@@ -12,7 +12,6 @@
 
 // Tests the return value of the getMean method.
 TEST(GeneralLinearModelTest, GetMeanTest) {
-  const float tolerance = 1e-5;
   const GeneralLinearModel model(-0.00143647, 10.4573);
   const double expected = 0.0;
   const double actual = model.getMean();

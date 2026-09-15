@@ -3,10 +3,11 @@
 // Context (issue #26): helpers.h used to include <gsl/gsl_integration.h>, which
 // transitively pulls in <math.h>. In C++ that injects an `abs(double)` overload
 // into the GLOBAL namespace. Because helpers.h is included by nearly every
-// translation unit (it declares roundToDecimals), that leak silently changed
-// how an unqualified `abs(double)` call resolved: with the leak it bound to the
-// floating-point overload; without it, `abs` falls back to C's integer abs(int)
-// from <cstdlib>, truncating the argument and returning 0 for any |x| < 1.
+// translation unit (it declares the shared numeric helpers), that leak silently
+// changed how an unqualified `abs(double)` call resolved: with the leak it
+// bound to the floating-point overload; without it, `abs` falls back to C's
+// integer abs(int) from <cstdlib>, truncating the argument and returning 0 for
+// any |x| < 1.
 //
 // We removed the GSL includes from helpers.h so it no longer leaks a global
 // abs. This guard locks that hygiene in place. The detector below is evaluated

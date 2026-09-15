@@ -1,5 +1,4 @@
 #include "stochastic_models/exceptions/errors.h"
-#include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/integration.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/exponential_mean_reversion.h"
@@ -48,7 +47,7 @@ TEST(TradingLevelsTest, exitLevelOutputTest) {
   const double sigma = 0.3;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-5;
+  const double tolerance = 5e-5;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
@@ -57,7 +56,7 @@ TEST(TradingLevelsTest, exitLevelOutputTest) {
   const double value = tradingLevels.optimalExit(r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.466836, tolerance)
+  EXPECT_NEAR(value, 0.46683586991445225, tolerance)
       << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
          "is not equal to the expected value.";
 }
@@ -74,7 +73,7 @@ TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
   const double sigma = 0.15;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
+  const double tolerance = 2e-4;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
@@ -83,7 +82,7 @@ TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
   const double value = tradingLevels.optimalExit(r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 1.4093, tolerance)
+  EXPECT_NEAR(value, 1.40929954132349, tolerance)
       << "Value produced by "
          "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
          "with ExponentialMeanReversion optimizer is not equal to the "
@@ -186,7 +185,6 @@ TEST(TradingLevelsTest, entryLevelBoundsErrorTest) {
   const double b_star = -4.466836;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);

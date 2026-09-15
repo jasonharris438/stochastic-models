@@ -65,18 +65,6 @@ void check_minimum_observations(
 const std::vector<double> valuesSquared(const std::vector<double>& vec);
 
 /**
- * @brief Round a floating-point value to a fixed number of decimal places.
- *
- * The rounding uses std::round after scaling by 10^decimals. The function is
- * stable for typical decimal ranges (e.g. decimals between 0 and 15).
- *
- * @param value Value to be rounded.
- * @param decimals Number of decimal places to round to (>=0).
- * @return const double Rounded value.
- */
-const double roundToDecimals(const double& value, const int& decimals);
-
-/**
  * @brief Provide an upper bound to give to numerical solvers.
  *
  * This helper uses the model mean plus four times the unconditional standard

@@ -1,4 +1,3 @@
-#include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/integration.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/optimal_mean_reversion.h"
@@ -17,7 +16,7 @@ TEST(OptimalMeanReversionTest, methodFOutputTest) {
   const double r = 0.05;
   const double c = 0.001;
   const double x = 1.01;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-5;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -27,7 +26,7 @@ TEST(OptimalMeanReversionTest, methodFOutputTest) {
   const double value = mean_reversion.F(&hitting_time_kernel, x, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 5.80482400, tolerance)
+  EXPECT_NEAR(value, 5.804824006148855, tolerance)
       << "Value produced by OptimalMeanReversion::F is not equal to the "
          "expected value.";
 }
@@ -44,7 +43,7 @@ TEST(OptimalMeanReversionTest, methodGOutputTest) {
   const double x = 0.2;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 2e-4;
+  const double tolerance = 2e-4;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -54,7 +53,7 @@ TEST(OptimalMeanReversionTest, methodGOutputTest) {
   const double value = mean_reversion.G(&hitting_time_kernel, x, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 163.617, tolerance)
+  EXPECT_NEAR(value, 163.61682127334302, tolerance)
       << "Value produced by OptimalMeanReversion::G is not equal to the "
          "expected value.";
 }
@@ -71,7 +70,7 @@ TEST(OptimalMeanReversionTest, methodBOutputTest) {
   const double guess = 0.4;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-3;
+  const double tolerance = 1e-3;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -81,7 +80,7 @@ TEST(OptimalMeanReversionTest, methodBOutputTest) {
   const double value = mean_reversion.b(guess, &hitting_time_kernel, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 135.511, tolerance)
+  EXPECT_NEAR(value, 135.51123787337457, tolerance)
       << "Value produced by OptimalMeanReversion::b is not equal to the "
          "expected value.";
 }
@@ -99,7 +98,7 @@ TEST(OptimalMeanReversionTest, methodBStopLossOutputTest) {
   const double guess = 0.28;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
+  const double tolerance = 5e-3;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -110,7 +109,7 @@ TEST(OptimalMeanReversionTest, methodBStopLossOutputTest) {
       mean_reversion.b(guess, &hitting_time_kernel, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 2), 187.81, tolerance)
+  EXPECT_NEAR(value, 187.80766789903623, tolerance)
       << "Value produced by OptimalMeanReversion::b with stop loss level is "
          "not equal to the expected value.";
 }
@@ -217,7 +216,7 @@ TEST(OptimalMeanReversionTest, methodAboveVOutputTest) {
   const double c = 0.02;
   const double r = 0.05;
   const double x = 0.55;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -227,7 +226,7 @@ TEST(OptimalMeanReversionTest, methodAboveVOutputTest) {
   const double value = mean_reversion.V(&hitting_time_kernel, x, b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.53, tolerance)
+  EXPECT_NEAR(value, 0.53, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is above b*.";
 }
@@ -245,7 +244,7 @@ TEST(OptimalMeanReversionTest, methodBelowVOutputTest) {
   const double c = 0.02;
   const double r = 0.05;
   const double x = 0.15;
-  const float tolerance = 1e-5;
+  const double tolerance = 5e-7;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -255,7 +254,7 @@ TEST(OptimalMeanReversionTest, methodBelowVOutputTest) {
   const double value = mean_reversion.V(&hitting_time_kernel, x, b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.403389, tolerance)
+  EXPECT_NEAR(value, 0.4033891920689373, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is below b*.";
 }
@@ -275,7 +274,7 @@ TEST(OptimalMeanReversionTest, methodAboveVStopLossOutputTest) {
   const double c = 0.05;
   const double r = 0.05;
   const double x = 0.6;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -286,7 +285,7 @@ TEST(OptimalMeanReversionTest, methodAboveVStopLossOutputTest) {
       mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.55, tolerance)
+  EXPECT_NEAR(value, 0.55, tolerance)
       << "Value produced by OptimalMeanReversion::V is not equal to the "
          "expected value when x is above b* and a stop loss is provided.";
 }

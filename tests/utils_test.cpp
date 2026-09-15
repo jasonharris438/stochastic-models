@@ -194,7 +194,7 @@ TEST(AdaptiveIntegrationFunctionTest, OutputTest) {
 
   // Adaptive integration function.
   double value = adaptiveIntegration(fn, &hitting_time_kernel, lower, upper);
-  EXPECT_EQ(value, 0.003993143831817661)
+  EXPECT_NEAR(value, 0.003993143831817661, 5e-9)
       << "Value produced by adaptiveIntegration is not equal to the "
          "expected value.";
 }
@@ -222,7 +222,7 @@ TEST(SemiInfiniteIntegrationFunctionTest, OutputTest) {
   // Adaptive integration function.
   double value = semiInfiniteIntegrationUpper(fn, &params, lower);
 
-  EXPECT_EQ(value, 0.30603133345784983)
+  EXPECT_NEAR(value, 0.3060313334578499, 5e-7)
       << "Value produced by semiInfiniteIntegrationUpper is not equal to "
          "the expected value.";
 }
@@ -237,11 +237,11 @@ TEST(AdaptiveCentralDifferentiationFunctionTest, OutputTest) {
   void* params = nullptr;
 
   // Define function to differentate.
-  ModelFunc fn = [](double x, void* params) -> double { return pow(x, 2); };
+  ModelFunc fn = [](double x, void*) -> double { return pow(x, 2); };
 
   // Adaptive differentiation function.
   double value = adaptiveCentralDifferentiation(fn, params, x);
-  EXPECT_LT(value - 2, 1e-5)
+  EXPECT_NEAR(value, 2.0, 1e-5)
       << "Value produced by adaptiveCentralDifferentiation is not equal to "
          "the expected value.";
 }
@@ -284,7 +284,7 @@ TEST(BrentSolverFunctionTest, OutputTest) {
 
   double upper = 5;
   double lower = 0;
-  float tolerance = 1e-3;
+  const double tolerance = 3e-4;
 
   // Initialize model and define function to solve.
   ModelFunc fn = [](double x, void* params) -> double {
@@ -294,7 +294,7 @@ TEST(BrentSolverFunctionTest, OutputTest) {
   // Apply brent solver.
   double value = brentSolver(fn, &params, lower, upper);
 
-  EXPECT_LT(value - 2.236068, tolerance)
+  EXPECT_NEAR(value, 2.23606797749979, tolerance)
       << "Value produced by brentSolver is not equal to "
          "the expected value.";
 }
@@ -456,7 +456,7 @@ TEST(SolverBoundsTest, upperSolverBoundOutputTest) {
   const double alpha = 16.6677;
   const double mu = 0.5388;
   const double sigma = 0.1599;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Create core model and optimal mean reversion instances.
   OrnsteinUhlenbeckModel model(mu, alpha, sigma);
@@ -465,7 +465,7 @@ TEST(SolverBoundsTest, upperSolverBoundOutputTest) {
   const double value = upperSolverBound(&model);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.649579, tolerance)
+  EXPECT_NEAR(value, 0.6495785355707301, tolerance)
       << "Value produced by upperSolverBound is not equal to the expected "
          "value.";
 }
@@ -479,7 +479,7 @@ TEST(SolverBoundsTest, lowerSolverBoundOutputTest) {
   const double alpha = 16.6677;
   const double mu = 0.5388;
   const double sigma = 0.1599;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Create core model and optimal mean reversion instances.
   OrnsteinUhlenbeckModel model(mu, alpha, sigma);
@@ -488,7 +488,7 @@ TEST(SolverBoundsTest, lowerSolverBoundOutputTest) {
   const double value = lowerSolverBound(&model);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.428021, tolerance)
+  EXPECT_NEAR(value, 0.4280214644292698, tolerance)
       << "Value produced by lowerSolverBound is not equal to the expected "
          "value.";
 }

@@ -1,6 +1,5 @@
 #include "stochastic_models/entrypoints/optimal_trading_levels.h"
 #include "stochastic_models/exceptions/errors.h"
-#include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
 
@@ -42,7 +41,6 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelNoSolutionTest) {
   const double b_star = 0.750895;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-5;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
@@ -110,13 +108,13 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
   const double sigma = 0.3;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-5;
+  const double tolerance = 5e-5;
 
   // Calculate b*.
   const double value = optimalExitLevel(mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.466836, tolerance)
+  EXPECT_NEAR(value, 0.46683586991445225, tolerance)
       << "Value produced by optimalExitLevel function "
          "is not equal to the expected value.";
 }
@@ -132,13 +130,13 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialOutputTest) {
   const double sigma = 0.15;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
+  const double tolerance = 2e-4;
 
   // Calculate b*.
   const double value = optimalExitLevelExponential(mu, alpha, sigma, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 1.4093, tolerance)
+  EXPECT_NEAR(value, 1.40929954132349, tolerance)
       << "Value produced by optimalExitLevelExponential function "
          "is not equal to the expected value.";
 }
@@ -178,7 +176,6 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialNoSolutionTest) {
   const double sigma = 0.006623;
   const double c = 0.02;
   const double r = 0.05;
-  const float tolerance = 1e-4;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(

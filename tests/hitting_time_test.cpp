@@ -1,7 +1,6 @@
 #include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/hitting_times/hitting_time_density.h"
 #include "stochastic_models/hitting_times/hitting_time_ornstein_uhlenbeck.h"
-#include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/numeric_utils/integration.h"
 
 #include <gtest/gtest.h>
@@ -18,7 +17,7 @@ TEST(HittingTimeDensityTest, hittingTimeDensityOutputTest) {
   double first = 1.04;
   double second = 1;
   double x = 1.02;
-  double tolerance = 1e-5;
+  const double tolerance = 5e-7;
   // Create core model instance and declare function to use.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel =
       HittingTimeOrnsteinUhlenbeck(mu, alpha, sigma);
@@ -29,7 +28,7 @@ TEST(HittingTimeDensityTest, hittingTimeDensityOutputTest) {
       hittingTimeDensity(x, fn, &hitting_time_kernel, first, second);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.43046005, tolerance)
+  EXPECT_NEAR(value, 0.4304600561745479, tolerance)
       << "The value of the hitting time density is not equal to the expected "
          "value.";
 }
