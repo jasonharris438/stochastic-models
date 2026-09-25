@@ -1,19 +1,33 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["numpy==2.5.3", "scipy==1.18.1"]
+# ///
 """Independent replica of the expected values locked by the unit tests.
 
 Every value is computed from the model formulas with scipy, not from the
 library. Quadrature uses QAWS for the algebraic endpoint singularity and
 brentq for the roots. Run with:
 
-    uv run --with numpy --with scipy tools/derivations/expected_values.py
+    uv run --script tools/derivations/expected_values.py
+
+Without arguments the script prints one `name value` line per expected value,
+keyed by the gtest identifier that locks it. With `--header PATH` it writes the
+same values as a C++ header of compile time constants.
 """
 
+import argparse
+import re
 from dataclasses import dataclass
-from typing import Callable, Dict, List
+from decimal import Decimal
+from pathlib import Path
+from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import brentq
 from scipy.stats import norm
+
+ExpectedValue = Union[float, int, List[float], List[List[float]]]
 
 
 @dataclass(frozen=True)
@@ -34,6 +48,31 @@ class OrnsteinUhlenbeck:
         """The factor sqrt(2 alpha / sigma^2) in the trading kernels."""
         return np.sqrt(2.0 * self.alpha) / self.sigma
 
+    def conditional_variance(self, step: float) -> float:
+        """Variance over one step, sigma^2 (1 - exp(-2 alpha t)) / (2 alpha)."""
+        if abs(self.alpha) < 1e-12:
+            return self.sigma**2 * step
+        return float(self.sigma**2 * -np.expm1(-2.0 * self.alpha * step) / (2.0 * self.alpha))
+
+
+@dataclass(frozen=True)
+class GeneralLinear:
+    """Parameters of dX = mu X dt + sigma dW."""
+
+    mu: float
+    sigma: float
+
+    @property
+    def unconditional_variance(self) -> float:
+        """Stationary variance sigma^2 / (-2 mu), defined only for mu < 0."""
+        return self.sigma**2 / (-2.0 * self.mu)
+
+    def conditional_variance(self, step: float) -> float:
+        """Variance over one step, sigma^2 (exp(2 mu t) - 1) / (2 mu)."""
+        if abs(self.mu) < 1e-12:
+            return self.sigma**2 * step
+        return float(self.sigma**2 * np.expm1(2.0 * self.mu * step) / (2.0 * self.mu))
+
 
 @dataclass(frozen=True)
 class TradingCosts:
@@ -53,6 +92,15 @@ class OrnsteinUhlenbeckSums:
     lag_sum_squared: float
     lead_lag_sum_product: float
     n_obs: int
+
+
+def net_gain(level: float, cost: float) -> float:
+    """Immediate payoff level - cost, subtracted as an exact decimal.
+
+    Binary subtraction of the two short decimals the tests use leaves a value
+    one unit in the last place below the decimal the assertion reads.
+    """
+    return float(Decimal(str(level)) - Decimal(str(cost)))
 
 
 def hitting_time_core(x: float, *, model: OrnsteinUhlenbeck) -> float:
@@ -190,7 +238,7 @@ def value_function(
 ) -> float:
     """Value function (b - c) F(x) / F(b) below the exit, x - c above it."""
     if x >= exit_level:
-        return x - costs.cost
+        return net_gain(x, costs.cost)
     rate = costs.rate
     return (
         (exit_level - costs.cost)
@@ -199,13 +247,192 @@ def value_function(
     )
 
 
+def derivative_value_function(
+    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+) -> float:
+    """V'(x) = (b - c) F'(x) / F(b) below the exit, one above it."""
+    if x >= exit_level:
+        return 1.0
+    rate = costs.rate
+    return (
+        (exit_level - costs.cost)
+        * derivative_f(x, model=model, rate=rate)
+        / function_f(exit_level, model=model, rate=rate)
+    )
+
+
+def stop_loss_weights(
+    *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float, stop_loss: float
+) -> Tuple[float, float]:
+    """Weights C and D of the stop loss value function C F + D G."""
+    rate = costs.rate
+    level_less_cost = exit_level - costs.cost
+    stop_less_cost = stop_loss - costs.cost
+    f_level = function_f(exit_level, model=model, rate=rate)
+    f_stop = function_f(stop_loss, model=model, rate=rate)
+    g_level = function_g(exit_level, model=model, rate=rate)
+    g_stop = function_g(stop_loss, model=model, rate=rate)
+    denominator = f_level * g_stop - f_stop * g_level
+    weight_f = (level_less_cost * g_stop - stop_less_cost * g_level) / denominator
+    weight_g = (stop_less_cost * f_level - level_less_cost * f_stop) / denominator
+    return weight_f, weight_g
+
+
+def value_function_stop_loss(
+    x: float,
+    *,
+    model: OrnsteinUhlenbeck,
+    costs: TradingCosts,
+    exit_level: float,
+    stop_loss: float,
+) -> float:
+    """Value function C F(x) + D G(x) between the stop loss and the exit, x - c outside."""
+    if not (exit_level > x > stop_loss):
+        return net_gain(x, costs.cost)
+    weight_f, weight_g = stop_loss_weights(
+        model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
+    )
+    rate = costs.rate
+    return weight_f * function_f(x, model=model, rate=rate) + weight_g * function_g(
+        x, model=model, rate=rate
+    )
+
+
+def derivative_value_function_stop_loss(
+    x: float,
+    *,
+    model: OrnsteinUhlenbeck,
+    costs: TradingCosts,
+    exit_level: float,
+    stop_loss: float,
+) -> float:
+    """V'(x) = C F'(x) + D G'(x) from the stop loss up to the exit, one outside.
+
+    At the stop loss itself the slope is the limit from inside the
+    continuation region, where the payoff kink makes the left slope differ.
+    """
+    if not (exit_level > x >= stop_loss):
+        return 1.0
+    weight_f, weight_g = stop_loss_weights(
+        model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
+    )
+    rate = costs.rate
+    return weight_f * derivative_f(x, model=model, rate=rate) + weight_g * derivative_g(
+        x, model=model, rate=rate
+    )
+
+
+def value_function_exponential(
+    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+) -> float:
+    """Value function (e^b - c) F(x) / F(b) below the exit, e^x - c above it."""
+    if x >= exit_level:
+        return float(np.exp(x)) - costs.cost
+    rate = costs.rate
+    return (
+        (float(np.exp(exit_level)) - costs.cost)
+        * function_f(x, model=model, rate=rate)
+        / function_f(exit_level, model=model, rate=rate)
+    )
+
+
+def derivative_value_function_exponential(
+    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+) -> float:
+    """V'(x) = (e^b - c) F'(x) / F(b) below the exit, e^x above it."""
+    if x >= exit_level:
+        return float(np.exp(x))
+    rate = costs.rate
+    return (
+        (float(np.exp(exit_level)) - costs.cost)
+        * derivative_f(x, model=model, rate=rate)
+        / function_f(exit_level, model=model, rate=rate)
+    )
+
+
+def entry_residual(
+    level: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+) -> float:
+    """Entry residual G(d) (V'(d) - 1) - G'(d) (V(d) - d - c) with no stop loss."""
+    rate = costs.rate
+    value = value_function(level, model=model, costs=costs, exit_level=exit_level)
+    slope = derivative_value_function(level, model=model, costs=costs, exit_level=exit_level)
+    return function_g(level, model=model, rate=rate) * (slope - 1.0) - derivative_g(
+        level, model=model, rate=rate
+    ) * (value - level - costs.cost)
+
+
+def entry_residual_stop_loss(
+    level: float,
+    *,
+    model: OrnsteinUhlenbeck,
+    costs: TradingCosts,
+    exit_level: float,
+    stop_loss: float,
+) -> float:
+    """Entry residual G(d) (V'(d) - 1) - G'(d) (V(d) - d - c) with a stop loss."""
+    rate = costs.rate
+    value = value_function_stop_loss(
+        level, model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
+    )
+    slope = derivative_value_function_stop_loss(
+        level, model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
+    )
+    return function_g(level, model=model, rate=rate) * (slope - 1.0) - derivative_g(
+        level, model=model, rate=rate
+    ) * (value - level - costs.cost)
+
+
+def lower_entry_residual_stop_loss(
+    level: float,
+    *,
+    model: OrnsteinUhlenbeck,
+    costs: TradingCosts,
+    exit_level: float,
+    stop_loss: float,
+) -> float:
+    """Lower entry residual F(a) (V'(a) - 1) - F'(a) (V(a) - a - c) with a stop loss."""
+    rate = costs.rate
+    value = value_function_stop_loss(
+        level, model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
+    )
+    slope = derivative_value_function_stop_loss(
+        level, model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
+    )
+    return function_f(level, model=model, rate=rate) * (slope - 1.0) - derivative_f(
+        level, model=model, rate=rate
+    ) * (value - level - costs.cost)
+
+
+def entry_residual_exponential(
+    level: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+) -> float:
+    """Entry residual G(d) (V'(d) - e^d) - G'(d) (V(d) - e^d - c) of the exponential model."""
+    rate = costs.rate
+    payoff = float(np.exp(level))
+    value = value_function_exponential(level, model=model, costs=costs, exit_level=exit_level)
+    slope = derivative_value_function_exponential(
+        level, model=model, costs=costs, exit_level=exit_level
+    )
+    return function_g(level, model=model, rate=rate) * (slope - payoff) - derivative_g(
+        level, model=model, rate=rate
+    ) * (value - payoff - costs.cost)
+
+
+def solve_level(residual: Callable[[float], float], *, lower: float, upper: float) -> float:
+    """Root of the residual inside the library's solver bracket."""
+    return float(brentq(residual, lower, upper, xtol=1e-14, rtol=1e-14, maxiter=500))
+
+
 def solve_exit_level(
     residual: Callable[[float], float], *, model: OrnsteinUhlenbeck, costs: TradingCosts
 ) -> float:
-    """Root of the residual inside the library's solver bracket."""
-    lower = max(level_l_star(model=model, costs=costs), costs.cost)
-    upper = model.mu + 4.0 * model.stationary_deviation
-    return float(brentq(residual, lower, upper, xtol=1e-14, rtol=1e-14, maxiter=500))
+    """Root of the exit residual inside the library's exit bracket."""
+    return solve_level(
+        residual,
+        lower=max(level_l_star(model=model, costs=costs), costs.cost),
+        upper=model.mu + 4.0 * model.stationary_deviation,
+    )
 
 
 def ornstein_uhlenbeck_sums(series: List[float]) -> OrnsteinUhlenbeckSums:
@@ -258,6 +485,16 @@ def ornstein_uhlenbeck_estimate(sums: OrnsteinUhlenbeckSums) -> OrnsteinUhlenbec
     return OrnsteinUhlenbeck(mu=float(mu), alpha=float(alpha), sigma=float(sigma))
 
 
+def vector_values(values: np.ndarray) -> List[float]:
+    """Plain float list of a numpy vector."""
+    return [float(value) for value in values]
+
+
+def matrix_values(values: np.ndarray) -> List[List[float]]:
+    """Plain float list of lists of a numpy matrix."""
+    return [[float(value) for value in row] for row in values]
+
+
 @dataclass(frozen=True)
 class KcaState:
     """Kinetic components state: three-state constant-acceleration Kalman filter."""
@@ -267,6 +504,7 @@ class KcaState:
     current_state_mean: np.ndarray
     current_state_covariance: np.ndarray
     observation_matrix: np.ndarray
+    observation_offset: float = 0.0
 
 
 def kca_initial_state(series: List[float], *, step: float, noise: float) -> KcaState:
@@ -302,19 +540,33 @@ def kca_update(state: KcaState, *, observation: float, innovation_sigma: float) 
     gain = predicted_covariance @ observation_matrix.T @ np.linalg.inv(innovation_covariance)
     innovation = observation - (observation_matrix @ predicted_mean)[0]
     corrected_mean = predicted_mean + gain[:, 0] * innovation
-    corrected_covariance = (np.eye(3) - gain @ observation_matrix) @ predicted_covariance
+    corrected_covariance = predicted_covariance - gain @ (observation_matrix @ predicted_covariance)
     return KcaState(
         transition_matrix=transition,
         transition_covariance=state.transition_covariance,
         current_state_mean=corrected_mean,
         current_state_covariance=corrected_covariance,
         observation_matrix=observation_matrix,
+        observation_offset=state.observation_offset,
     )
 
 
-def kca_expected_values() -> Dict[str, float]:
-    """Expected numeric fields of the two KCA entry point tests."""
-    values: Dict[str, float] = {}
+def kca_state_values(prefix: str, state: KcaState, fields: List[str]) -> Dict[str, ExpectedValue]:
+    """Expected value entries for the named fields of one KCA state."""
+    values: Dict[str, ExpectedValue] = {}
+    for field in fields:
+        member = getattr(state, field)
+        if isinstance(member, float):
+            values[f"{prefix}.{field}"] = member
+        elif member.ndim == 1:
+            values[f"{prefix}.{field}"] = vector_values(member)
+        else:
+            values[f"{prefix}.{field}"] = matrix_values(member)
+    return values
+
+
+def kca_expected_values() -> Dict[str, ExpectedValue]:
+    """Expected state fields of the two KCA entry point tests."""
     series = [
         10.51255,
         10.51985,
@@ -338,14 +590,18 @@ def kca_expected_values() -> Dict[str, float]:
         10.27645,
     ]
     initial = kca_initial_state(series, step=1.0, noise=0.001)
-    values["kca_filter_test.getInitializedKcaStateTest.current_state_mean_0"] = float(
-        initial.current_state_mean[0]
+    values = kca_state_values(
+        "KcaTest.getInitializedKcaStateTest",
+        initial,
+        [
+            "transition_matrix",
+            "transition_covariance",
+            "current_state_mean",
+            "current_state_covariance",
+            "observation_matrix",
+            "observation_offset",
+        ],
     )
-    for row in range(3):
-        for column in range(3):
-            values[
-                f"kca_filter_test.getInitializedKcaStateTest.transition_covariance_{row}{column}"
-            ] = float(initial.transition_covariance[row, column])
     prior = KcaState(
         transition_matrix=np.array(
             [[1.0011961162353782, 1.0, 0.5], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
@@ -356,127 +612,360 @@ def kca_expected_values() -> Dict[str, float]:
         observation_matrix=np.array([[1.0, 0.0, 0.0]]),
     )
     posterior = kca_update(prior, observation=10.3, innovation_sigma=0.1)
-    values["kca_filter_test.getUpdatedKcaStateTest.current_state_mean_0"] = float(
-        posterior.current_state_mean[0]
+    values.update(
+        kca_state_values(
+            "KcaTest.getUpdatedKcaStateTest",
+            posterior,
+            [
+                "current_state_mean",
+                "current_state_covariance",
+                "transition_matrix",
+                "transition_covariance",
+                "observation_matrix",
+                "observation_offset",
+            ],
+        )
     )
-    for row in range(3):
-        for column in range(3):
-            values[
-                f"kca_filter_test.getUpdatedKcaStateTest.current_state_covariance_{row}{column}"
-            ] = float(posterior.current_state_covariance[row, column])
     return values
 
 
-def expected_values() -> Dict[str, float]:
-    """Every expected value, keyed by test file and test name."""
-    values: Dict[str, float] = {}
+def filter_states_expected_values() -> Dict[str, ExpectedValue]:
+    """Expected vectors and matrices of the Kalman filter state unit tests."""
+    values: Dict[str, ExpectedValue] = {}
+    observation_matrix = np.array([[1.0, 0.0, 0.0]])
+    state_covariance = np.diag([0.013744, 0.001, 0.001])
+    zero_covariance = np.zeros((3, 3))
+
+    transition_matrix = np.array([[1.000295, 1.0, 0.5], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]])
+    values["KalmanFilterTest.PredictedStateCalculateCovarianceTest.predicted_state_covariance"] = (
+        matrix_values(transition_matrix @ zero_covariance @ transition_matrix.T + state_covariance)
+    )
+    values["KalmanFilterTest.PredictedStateCalculateMeanTest.predicted_state_mean"] = vector_values(
+        transition_matrix @ np.array([1.330593, 0.0, 0.0])
+    )
+
+    predicted_state_mean = np.array([1.330986, 0.0, 0.0])
+    values["KalmanFilterTest.PredictedObservationCalculateMeanTest.predicted_observation_mean"] = (
+        vector_values(observation_matrix @ predicted_state_mean + 0.0)
+    )
+    values[
+        "KalmanFilterTest.PredictedObservationCalculateCovarianceTest"
+        ".predicted_observation_covariance"
+    ] = matrix_values(observation_matrix @ state_covariance @ observation_matrix.T + 0.00687526**2)
+    values["KalmanFilterTest.PredictedObservationCalculateKalmanGainTest.kalman_gain"] = (
+        matrix_values(
+            state_covariance @ observation_matrix.T @ np.linalg.inv(np.array([[0.0137917]]))
+        )
+    )
+
+    gain_column = np.array([[0.99657263], [0.0], [0.0]])
+    values["KalmanFilterTest.CurrentStateCalculateMeanTest.current_state_mean"] = vector_values(
+        predicted_state_mean + gain_column[:, 0] * -0.02018567
+    )
+    values["KalmanFilterTest.CurrentStateCalculateCovarianceTest.current_state_covariance"] = (
+        matrix_values(state_covariance - gain_column @ (observation_matrix @ state_covariance))
+    )
+
+    kca_transition_matrix = np.array(
+        [[1.0011961162353782, 1.0, 0.5], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
+    )
+    kca_transition_covariance = np.diag([0.12695229227341848, 0.001, 0.001])
+    kca_predicted_mean = kca_transition_matrix @ np.array([10.288741828687053, 0.0, 0.0])
+    kca_predicted_covariance = (
+        kca_transition_matrix @ zero_covariance @ kca_transition_matrix.T
+        + kca_transition_covariance
+    )
+    values["KalmanFilterStateTest.KcaStatesupdatePredictedStateTest.predicted_state_mean"] = (
+        vector_values(kca_predicted_mean)
+    )
+    values["KalmanFilterStateTest.KcaStatesupdatePredictedStateTest.predicted_state_covariance"] = (
+        matrix_values(kca_predicted_covariance)
+    )
+
+    innovation_sigma = 0.1
+    predicted_observation_mean = observation_matrix @ kca_predicted_mean + 0.0
+    predicted_observation_covariance = (
+        observation_matrix @ kca_predicted_covariance @ observation_matrix.T + innovation_sigma**2
+    )
+    kca_gain = (
+        kca_predicted_covariance
+        @ observation_matrix.T
+        @ np.linalg.inv(predicted_observation_covariance)
+    )
+    innovation = 10.3 - predicted_observation_mean[0]
+    values["KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.predicted_observation_mean"] = (
+        vector_values(predicted_observation_mean)
+    )
+    values[
+        "KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.predicted_observation_covariance"
+    ] = matrix_values(predicted_observation_covariance)
+    values["KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.current_state_mean"] = (
+        vector_values(kca_predicted_mean + kca_gain[:, 0] * innovation)
+    )
+    values["KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.current_state_covariance"] = (
+        matrix_values(
+            kca_predicted_covariance - kca_gain @ (observation_matrix @ kca_predicted_covariance)
+        )
+    )
+    return values
+
+
+def expected_values() -> Dict[str, ExpectedValue]:
+    """Every expected value, keyed by the gtest identifier that locks it."""
+    values: Dict[str, ExpectedValue] = {}
 
     book_model = OrnsteinUhlenbeck(mu=0.3, alpha=8.0, sigma=0.3)
     book_costs = TradingCosts(rate=0.05, cost=0.02)
     exponential_model = OrnsteinUhlenbeck(mu=1.3499, alpha=5.0, sigma=0.15)
     stop_loss_model = OrnsteinUhlenbeck(mu=0.5388, alpha=16.6677, sigma=0.1599)
+    stop_loss_costs = TradingCosts(rate=0.05, cost=0.05)
+    book_stop_loss = 0.04
 
     density_model = OrnsteinUhlenbeck(mu=0.998, alpha=0.0045, sigma=0.0038)
     density = hitting_time_density(1.02, model=density_model, first=1.04, second=1.0)
-    values["hitting_time_test.hittingTimeDensityOutputTest"] = density
-    values["ou_model_test.hittingTimeDensityOutputTest"] = density
+    values["HittingTimeDensityTest.hittingTimeDensityOutputTest"] = density
+    values["OuModelTest.hittingTimeDensityOutputTest"] = density
 
     exit_level = solve_exit_level(
         lambda level: exit_residual(level, model=book_model, costs=book_costs),
         model=book_model,
         costs=book_costs,
     )
-    values["optimal_trading_levels_test.optimalExitLevelOutputTest"] = exit_level
-    values["trading_levels_test.exitLevelOutputTest"] = exit_level
+    values["OptimalTradingLevelsTest.optimalExitLevelOutputTest"] = exit_level
+    values["TradingLevelsTest.exitLevelOutputTest"] = exit_level
     exit_level_exponential = solve_exit_level(
         lambda level: exit_residual_exponential(level, model=exponential_model, costs=book_costs),
         model=exponential_model,
         costs=book_costs,
     )
-    values["optimal_trading_levels_test.optimalExitLevelExponentialOutputTest"] = (
+    values["OptimalTradingLevelsTest.optimalExitLevelExponentialOutputTest"] = (
         exit_level_exponential
     )
-    values["trading_levels_test.exitLevelExponentialOutputTest"] = exit_level_exponential
+    values["TradingLevelsTest.exitLevelExponentialOutputTest"] = exit_level_exponential
+
+    exit_level_stop_loss = solve_exit_level(
+        lambda level: exit_residual_stop_loss(
+            level, model=book_model, costs=book_costs, stop_loss=book_stop_loss
+        ),
+        model=book_model,
+        costs=book_costs,
+    )
+    values["OptimalTradingLevelsTest.optimalExitLevelStopLossOutputTest"] = exit_level_stop_loss
+    values["TradingLevelsTest.exitLevelStopLossOutputTest"] = exit_level_stop_loss
+
+    entry_level_stop_loss = solve_level(
+        lambda level: entry_residual_stop_loss(
+            level,
+            model=book_model,
+            costs=book_costs,
+            exit_level=0.455191,
+            stop_loss=book_stop_loss,
+        ),
+        lower=book_stop_loss,
+        upper=0.455191,
+    )
+    values["OptimalTradingLevelsTest.optimalEntryLevelStopLossOutputTest"] = entry_level_stop_loss
+    values["TradingLevelsTest.entryLevelStopLossOutputTest"] = entry_level_stop_loss
+
+    lower_entry_level_stop_loss = solve_level(
+        lambda level: lower_entry_residual_stop_loss(
+            level,
+            model=book_model,
+            costs=book_costs,
+            exit_level=0.455191,
+            stop_loss=book_stop_loss,
+        ),
+        lower=book_stop_loss,
+        upper=0.13093,
+    )
+    values["OptimalTradingLevelsTest.optimalEntryLowerStopLossOutputTest"] = (
+        lower_entry_level_stop_loss
+    )
+    values["TradingLevelsTest.entryLevelLowerBoundStopLossOutputTest"] = lower_entry_level_stop_loss
+
+    entry_level = solve_level(
+        lambda level: entry_residual(
+            level, model=book_model, costs=book_costs, exit_level=0.466836
+        ),
+        lower=book_model.mu - 4.0 * book_model.stationary_deviation,
+        upper=0.466836,
+    )
+    values["OptimalTradingLevelsTest.optimalEntryLevelOutputTest"] = entry_level
+    values["TradingLevelsTest.entryLevelOutputTest"] = entry_level
+
+    entry_level_exponential = solve_level(
+        lambda level: entry_residual_exponential(
+            level, model=exponential_model, costs=book_costs, exit_level=1.4093
+        ),
+        lower=exponential_model.mu - 4.0 * exponential_model.stationary_deviation,
+        upper=1.4093,
+    )
+    values["OptimalTradingLevelsTest.optimalEntryLevelExponentialOutputTest"] = (
+        entry_level_exponential
+    )
+    values["TradingLevelsTest.entryLevelExponentialOutputTest"] = entry_level_exponential
+
+    chain_entry_level = solve_level(
+        lambda level: entry_residual_stop_loss(
+            level,
+            model=book_model,
+            costs=book_costs,
+            exit_level=exit_level_stop_loss,
+            stop_loss=book_stop_loss,
+        ),
+        lower=book_stop_loss,
+        upper=exit_level_stop_loss,
+    )
+    chain_lower_entry_level = solve_level(
+        lambda level: lower_entry_residual_stop_loss(
+            level,
+            model=book_model,
+            costs=book_costs,
+            exit_level=exit_level_stop_loss,
+            stop_loss=book_stop_loss,
+        ),
+        lower=book_stop_loss,
+        upper=chain_entry_level,
+    )
+    values["TradingLevelsTest.levelOrderingChainTest.b_star"] = exit_level
+    values["TradingLevelsTest.levelOrderingChainTest.b_star_stop_loss"] = exit_level_stop_loss
+    values["TradingLevelsTest.levelOrderingChainTest.d_star"] = chain_entry_level
+    values["TradingLevelsTest.levelOrderingChainTest.a_star"] = chain_lower_entry_level
 
     narrow_model = OrnsteinUhlenbeck(mu=0.995, alpha=0.02, sigma=0.003)
-    values["optimal_mean_reversion_test.methodFOutputTest"] = function_f(
+    values["OptimalMeanReversionTest.methodFOutputTest"] = function_f(
         1.01, model=narrow_model, rate=0.05
     )
-    values["optimal_mean_reversion_test.methodGOutputTest"] = function_g(
+    values["OptimalMeanReversionTest.methodGOutputTest"] = function_g(
         0.2, model=book_model, rate=0.05
     )
-    values["optimal_mean_reversion_test.methodBOutputTest"] = exit_residual(
+    values["OptimalMeanReversionTest.methodBOutputTest"] = exit_residual(
         0.4, model=book_model, costs=book_costs
     )
-    values["optimal_mean_reversion_test.methodBStopLossOutputTest"] = exit_residual_stop_loss(
+    values["OptimalMeanReversionTest.methodBStopLossOutputTest"] = exit_residual_stop_loss(
         0.28, model=book_model, costs=book_costs, stop_loss=0.2
     )
-    values["optimal_mean_reversion_test.methodAboveVOutputTest"] = value_function(
+    values["OptimalMeanReversionTest.methodDOutputTest"] = entry_residual(
+        0.4, model=book_model, costs=book_costs, exit_level=0.46683583
+    )
+    values["OptimalMeanReversionTest.methodDStopLossOutputTest"] = entry_residual_stop_loss(
+        0.4, model=book_model, costs=book_costs, exit_level=0.466836, stop_loss=0.1
+    )
+    values["OptimalMeanReversionTest.methodAStopLossOutputTest"] = lower_entry_residual_stop_loss(
+        0.4, model=book_model, costs=book_costs, exit_level=0.466836, stop_loss=-0.3
+    )
+    values["OptimalMeanReversionTest.methodAboveVOutputTest"] = value_function(
         0.55, model=book_model, costs=book_costs, exit_level=0.466836
     )
-    values["optimal_mean_reversion_test.methodBelowVOutputTest"] = value_function(
+    values["OptimalMeanReversionTest.methodBelowVOutputTest"] = value_function(
         0.15, model=book_model, costs=book_costs, exit_level=0.466836
     )
-    values["optimal_mean_reversion_test.methodAboveVStopLossOutputTest"] = value_function(
-        0.6, model=stop_loss_model, costs=TradingCosts(rate=0.05, cost=0.05), exit_level=0.567304
+    values["OptimalMeanReversionTest.methodAboveVStopLossOutputTest"] = value_function_stop_loss(
+        0.6,
+        model=stop_loss_model,
+        costs=stop_loss_costs,
+        exit_level=0.567304,
+        stop_loss=0.4834,
+    )
+    values["OptimalMeanReversionTest.methodBelowVStopLossOutputTest"] = value_function_stop_loss(
+        0.5,
+        model=stop_loss_model,
+        costs=stop_loss_costs,
+        exit_level=0.567304,
+        stop_loss=0.4834,
     )
 
-    values["gaussian_distribution_test.cdfTest"] = float(norm.cdf(1.2, loc=0.996, scale=1.1))
+    values["GaussianDistributionTest.cdfTest"] = float(norm.cdf(1.2, loc=0.996, scale=1.1))
 
     slow_model = OrnsteinUhlenbeck(mu=0.5, alpha=0.02, sigma=0.05)
-    values["ornstein_uhlenbeck_test.getUnconditionalVarianceOutputTest"] = (
+    values["OrnsteinUhlenbeckModelTest.getUnconditionalVarianceOutputTest"] = (
         slow_model.stationary_deviation**2
     )
-    values["ornstein_uhlenbeck_test.getMeanOutputTest"] = slow_model.mu
-    values["ornstein_uhlenbeck_test.hittingTimeCoreOutputTest"] = hitting_time_core(
+    values["OrnsteinUhlenbeckModelTest.getMeanOutputTest"] = slow_model.mu
+    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceOutputTest.step_one"] = (
+        slow_model.conditional_variance(1.0)
+    )
+    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceOutputTest.step_two"] = (
+        slow_model.conditional_variance(2.0)
+    )
+    zero_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=0.0, sigma=0.05)
+    near_zero_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=1.1e-12, sigma=0.05)
+    values[
+        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.zero_alpha_step_one"
+    ] = zero_alpha_model.conditional_variance(1.0)
+    values[
+        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.zero_alpha_step_two"
+    ] = zero_alpha_model.conditional_variance(2.0)
+    values[
+        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest"
+        ".near_zero_alpha_step_one"
+    ] = near_zero_alpha_model.conditional_variance(1.0)
+
+    values["HittingTimeOrnsteinUhlenbeckTest.hittingTimeCoreOutputTest"] = hitting_time_core(
         0.3, model=slow_model
     )
-    values["ornstein_uhlenbeck_test.optimalTradingFCoreOutputTest"] = float(
+    values["HittingTimeOrnsteinUhlenbeckTest.optimalTradingFCoreOutputTest"] = float(
         0.1 ** (0.02 / slow_model.alpha - 1.0)
         * np.exp(slow_model.scaled_drift * (0.3 - slow_model.mu) * 0.1 - 0.1**2 / 2.0)
     )
-    values["ornstein_uhlenbeck_test.optimalTradingGCoreOutputTest"] = float(
+    values["HittingTimeOrnsteinUhlenbeckTest.optimalTradingGCoreOutputTest"] = float(
         0.1 ** (0.02 / slow_model.alpha - 1.0)
         * np.exp(slow_model.scaled_drift * (slow_model.mu - 0.3) * 0.1 - 0.1**2 / 2.0)
     )
-    values["ornstein_uhlenbeck_test.optimalTradingLCoreOutputTest"] = level_l_star(
+    values["HittingTimeOrnsteinUhlenbeckTest.optimalTradingLCoreOutputTest"] = level_l_star(
         model=book_model, costs=book_costs
+    )
+
+    linear_model = GeneralLinear(mu=-0.00143647, sigma=10.4573)
+    values["GeneralLinearModelTest.GetUnconditionalVarianceTest"] = (
+        linear_model.unconditional_variance
+    )
+    values["GeneralLinearModelTest.GetConditionalVarianceTest.step_one"] = (
+        linear_model.conditional_variance(1.0)
+    )
+    values["GeneralLinearModelTest.GetConditionalVarianceTest.step_two"] = (
+        linear_model.conditional_variance(2.0)
+    )
+    zero_mu_model = GeneralLinear(mu=0.0, sigma=0.05)
+    near_zero_mu_model = GeneralLinear(mu=1.1e-12, sigma=0.05)
+    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.zero_mu_step_one"] = (
+        zero_mu_model.conditional_variance(1.0)
+    )
+    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.zero_mu_step_two"] = (
+        zero_mu_model.conditional_variance(2.0)
+    )
+    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.near_zero_mu_step_one"] = (
+        near_zero_mu_model.conditional_variance(1.0)
     )
 
     entry_sums = ornstein_uhlenbeck_sums([0.5, 0.25, 0.5, 0.75, 1.5, 0.5])
     entry_estimate = ornstein_uhlenbeck_estimate(entry_sums)
-    values["ou_model_test.ornsteinUhlenbeckMaximumLikelihoodOutputTest.mu"] = entry_estimate.mu
-    values["ou_model_test.ornsteinUhlenbeckMaximumLikelihoodOutputTest.alpha"] = (
-        entry_estimate.alpha
-    )
-    values["ou_model_test.ornsteinUhlenbeckMaximumLikelihoodOutputTest.sigma"] = (
-        entry_estimate.sigma
-    )
+    values["OuModelTest.ornsteinUhlenbeckMaximumLikelihoodOutputTest.mu"] = entry_estimate.mu
+    values["OuModelTest.ornsteinUhlenbeckMaximumLikelihoodOutputTest.alpha"] = entry_estimate.alpha
+    values["OuModelTest.ornsteinUhlenbeckMaximumLikelihoodOutputTest.sigma"] = entry_estimate.sigma
 
     fixed_sums = OrnsteinUhlenbeckSums(4.0, 3.5, 4.125, 3.375, 3.25, 6)
     fixed_estimate = ornstein_uhlenbeck_estimate(fixed_sums)
-    values["ornstein_uhlenbeck_likelihood_test.CalculateParameterTest.mu"] = fixed_estimate.mu
-    values["ornstein_uhlenbeck_likelihood_test.CalculateParameterTest.alpha"] = fixed_estimate.alpha
-    values["ornstein_uhlenbeck_likelihood_test.CalculateParameterTest.sigma"] = fixed_estimate.sigma
+    values["OrnsteinUhlenbeckLikelihoodCalculateTest.ParameterTest.mu"] = fixed_estimate.mu
+    values["OrnsteinUhlenbeckLikelihoodCalculateTest.ParameterTest.alpha"] = fixed_estimate.alpha
+    values["OrnsteinUhlenbeckLikelihoodCalculateTest.ParameterTest.sigma"] = fixed_estimate.sigma
     updated_sums = update_sums(fixed_sums, new_observation=0.75, last_observation=1.0)
     updated_estimate = ornstein_uhlenbeck_estimate(updated_sums)
-    values["ornstein_uhlenbeck_likelihood_test.UpdateParameterTest.mu"] = updated_estimate.mu
-    values["ornstein_uhlenbeck_likelihood_test.UpdateParameterTest.alpha"] = updated_estimate.alpha
-    values["ornstein_uhlenbeck_likelihood_test.UpdateParameterTest.sigma"] = updated_estimate.sigma
+    values["OrnsteinUhlenbeckLikelihoodUpdateTest.ParameterTest.mu"] = updated_estimate.mu
+    values["OrnsteinUhlenbeckLikelihoodUpdateTest.ParameterTest.alpha"] = updated_estimate.alpha
+    values["OrnsteinUhlenbeckLikelihoodUpdateTest.ParameterTest.sigma"] = updated_estimate.sigma
     for field_name, field_value in vars(updated_sums).items():
-        values[f"ornstein_uhlenbeck_likelihood_test.UpdateComponentsTest.{field_name}"] = (
-            field_value
-        )
+        values[f"OrnsteinUhlenbeckLikelihoodUpdateTest.ComponentsTest.{field_name}"] = field_value
     series_sums = ornstein_uhlenbeck_sums([0.5, 0.25, 0.5, 0.75, 1.5, 1.0])
     for field_name, field_value in vars(series_sums).items():
-        values[f"ornstein_uhlenbeck_likelihood_test.CalculateComponentsTest.{field_name}"] = (
+        values[f"OrnsteinUhlenbeckLikelihoodCalculateTest.ComponentsTest.{field_name}"] = (
             field_value
         )
 
-    values["utils_test.upperSolverBoundOutputTest"] = (
+    values["SolverBoundsTest.upperSolverBoundOutputTest"] = (
         stop_loss_model.mu + 4.0 * stop_loss_model.stationary_deviation
     )
-    values["utils_test.lowerSolverBoundOutputTest"] = (
+    values["SolverBoundsTest.lowerSolverBoundOutputTest"] = (
         stop_loss_model.mu - 4.0 * stop_loss_model.stationary_deviation
     )
 
@@ -488,20 +977,99 @@ def expected_values() -> Dict[str, float]:
         epsabs=0.0,
         epsrel=1e-12,
     )
-    values["utils_test.AdaptiveIntegrationOutputTest"] = adaptive
-    values["utils_test.SemiInfiniteIntegrationOutputTest"] = kernel_integral(
+    values["AdaptiveIntegrationFunctionTest.OutputTest"] = adaptive
+    values["SemiInfiniteIntegrationFunctionTest.OutputTest"] = kernel_integral(
         0.9, model=wide_model, rate=0.03, mean_sign=1.0, lower=0.8
     )
-    values["utils_test.AdaptiveCentralDifferentiationOutputTest"] = 2.0
-    values["utils_test.BrentSolverOutputTest"] = float(np.sqrt(5.0))
+    values["AdaptiveCentralDifferentiationFunctionTest.OutputTest"] = 2.0
+    values["BrentSolverFunctionTest.OutputTest"] = float(np.sqrt(5.0))
+
+    values.update(filter_states_expected_values())
     values.update(kca_expected_values())
     return values
 
 
+def snake_case(name: str) -> str:
+    """Snake case of a camel case or pascal case gtest identifier."""
+    spaced = re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name)
+    spaced = re.sub(r"(?<=[A-Z])([A-Z])(?=[a-z])", r"_\1", spaced)
+    return spaced.lower()
+
+
+def format_value(value: ExpectedValue) -> str:
+    """Listing representation of one expected value."""
+    if isinstance(value, list):
+        return repr(value)
+    if isinstance(value, int):
+        return repr(value)
+    return repr(float(value))
+
+
+def format_constant(name: str, value: ExpectedValue) -> str:
+    """One inline constexpr definition of the generated header."""
+    if isinstance(value, list):
+        if value and isinstance(value[0], list):
+            rows = ", ".join(
+                "{" + ", ".join(repr(float(element)) for element in row) + "}" for row in value
+            )
+            return (
+                f"inline constexpr std::array<std::array<double, {len(value[0])}>, "
+                f"{len(value)}> {name} = {{{{{rows}}}}};"
+            )
+        elements = ", ".join(repr(float(element)) for element in value)
+        return f"inline constexpr std::array<double, {len(value)}> {name} = {{{elements}}};"
+    if isinstance(value, int):
+        return f"inline constexpr unsigned {name} = {value}u;"
+    return f"inline constexpr double {name} = {repr(float(value))};"
+
+
+def generate_header(values: Dict[str, ExpectedValue]) -> str:
+    """C++ header of the expected values, one nested namespace per test suite."""
+    suites: Dict[str, Dict[str, ExpectedValue]] = {}
+    for key, value in values.items():
+        suite, _, remainder = key.partition(".")
+        test_name, _, field = remainder.partition(".")
+        constant = snake_case(test_name) + (f"_{field}" if field else "")
+        namespace = suites.setdefault(snake_case(suite), {})
+        if constant in namespace:
+            raise ValueError(f"Duplicate constant {constant} in namespace {snake_case(suite)}.")
+        namespace[constant] = value
+
+    lines = [
+        "// Generated by tools/derivations/expected_values.py. Do not edit.",
+        "// clang-format off",
+        "#pragma once",
+        "",
+        "#include <array>",
+        "",
+        "namespace expected {",
+        "",
+    ]
+    for suite in sorted(suites):
+        lines.append(f"namespace {suite} {{")
+        for constant in sorted(suites[suite]):
+            lines.append(format_constant(constant, suites[suite][constant]))
+        lines.append("}")
+        lines.append("")
+    lines.append("} // namespace expected")
+    return "\n".join(lines) + "\n"
+
+
 def main() -> None:
-    """Print every expected value with full double precision."""
-    for name, value in expected_values().items():
-        print(f"{name} {float(value)!r}")
+    """Print every expected value, or write them as a C++ header."""
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--header",
+        metavar="PATH",
+        help="write the expected values as a C++ header at PATH instead of printing them",
+    )
+    arguments = parser.parse_args()
+    values = expected_values()
+    if arguments.header is not None:
+        Path(arguments.header).write_text(generate_header(values), encoding="utf-8")
+        return
+    for name, value in values.items():
+        print(f"{name} {format_value(value)}")
 
 
 if __name__ == "__main__":

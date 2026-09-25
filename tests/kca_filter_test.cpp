@@ -2,39 +2,18 @@
 #include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/kalman_filter/kca.h"
 #include "stochastic_models/kalman_filter/states_exceptions.h"
+#include "support/assertions.h"
+#include "support/expected_values.h"
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
-namespace {
+constexpr double state_tolerance = 1e-12;
 
-  using Matrix = std::vector<std::vector<double>>;
-
-  void expectVectorNear(
-      const nlohmann::json& actual,
-      const std::vector<double>& expected,
-      const char* field
-  ) {
-    ASSERT_EQ(actual.size(), expected.size())
-        << "Field '" << field << "' has the wrong length.";
-    for (std::size_t i{0}; i < expected.size(); i++) {
-      EXPECT_NEAR(actual.at(i).get<double>(), expected.at(i), 1e-12)
-          << "Field '" << field << "' differs at index " << i << ".";
-    }
-  }
-  void expectMatrixNear(
-      const nlohmann::json& actual, const Matrix& expected, const char* field
-  ) {
-    ASSERT_EQ(actual.size(), expected.size())
-        << "Field '" << field << "' has the wrong row count.";
-    for (std::size_t i{0}; i < expected.size(); i++) {
-      expectVectorNear(actual.at(i), expected.at(i), field);
-    }
-  }
-
-} // namespace
+using test_support::expectMatrixNear;
+using test_support::expectVectorNear;
 
 /**
  * @test Tests that the getInitializedKcaState function correctly initialises
@@ -61,30 +40,37 @@ TEST(KcaTest, getInitializedKcaStateTest) {
       getInitializedKcaState(data_series, h, q, system_dimension)
   );
 
-  expectMatrixNear(
+  namespace initial = expected::kca_test;
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("transition_matrix"),
-      {{1.0, 1.0, 0.5}, {0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}}, "transition_matrix"
-  );
-  expectMatrixNear(
+      initial::get_initialized_kca_state_test_transition_matrix,
+      "transition_matrix", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("transition_covariance"),
-      {{5e-05, 0.000125, 0.00016666666666666666},
-       {0.000125, 0.0003333333333333333, 0.0005},
-       {0.00016666666666666666, 0.0005, 0.001}},
-      "transition_covariance"
-  );
-  expectVectorNear(
-      state.at("current_state_mean"), {10.27645, 0.0, 0.0}, "current_state_mean"
-  );
-  expectMatrixNear(
+      initial::get_initialized_kca_state_test_transition_covariance,
+      "transition_covariance", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      state.at("current_state_mean"),
+      initial::get_initialized_kca_state_test_current_state_mean,
+      "current_state_mean", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("current_state_covariance"),
-      {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}},
-      "current_state_covariance"
-  );
-  expectMatrixNear(
-      state.at("observation_matrix"), {{1.0, 0.0, 0.0}}, "observation_matrix"
-  );
-  EXPECT_NEAR(state.at("observation_offset").get<double>(), 0.0, 1e-12)
-      << "Field 'observation_offset' is not zero.";
+      initial::get_initialized_kca_state_test_current_state_covariance,
+      "current_state_covariance", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      state.at("observation_matrix"),
+      initial::get_initialized_kca_state_test_observation_matrix,
+      "observation_matrix", state_tolerance
+  ));
+  EXPECT_NEAR(
+      state.at("observation_offset").get<double>(),
+      initial::get_initialized_kca_state_test_observation_offset,
+      state_tolerance
+  ) << "The initialised state has the wrong observation offset.";
 }
 /**
  * @test Tests that the getUpdatedKcaState function correctly performs single
@@ -113,31 +99,36 @@ TEST(KcaTest, getUpdatedKcaStateTest) {
       getUpdatedKcaState(state, system_dimension, observation, innovation_sigma)
   );
 
-  expectVectorNear(
-      updated_state.at("current_state_mean"), {10.3000765492722, 0.0, 0.0},
-      "current_state_mean"
-  );
-  expectMatrixNear(
+  namespace updated = expected::kca_test;
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      updated_state.at("current_state_mean"),
+      updated::get_updated_kca_state_test_current_state_mean,
+      "current_state_mean", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("current_state_covariance"),
-      {{0.009269818720519452, 0.0, 0.0}, {0.0, 0.001, 0.0}, {0.0, 0.0, 0.001}},
-      "current_state_covariance"
-  );
-  expectMatrixNear(
+      updated::get_updated_kca_state_test_current_state_covariance,
+      "current_state_covariance", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("transition_matrix"),
-      {{1.0011961162353782, 1.0, 0.5}, {0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}},
-      "transition_matrix"
-  );
-  expectMatrixNear(
+      updated::get_updated_kca_state_test_transition_matrix,
+      "transition_matrix", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("transition_covariance"),
-      {{0.12695229227341848, 0.0, 0.0}, {0.0, 0.001, 0.0}, {0.0, 0.0, 0.001}},
-      "transition_covariance"
-  );
-  expectMatrixNear(
-      updated_state.at("observation_matrix"), {{1.0, 0.0, 0.0}},
-      "observation_matrix"
-  );
-  EXPECT_NEAR(updated_state.at("observation_offset").get<double>(), 0.0, 1e-12)
-      << "Field 'observation_offset' is not zero.";
+      updated::get_updated_kca_state_test_transition_covariance,
+      "transition_covariance", state_tolerance
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      updated_state.at("observation_matrix"),
+      updated::get_updated_kca_state_test_observation_matrix,
+      "observation_matrix", state_tolerance
+  ));
+  EXPECT_NEAR(
+      updated_state.at("observation_offset").get<double>(),
+      updated::get_updated_kca_state_test_observation_offset, state_tolerance
+  ) << "The updated state has the wrong observation offset.";
 }
 
 /**

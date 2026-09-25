@@ -6,6 +6,7 @@
 #include "stochastic_models/trading/trading_levels.h"
 #include "stochastic_models/trading/trading_levels_exponential.h"
 #include "stochastic_models/trading/trading_levels_params.h"
+#include "support/expected_values.h"
 
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -22,7 +23,7 @@ TEST(TradingLevelsTest, exitLevelStopLossOutputTest) {
   const double stop_loss = 0.04;
   const double c = 0.02;
   const double r = 0.05;
-  const double tolerance = 1e-4;
+  const double tolerance = 5e-5;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
@@ -31,9 +32,11 @@ TEST(TradingLevelsTest, exitLevelStopLossOutputTest) {
   const double value = tradingLevels.optimalExit(stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 0.4551908, tolerance)
-      << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
-         "with a stop loss provided is not equal to the expected value.";
+  EXPECT_NEAR(
+      value, expected::trading_levels_test::exit_level_stop_loss_output_test,
+      tolerance
+  ) << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
+       "with a stop loss provided is not equal to the expected value.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalExit method and asserts
@@ -56,9 +59,10 @@ TEST(TradingLevelsTest, exitLevelOutputTest) {
   const double value = tradingLevels.optimalExit(r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 0.46683586991445225, tolerance)
-      << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
-         "is not equal to the expected value.";
+  EXPECT_NEAR(
+      value, expected::trading_levels_test::exit_level_output_test, tolerance
+  ) << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalExit "
+       "is not equal to the expected value.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalExit with
@@ -82,11 +86,13 @@ TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
   const double value = tradingLevels.optimalExit(r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 1.40929954132349, tolerance)
-      << "Value produced by "
-         "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
-         "with ExponentialMeanReversion optimizer is not equal to the "
-         "expected value.";
+  EXPECT_NEAR(
+      value, expected::trading_levels_test::exit_level_exponential_output_test,
+      tolerance
+  ) << "Value produced by "
+       "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
+       "with ExponentialMeanReversion optimizer is not equal to the "
+       "expected value.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalEntryLower method and
@@ -104,7 +110,7 @@ TEST(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
   const double b_star = 0.455191;
   const double c = 0.02;
   const double r = 0.05;
-  const double tolerance = 1e-4;
+  const double tolerance = 2e-5;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
@@ -114,10 +120,14 @@ TEST(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
       tradingLevels.optimalEntryLower(d_star, b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 0.1076331, tolerance)
-      << "Value produced by "
-         "OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
-         "is not equal to the expected value when a stop loss is provided.";
+  EXPECT_NEAR(
+      value,
+      expected::trading_levels_test::
+          entry_level_lower_bound_stop_loss_output_test,
+      tolerance
+  ) << "Value produced by "
+       "OrnsteinUhlenbeckTradingLevels::optimalEntryLower "
+       "is not equal to the expected value when a stop loss is provided.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalEntry method and asserts
@@ -133,7 +143,7 @@ TEST(TradingLevelsTest, entryLevelStopLossOutputTest) {
   const double b_star = 0.455191;
   const double c = 0.02;
   const double r = 0.05;
-  const double tolerance = 1e-4;
+  const double tolerance = 2e-5;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
@@ -142,9 +152,11 @@ TEST(TradingLevelsTest, entryLevelStopLossOutputTest) {
   const double value = tradingLevels.optimalEntry(b_star, stop_loss, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 0.1309298, tolerance)
-      << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
-         "is not equal to the expected value when a stop loss is provided.";
+  EXPECT_NEAR(
+      value, expected::trading_levels_test::entry_level_stop_loss_output_test,
+      tolerance
+  ) << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
+       "is not equal to the expected value when a stop loss is provided.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalEntry method and asserts
@@ -159,7 +171,7 @@ TEST(TradingLevelsTest, entryLevelOutputTest) {
   const double b_star = 0.466836;
   const double c = 0.02;
   const double r = 0.05;
-  const double tolerance = 1e-4;
+  const double tolerance = 2e-5;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
@@ -168,9 +180,10 @@ TEST(TradingLevelsTest, entryLevelOutputTest) {
   const double value = tradingLevels.optimalEntry(b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 0.1156811, tolerance)
-      << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
-         "is not equal to the expected value.";
+  EXPECT_NEAR(
+      value, expected::trading_levels_test::entry_level_output_test, tolerance
+  ) << "Value produced by OrnsteinUhlenbeckTradingLevels::optimalEntry "
+       "is not equal to the expected value.";
 }
 /**
  * @test Tests the output of the TradingLevels::optimalEntry method and asserts
@@ -233,7 +246,7 @@ TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
   const double b_star = 1.4093;
   const double c = 0.02;
   const double r = 0.05;
-  const double tolerance = 1e-4;
+  const double tolerance = 2e-4;
 
   // Create trading levels instance to manage allocations.
   OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
@@ -242,11 +255,13 @@ TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
   const double value = tradingLevels.optimalEntry(b_star, r, c);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 1.2368866, tolerance)
-      << "Value produced by "
-         "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry "
-         "with ExponentialMeanReversion optimizer is not equal to the "
-         "expected value.";
+  EXPECT_NEAR(
+      value, expected::trading_levels_test::entry_level_exponential_output_test,
+      tolerance
+  ) << "Value produced by "
+       "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry "
+       "with ExponentialMeanReversion optimizer is not equal to the "
+       "expected value.";
 }
 /**
  * @test Tests that the TradingLevels::optimalEntryLower method with an
@@ -310,16 +325,26 @@ TEST(TradingLevelsTest, levelOrderingChainTest) {
   EXPECT_LT(b_star_stop_loss, b_star)
       << "Stop-loss exit level is not below the no-stop-loss exit level.";
 
-  // Assert each solved level against the independently derived value.
-  const double tolerance = 1e-4;
-  EXPECT_NEAR(b_star, 0.4668359, tolerance)
-      << "No-stop-loss exit level b* is not near the expected value.";
-  EXPECT_NEAR(b_star_stop_loss, 0.4551908, tolerance)
-      << "Stop-loss exit level b*_L is not near the expected value.";
-  EXPECT_NEAR(d_star, 0.1309298, tolerance)
-      << "Entry level d* is not near the expected value.";
-  EXPECT_NEAR(a_star, 0.1076331, tolerance)
-      << "Lower entry level a* is not near the expected value.";
+  // Assert each solved level against the expected value.
+  const double exit_tolerance = 5e-5;
+  const double entry_tolerance = 2e-5;
+  EXPECT_NEAR(
+      b_star, expected::trading_levels_test::level_ordering_chain_test_b_star,
+      exit_tolerance
+  ) << "No-stop-loss exit level b* is not near the expected value.";
+  EXPECT_NEAR(
+      b_star_stop_loss,
+      expected::trading_levels_test::level_ordering_chain_test_b_star_stop_loss,
+      exit_tolerance
+  ) << "Stop-loss exit level b*_L is not near the expected value.";
+  EXPECT_NEAR(
+      d_star, expected::trading_levels_test::level_ordering_chain_test_d_star,
+      entry_tolerance
+  ) << "Entry level d* is not near the expected value.";
+  EXPECT_NEAR(
+      a_star, expected::trading_levels_test::level_ordering_chain_test_a_star,
+      entry_tolerance
+  ) << "Lower entry level a* is not near the expected value.";
 }
 /**
  * @test Asserts that the exponential trading levels reject a stop-loss exit,

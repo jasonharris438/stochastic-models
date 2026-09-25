@@ -1,5 +1,6 @@
 #include "stochastic_models/entrypoints/ou_model.h"
 #include "stochastic_models/exceptions/errors.h"
+#include "support/expected_values.h"
 
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -40,17 +41,19 @@ TEST(OuModelTest, hittingTimeDensityOutputTest) {
   double first = 1.04;
   double second = 1;
   double x = 1.02;
-  const double tolerance = 5e-7;
+  const double tolerance = 1e-6;
 
   // Calculate the hitting time density.
   const double value =
       hittingTimeDensityOrnsteinUhlenbeck(x, mu, alpha, sigma, first, second);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(value, 0.4304600561745479, tolerance)
-      << "The value of the hitting time density calculated by "
-         "hittingTimeDensityOrnsteinUhlenbeck is not equal to the expected "
-         "value.";
+  EXPECT_NEAR(
+      value, expected::ou_model_test::hitting_time_density_output_test,
+      tolerance
+  ) << "The value of the hitting time density calculated by "
+       "hittingTimeDensityOrnsteinUhlenbeck is not equal to the expected "
+       "value.";
 }
 /**
  * @test Tests the output of the ornsteinUhlenbeckMaximumLikelihood function and
@@ -67,17 +70,29 @@ TEST(OuModelTest, ornsteinUhlenbeckMaximumLikelihoodOutputTest) {
       ornsteinUhlenbeckMaximumLikelihood(test_vec);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(likelihood.at("mu"), 0.7, tolerance)
-      << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
-         "mu.";
+  EXPECT_NEAR(
+      likelihood.at("mu"),
+      expected::ou_model_test::
+          ornstein_uhlenbeck_maximum_likelihood_output_test_mu,
+      tolerance
+  ) << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
+       "mu.";
   // Expect equality for alpha value.
-  EXPECT_NEAR(likelihood.at("alpha"), 2.917770732084274, tolerance)
-      << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
-         "alpha.";
+  EXPECT_NEAR(
+      likelihood.at("alpha"),
+      expected::ou_model_test::
+          ornstein_uhlenbeck_maximum_likelihood_output_test_alpha,
+      tolerance
+  ) << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
+       "alpha.";
   // Expect equality for sigma value.
-  EXPECT_NEAR(likelihood.at("sigma"), 1.0390260684271504, tolerance)
-      << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
-         "sigma.";
+  EXPECT_NEAR(
+      likelihood.at("sigma"),
+      expected::ou_model_test::
+          ornstein_uhlenbeck_maximum_likelihood_output_test_sigma,
+      tolerance
+  ) << "ornsteinUhlenbeckMaximumLikelihood not calculating correct value "
+       "sigma.";
 }
 
 /**

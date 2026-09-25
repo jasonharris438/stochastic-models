@@ -1,4 +1,5 @@
 #include "stochastic_models/distributions/gaussian.h"
+#include "support/expected_values.h"
 
 #include <gtest/gtest.h>
 /**
@@ -46,7 +47,7 @@ TEST(GaussianDistributionTest, cdfTest) {
   const double tolerance = 1e-7;
   GaussianDistribution model(mu, sigma);
   const double value = model.cdf(1.2);
-  EXPECT_NEAR(value, 0.5735637353767205, tolerance)
+  EXPECT_NEAR(value, expected::gaussian_distribution_test::cdf_test, tolerance)
       << "The value returned by GaussianDistribution.Cdf is not the "
          "expected value.";
 }

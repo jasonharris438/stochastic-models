@@ -1,16 +1,30 @@
 # Derivations
 
-`expected_values.py` recomputes every numeric value that the unit tests lock.
+`expected_values.py` recomputes the expected values that the unit tests lock.
 It uses the model formulas with numpy and scipy. It never calls the library.
 
-The script requires `uv`. It installs numpy and scipy in an isolated
-environment for each run. Install `uv` with:
+It covers the Ornstein-Uhlenbeck, hitting time, trading level, value function,
+Kalman filter and closed-form variance tests. It does not cover the General
+Linear estimator outputs in `general_linear_likelihood_test.cpp`,
+`general_linear_online_test.cpp` and `general_sde_model_test.cpp`. Those tests
+lock the library's current output until the estimator is corrected.
+
+The script writes `tests/support/expected_values.h`. The tests include that
+header and name each value. Never edit the header by hand.
+
+The script requires `uv`. Install it with:
 
     curl -LsSf https://astral.sh/uv/install.sh | sh
 
-Run the script from the repository root:
+The dependencies are pinned in the script and in `expected_values.py.lock`.
+Run from the repository root:
 
-    uv run --with numpy --with scipy tools/derivations/expected_values.py
+    uv run --locked --script tools/derivations/expected_values.py
 
-Each line prints a test name and the value at full double precision. When a
-test value changes, run the script and compare before you edit the test.
+That prints one line per value. To regenerate the header:
+
+    uv run --locked --script tools/derivations/expected_values.py --header tests/support/expected_values.h
+
+CI regenerates the header and fails when it differs from the committed file.
+When a test value must change, change the formula or the inputs in the
+script, regenerate the header, and commit both.

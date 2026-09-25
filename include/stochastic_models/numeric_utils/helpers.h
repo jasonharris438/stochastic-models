@@ -9,9 +9,9 @@
  * @file
  * @brief Numeric helper utilities used across the project.
  *
- * This header contains convenience helpers (rounding, squared-values,
- * and solver bounds) and an adapter to convert GSL error status codes into
- * exceptions used by the test-suite and library.
+ * This header contains convenience helpers (squared-values and solver bounds)
+ * and an adapter to convert GSL error status codes into exceptions used by
+ * the test-suite and library.
  */
 
 /**

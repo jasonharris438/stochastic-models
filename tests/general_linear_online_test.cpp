@@ -1,8 +1,8 @@
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
 #include "stochastic_models/likelihood/general_linear_online.h"
 
-#include <cmath>
 #include <gtest/gtest.h>
+#include <vector>
 
 /**
  * @file
@@ -13,7 +13,11 @@
  * implementation (high precision offline calculation).
  */
 
-// Test that the GeneralLinearUpdater.updateMu method returns the correct value.
+/**
+ * @test Tests that the GeneralLinearUpdater.updateMu method returns the
+ * correct value.
+ *
+ */
 TEST(GeneralLinearOnlineTest, UpdateMuTest) {
   // Create test data.
   const std::vector<double> test_vec{1094.1, 1104.1, 1107.7, 1123.6, 1115.6,
@@ -42,8 +46,11 @@ TEST(GeneralLinearOnlineTest, UpdateMuTest) {
       << "GeneralLinearUpdater updateMu method returning invalid value.";
 }
 
-// Test that the GeneralLinearUpdater.updateSigma method returns the correct
-// value.
+/**
+ * @test Tests that the GeneralLinearUpdater.updateSigma method returns the
+ * correct value.
+ *
+ */
 TEST(GeneralLinearOnlineTest, UpdateSigmaTest) {
   // Create test data.
   const std::vector<double> test_vec{1094.1, 1104.1, 1107.7, 1123.6, 1115.6,

@@ -34,6 +34,17 @@ jobs:
       run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh setup-linters.sh
     - name: lint code
       run: find src include tests examples -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format-20 --dry-run --Werror -style=file {} +
+    - name: Install uv
+      run: |
+        wget -qO- https://astral.sh/uv/0.12.7/install.sh | sh
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+    - name: check replica formatting
+      run: uvx ruff@0.16.8 format --check --line-length 100 tools/derivations/expected_values.py
+    - name: check expected values header
+      run: |
+        cp tests/support/expected_values.h "$RUNNER_TEMP/expected_values.h.committed"
+        uv run --locked --script tools/derivations/expected_values.py --header tests/support/expected_values.h
+        diff -u "$RUNNER_TEMP/expected_values.h.committed" tests/support/expected_values.h
 
   build-test:
     name: build-test (${{ matrix.compiler }}, ${{ matrix.config }})

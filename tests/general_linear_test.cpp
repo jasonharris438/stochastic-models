@@ -1,4 +1,5 @@
 #include "stochastic_models/sde/general_linear.h"
+#include "support/expected_values.h"
 
 #include <cmath>
 #include <cstddef>
@@ -10,7 +11,10 @@
  * @brief Unit tests for the GeneralLinearModel class (mean/variance helpers).
  */
 
-// Tests the return value of the getMean method.
+/**
+ * @test Tests the return value of the getMean method.
+ *
+ */
 TEST(GeneralLinearModelTest, GetMeanTest) {
   const GeneralLinearModel model(-0.00143647, 10.4573);
   const double expected = 0.0;
@@ -24,8 +28,10 @@ TEST(GeneralLinearModelTest, GetMeanTest) {
  */
 TEST(GeneralLinearModelTest, GetUnconditionalVarianceTest) {
   const GeneralLinearModel model(-0.00143647, 10.4573);
-  EXPECT_NEAR(model.getUnconditionalVariance(), 38063.83819015, 1e-3)
-      << "getUnconditionalVariance not returning sigma^2 / (2|mu|).";
+  EXPECT_NEAR(
+      model.getUnconditionalVariance(),
+      expected::general_linear_model_test::get_unconditional_variance_test, 1e-9
+  ) << "getUnconditionalVariance not returning sigma^2 / (2|mu|).";
 }
 
 /**
@@ -46,10 +52,18 @@ TEST(GeneralLinearModelTest, GetUnconditionalVarianceThrowsForNonNegativeMu) {
  */
 TEST(GeneralLinearModelTest, GetConditionalVarianceTest) {
   const GeneralLinearModel model(-0.00143647, 10.4573);
-  EXPECT_NEAR(model.getConditionalVariance(1.0), 109.19818826, 1e-5)
-      << "getConditionalVariance wrong at t = 1.";
-  EXPECT_NEAR(model.getConditionalVariance(2.0), 218.08310690, 1e-5)
-      << "getConditionalVariance wrong at t = 2.";
+  EXPECT_NEAR(
+      model.getConditionalVariance(1.0),
+      expected::general_linear_model_test::
+          get_conditional_variance_test_step_one,
+      1e-9
+  ) << "getConditionalVariance wrong at t = 1.";
+  EXPECT_NEAR(
+      model.getConditionalVariance(2.0),
+      expected::general_linear_model_test::
+          get_conditional_variance_test_step_two,
+      1e-9
+  ) << "getConditionalVariance wrong at t = 2.";
 }
 
 /**
@@ -59,17 +73,29 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceTest) {
  */
 TEST(GeneralLinearModelTest, GetConditionalVarianceZeroMuLimitTest) {
   const GeneralLinearModel zero_mu(0.0, 0.05);
-  EXPECT_NEAR(zero_mu.getConditionalVariance(1.0), 0.0025, 1e-12)
-      << "GeneralLinearModel conditional variance wrong at mu = 0, t = 1.";
-  EXPECT_NEAR(zero_mu.getConditionalVariance(2.0), 0.005, 1e-12)
-      << "GeneralLinearModel conditional variance wrong at mu = 0, t = 2.";
+  EXPECT_NEAR(
+      zero_mu.getConditionalVariance(1.0),
+      expected::general_linear_model_test::
+          get_conditional_variance_zero_mu_limit_test_zero_mu_step_one,
+      1e-9
+  ) << "GeneralLinearModel conditional variance wrong at mu = 0, t = 1.";
+  EXPECT_NEAR(
+      zero_mu.getConditionalVariance(2.0),
+      expected::general_linear_model_test::
+          get_conditional_variance_zero_mu_limit_test_zero_mu_step_two,
+      1e-9
+  ) << "GeneralLinearModel conditional variance wrong at mu = 0, t = 2.";
 
   // Just above the guard, so the closed-form branch is exercised at the
   // smallest mu it ever sees.
   const GeneralLinearModel near_zero_mu(1.1e-12, 0.05);
-  EXPECT_NEAR(near_zero_mu.getConditionalVariance(1.0), 0.0025, 1e-12)
-      << "GeneralLinearModel conditional variance discontinuous across the "
-         "mu = 1e-12 guard threshold.";
+  EXPECT_NEAR(
+      near_zero_mu.getConditionalVariance(1.0),
+      expected::general_linear_model_test::
+          get_conditional_variance_zero_mu_limit_test_near_zero_mu_step_one,
+      1e-9
+  ) << "GeneralLinearModel conditional variance discontinuous across the "
+       "mu = 1e-12 guard threshold.";
 }
 /**
  * @test size = 0 must be rejected for a contract consistent with the OU model.
