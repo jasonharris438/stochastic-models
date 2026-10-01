@@ -20,6 +20,11 @@ tests/cmake_test_discovery_*.json
 *.so
 *.a
 
+# Python tooling residue
+__pycache__/
+*.pyc
+.ruff_cache/
+
 # Worktrees
 .worktrees/
 

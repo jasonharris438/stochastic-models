@@ -69,10 +69,6 @@ const std::vector<double> valuesSquared(const std::vector<double>& vec) {
   });
   return squared;
 }
-const double roundToDecimals(const double& value, const int& decimals) {
-  const double factor = std::pow(10, decimals);
-  return std::round(value * factor) / factor;
-}
 const double upperSolverBound(const StochasticModel* model) {
   return model->getMean() + (4 * std::sqrt(model->getUnconditionalVariance()));
 }

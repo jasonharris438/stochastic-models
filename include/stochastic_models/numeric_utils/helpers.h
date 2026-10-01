@@ -9,9 +9,9 @@
  * @file
  * @brief Numeric helper utilities used across the project.
  *
- * This header contains convenience helpers (rounding, squared-values,
- * and solver bounds) and an adapter to convert GSL error status codes into
- * exceptions used by the test-suite and library.
+ * This header contains convenience helpers (squared-values and solver bounds)
+ * and an adapter to convert GSL error status codes into exceptions used by
+ * the test-suite and library.
  */
 
 /**
@@ -63,18 +63,6 @@ void check_minimum_observations(
  *         square of the corresponding input element.
  */
 const std::vector<double> valuesSquared(const std::vector<double>& vec);
-
-/**
- * @brief Round a floating-point value to a fixed number of decimal places.
- *
- * The rounding uses std::round after scaling by 10^decimals. The function is
- * stable for typical decimal ranges (e.g. decimals between 0 and 15).
- *
- * @param value Value to be rounded.
- * @param decimals Number of decimal places to round to (>=0).
- * @return const double Rounded value.
- */
-const double roundToDecimals(const double& value, const int& decimals);
 
 /**
  * @brief Provide an upper bound to give to numerical solvers.

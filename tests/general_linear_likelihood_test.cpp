@@ -1,6 +1,5 @@
 #include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
-#include "stochastic_models/numeric_utils/helpers.h"
 
 #include <gtest/gtest.h>
 #include <unordered_map>
@@ -13,7 +12,7 @@
  * precomputed reference results for a small sample series.
  */
 TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
-  const float tolerance = 1e-4;
+  const double tolerance = 1e-4;
   // Generate mock data.
   const std::vector<double> test_vec{1094.1, 1104.1, 1107.7, 1123.6, 1115.6,
                                      1112.7, 1118.4, 1116.9, 1127.9, 1153.2,
@@ -27,11 +26,11 @@ TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
       likelihood.calculateParameters(components);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(roundToDecimals(params.mu, 8), -0.00143647, tolerance)
+  EXPECT_NEAR(params.mu, -0.0014364658021903459, tolerance)
       << "GeneralLinearLikelihood not calculating correct value mu.";
 
   // Expect equality for sigma value.
-  EXPECT_NEAR(roundToDecimals(params.sigma, 8), 10.4573, tolerance)
+  EXPECT_NEAR(params.sigma, 10.457329129393298, tolerance)
       << "GeneralLinearLikelihood not calculating correct value sigma.";
 }
 

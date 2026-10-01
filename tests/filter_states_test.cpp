@@ -3,6 +3,8 @@
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 #include "stochastic_models/kalman_filter/type_conversion.h"
 #include "stochastic_models/numeric_utils/linalg.h"
+#include "support/assertions.h"
+#include "support/expected_values.h"
 
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <cmath>
@@ -13,6 +15,11 @@
 #include <vector>
 
 using namespace boost::numeric::ublas;
+
+constexpr double kalman_tolerance = 1e-12;
+
+using test_support::expectMatrixNear;
+using test_support::expectVectorNear;
 /**
  * @brief Function to create a transition matrix for testing.
  * @return std::vector<std::vector<double>>. The transition matrix.
@@ -105,11 +112,12 @@ TEST(KalmanFilterTest, PredictedStateCalculateCovarianceTest) {
   const std::vector<std::vector<double>> result_vector =
       copy_matrix_elements_to_vector(result);
 
-  const std::vector<std::vector<double>> expected_result{
-      {{0.013744, 0.0, 0.0}, {0.0, 0.001, 0.0}, {0.0, 0.0, 0.001}}
-  };
-  EXPECT_EQ(result_vector, expected_result) << "The covariance matrix is not "
-                                               "calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      result_vector,
+      expected::kalman_filter_test::
+          predicted_state_calculate_covariance_test_predicted_state_covariance,
+      kalman_tolerance, "The covariance matrix is not calculated correctly."
+  ));
 }
 /**
  * @brief Test that the PredictedState.calculateMean method returns the correct
@@ -121,13 +129,14 @@ TEST(KalmanFilterTest, PredictedStateCalculateMeanTest) {
 
   const vector<double> boost_vector = create_current_mean_vector();
   const vector<double> result = matrix_test.calculateMean(boost_vector);
-  EXPECT_EQ(result.size(), boost_matrix.size2())
-      << "The mean vector is of incorrect dimension.";
+  const std::vector<double> result_vector(result.begin(), result.end());
 
-  const std::vector<double> result_vector{result(0), result(1), result(2)};
-  const std::vector<double> expected_result{1.3309855249349998, 0, 0};
-  EXPECT_EQ(result_vector, expected_result)
-      << "The mean vector is not calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      result_vector,
+      expected::kalman_filter_test::
+          predicted_state_calculate_mean_test_predicted_state_mean,
+      kalman_tolerance, "The mean vector is not calculated correctly."
+  ));
 }
 /**
  * @brief Test that the PredictedObservation.calculateMean method returns the
@@ -151,13 +160,14 @@ TEST(KalmanFilterTest, PredictedObservationCalculateMeanTest) {
 
   const vector<double> result =
       predicted_observation.calculateMean(predicted_state);
-  const std::vector<double> expected_result{1.330986};
-  EXPECT_EQ(result.size(), expected_result.size())
-      << "The mean vector is of incorrect dimension.";
+  const std::vector<double> result_vector(result.begin(), result.end());
 
-  const std::vector<double> result_vector{result(0)};
-  EXPECT_EQ(result_vector, expected_result)
-      << "The mean vector is not calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      result_vector,
+      expected::kalman_filter_test::
+          predicted_observation_calculate_mean_test_predicted_observation_mean,
+      kalman_tolerance, "The mean vector is not calculated correctly."
+  ));
 }
 /**
  * @brief Test that the PredictedObservation.calculateCovariance method returns
@@ -190,24 +200,16 @@ TEST(KalmanFilterTest, PredictedObservationCalculateCovarianceTest) {
   const matrix<double> result = predicted_observation.calculateCovariance(
       predicted_state_covariance, sigma_param
   );
-
-  // Convert result to a std::vector from boost types.
   const std::vector<std::vector<double>> result_vec =
       copy_matrix_elements_to_vector(result);
 
-  // Expected result from above operations.
-  const std::vector<std::vector<double>> expected_result{{0.0137912692000676}};
-
-  // Assert shape of result.
-  EXPECT_EQ(result.size1(), expected_result.size())
-      << "The covariance matrix is of incorrect row dimension.";
-  EXPECT_EQ(result.size2(), expected_result.at(0).size())
-      << "The covariance matrix is of incorrect column dimension.";
-
-  // Assert value(s) of result.
-  const std::vector<double> result_vector{result(0)};
-  EXPECT_EQ(result_vec, expected_result)
-      << "The covariance vector is not calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      result_vec,
+      expected::kalman_filter_test::
+          predicted_observation_calculate_covariance_test_predicted_observation_covariance,
+      kalman_tolerance,
+      "The predicted observation covariance is not calculated correctly."
+  ));
 }
 /**
  * @brief Test that the PredictedObservation.calculateKalmanGain method returns
@@ -237,32 +239,21 @@ TEST(KalmanFilterTest, PredictedObservationCalculateKalmanGainTest) {
   const matrix<double> predicted_state_covariance =
       create_boost_matrix_from_vectors(covariance_vector);
 
-  // Generate predicted observation covariance from variables created.
+  // Generate the Kalman gain from variables created.
   const BoostMatrixInverter matrix_inverter;
   const matrix<double> result = predicted_observation.calculateKalmanGain(
       predicted_state_covariance, predicted_observation_covariance,
       matrix_inverter
   );
-
-  // Convert result to a std::vector from boost types.
   const std::vector<std::vector<double>> result_vec =
       copy_matrix_elements_to_vector(result);
 
-  // Expected result from above operations.
-  const std::vector<std::vector<double>> expected_result{
-      {0.99654139808725539}, {0}, {0}
-  };
-
-  // Assert shape of result.
-  EXPECT_EQ(result.size1(), expected_result.size())
-      << "The covariance matrix is of incorrect row dimension.";
-  EXPECT_EQ(result.size2(), expected_result.at(0).size())
-      << "The covariance matrix is of incorrect column dimension.";
-
-  // Assert value(s) of result.
-  const std::vector<double> result_vector{result(0)};
-  EXPECT_EQ(result_vec, expected_result)
-      << "The covariance vector is not calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      result_vec,
+      expected::kalman_filter_test::
+          predicted_observation_calculate_kalman_gain_test_kalman_gain,
+      kalman_tolerance, "The Kalman gain is not calculated correctly."
+  ));
 }
 /**
  * @brief Test that the CurrentState.calculateMean method returns the
@@ -286,18 +277,18 @@ TEST(KalmanFilterTest, CurrentStateCalculateMeanTest) {
   const vector<double> result = current_state.calculateMean(
       predicted_state_mean, kalman_gain, innovation
   );
-  const std::vector<double> expected_result{1.3108695137597879, 0, 0};
+  const std::vector<double> result_vector(result.begin(), result.end());
 
-  EXPECT_EQ(result.size(), expected_result.size())
-      << "The mean vector is of incorrect dimension.";
-
-  const std::vector<double> result_vector{result(0), result(1), result(2)};
-  EXPECT_EQ(result_vector, expected_result)
-      << "The mean vector is not calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      result_vector,
+      expected::kalman_filter_test::
+          current_state_calculate_mean_test_current_state_mean,
+      kalman_tolerance, "The mean vector is not calculated correctly."
+  ));
 }
 
 /**
- * @brief Test that the CurrentState.calculateMean method returns the
+ * @brief Test that the CurrentState.calculateCovariance method returns the
  * correct result.
  */
 TEST(KalmanFilterTest, CurrentStateCalculateCovarianceTest) {
@@ -328,15 +319,13 @@ TEST(KalmanFilterTest, CurrentStateCalculateCovarianceTest) {
 
   const std::vector<std::vector<double>> result_vec =
       copy_matrix_elements_to_vector(result);
-  const std::vector<std::vector<double>> expected_result{
-      {4.7105773280001206e-05, 0, 0}, {0, 0.001, 0}, {0, 0, 0.001}
-  };
 
-  EXPECT_EQ(result_vec.size(), expected_result.size())
-      << "The covariance matrix is of incorrect dimension.";
-
-  EXPECT_EQ(result_vec, expected_result)
-      << "The covariance matrix is not calculated correctly.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      result_vec,
+      expected::kalman_filter_test::
+          current_state_calculate_covariance_test_current_state_covariance,
+      kalman_tolerance, "The covariance matrix is not calculated correctly."
+  ));
 }
 /**
  * @brief Test that the KcaStates setInitialState sets a KcaStates instance to
@@ -379,14 +368,13 @@ TEST(KalmanFilterStateTest, KcaStatessetInitialStateTest) {
   // Transition covariance.
   const std::vector<std::vector<double>> transition_covariance =
       copy_matrix_elements_to_vector(kca_states.getTransitionCovariance());
-  const std::vector<std::vector<double>> expected_transition_covariance{
-      {5e-05, 0.000125, 0.00016666666666666666},
-      {0.000125, 0.00033333333333333332, 0.0005},
-      {0.00016666666666666666, 0.0005, 0.001}
-  };
-  EXPECT_EQ(transition_covariance, expected_transition_covariance)
-      << "The transition covariance was set with invalid or inconsistent "
-         "values.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      transition_covariance,
+      expected::kalman_filter_state_test::
+          kca_statesset_initial_state_test_transition_covariance,
+      kalman_tolerance,
+      "The transition covariance was set with invalid or inconsistent values."
+  ));
 
   // Current state covariance.
   const std::vector<std::vector<double>> current_state_covariance =
@@ -399,14 +387,12 @@ TEST(KalmanFilterStateTest, KcaStatessetInitialStateTest) {
          "inconsistent values.";
 
   // Current state mean.
-  std::vector<double> current_state_mean_vector(3);
   const vector<double> current_state_mean = kca_states.getCurrentStateMean();
-  std::copy(
-      current_state_mean.begin(), current_state_mean.end(),
-      current_state_mean_vector.begin()
+  const std::vector<double> current_state_mean_vector(
+      current_state_mean.begin(), current_state_mean.end()
   );
   const std::vector<double> expected_current_state_mean{
-      10.276450000000001, 0.0, 0.0
+      data_series.back(), 0.0, 0.0
   };
   EXPECT_EQ(current_state_mean_vector, expected_current_state_mean)
       << "The current state mean vector was set with invalid or inconsistent "
@@ -471,27 +457,29 @@ TEST(KalmanFilterStateTest, KcaStatesupdatePredictedStateTest) {
   // Predicted state mean.
   const vector<double> predicted_state_mean =
       kca_states.getPredictedStateMean();
-  std::vector<double> predicted_state_mean_vector(3);
-  std::copy(
-      predicted_state_mean.begin(), predicted_state_mean.end(),
-      predicted_state_mean_vector.begin()
+  const std::vector<double> predicted_state_mean_vector(
+      predicted_state_mean.begin(), predicted_state_mean.end()
   );
-  const std::vector<double> expected_predicted_state_mean{
-      10.301048359829961, 0.0, 0.0
-  };
-  EXPECT_EQ(predicted_state_mean_vector, expected_predicted_state_mean)
-      << "The predicted state mean vector was set with invalid or "
-         "inconsistent values.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      predicted_state_mean_vector,
+      expected::kalman_filter_state_test::
+          kca_statesupdate_predicted_state_test_predicted_state_mean,
+      kalman_tolerance,
+      "The predicted state mean vector was set with invalid or "
+      "inconsistent values."
+  ));
 
   // Predicted state covariance.
   const std::vector<std::vector<double>> predicted_state_covariance =
       copy_matrix_elements_to_vector(kca_states.getPredictedStateCovariance());
-  const std::vector<std::vector<double>> expected_predicted_state_covariance{
-      {0.12695229227341848, 0, 0}, {0, 0.001, 0}, {0, 0, 0.001}
-  };
-  EXPECT_EQ(predicted_state_covariance, expected_predicted_state_covariance)
-      << "The predicted state covariance was set with invalid or "
-         "inconsistent values.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      predicted_state_covariance,
+      expected::kalman_filter_state_test::
+          kca_statesupdate_predicted_state_test_predicted_state_covariance,
+      kalman_tolerance,
+      "The predicted state covariance was set with invalid or "
+      "inconsistent values."
+  ));
 }
 /**
  * @brief Test that the KcaStates updateCurrentState sets a KcaStates instance
@@ -544,55 +532,61 @@ TEST(KalmanFilterStateTest, KcaStatesupdateCurrentStateTest) {
          "when updateCurrentState is called.";
 
   // Predicted observation mean.
-  std::vector<double> predicted_observation_mean_vector(1);
-  std::copy(
-      kca_states.getPredictedObservationMean().begin(),
-      kca_states.getPredictedObservationMean().end(),
-      predicted_observation_mean_vector.begin()
+  const vector<double> updated_predicted_observation_mean =
+      kca_states.getPredictedObservationMean();
+  const std::vector<double> predicted_observation_mean_vector(
+      updated_predicted_observation_mean.begin(),
+      updated_predicted_observation_mean.end()
   );
-  const std::vector<double> expected_predicted_observation_mean{
-      10.301048359829961
-  };
-  EXPECT_EQ(
-      predicted_observation_mean_vector, expected_predicted_observation_mean
-  ) << "The predicted observation mean vector was set with invalid or "
-       "inconsistent values.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      predicted_observation_mean_vector,
+      expected::kalman_filter_state_test::
+          kca_statesupdate_current_state_test_predicted_observation_mean,
+      kalman_tolerance,
+      "The predicted observation mean vector was set with invalid or "
+      "inconsistent values."
+  ));
 
   // Predicted observation covariance.
   const std::vector<std::vector<double>>
       predicted_observation_covariance_vector = copy_matrix_elements_to_vector(
           kca_states.getPredictedObservationCovariance()
       );
-  const std::vector<std::vector<double>>
-      expected_predicted_observation_covariance{{0.13695229227341849}};
-  EXPECT_EQ(
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       predicted_observation_covariance_vector,
-      expected_predicted_observation_covariance
-  ) << "The predicted observation covariance was set with invalid or "
-       "inconsistent values.";
+      expected::kalman_filter_state_test::
+          kca_statesupdate_current_state_test_predicted_observation_covariance,
+      kalman_tolerance,
+      "The predicted observation covariance was set with invalid or "
+      "inconsistent values."
+  ));
 
   // Current state mean.
   const vector<double> new_current_state_mean =
       kca_states.getCurrentStateMean();
-  std::vector<double> new_current_state_mean_vector(3);
-  std::copy(
-      new_current_state_mean.begin(), new_current_state_mean.end(),
-      new_current_state_mean_vector.begin()
+  const std::vector<double> new_current_state_mean_vector(
+      new_current_state_mean.begin(), new_current_state_mean.end()
   );
-  const std::vector<double> expected_current_state_mean{10.3000765492722, 0, 0};
-  EXPECT_EQ(new_current_state_mean_vector, expected_current_state_mean)
-      << "The current state mean vector was set with invalid or "
-         "inconsistent values.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      new_current_state_mean_vector,
+      expected::kalman_filter_state_test::
+          kca_statesupdate_current_state_test_current_state_mean,
+      kalman_tolerance,
+      "The current state mean vector was set with invalid or "
+      "inconsistent values."
+  ));
 
   // Current state covariance.
   const std::vector<std::vector<double>> new_current_state_covariance =
       copy_matrix_elements_to_vector(kca_states.getCurrentStateCovariance());
-  const std::vector<std::vector<double>> expected_current_state_covariance{
-      {0.0092698187205194488, 0, 0}, {0, 0.001, 0}, {0, 0, 0.001}
-  };
-  EXPECT_EQ(new_current_state_covariance, expected_current_state_covariance)
-      << "The current state covariance was set with invalid or "
-         "inconsistent values.";
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      new_current_state_covariance,
+      expected::kalman_filter_state_test::
+          kca_statesupdate_current_state_test_current_state_covariance,
+      kalman_tolerance,
+      "The current state covariance was set with invalid or "
+      "inconsistent values."
+  ));
 }
 
 /**

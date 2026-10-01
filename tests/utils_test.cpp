@@ -11,6 +11,7 @@
 #include "stochastic_models/numeric_utils/solvers.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/optimal_mean_reversion.h"
+#include "support/expected_values.h"
 
 #include <cmath>
 #include <gtest/gtest.h>
@@ -194,9 +195,10 @@ TEST(AdaptiveIntegrationFunctionTest, OutputTest) {
 
   // Adaptive integration function.
   double value = adaptiveIntegration(fn, &hitting_time_kernel, lower, upper);
-  EXPECT_EQ(value, 0.003993143831817661)
-      << "Value produced by adaptiveIntegration is not equal to the "
-         "expected value.";
+  EXPECT_NEAR(
+      value, expected::adaptive_integration_function_test::output_test, 5e-9
+  ) << "Value produced by adaptiveIntegration is not equal to the "
+       "expected value.";
 }
 /**
  * @brief Test that the semiInfiniteIntegrationUpper function produces the
@@ -222,9 +224,11 @@ TEST(SemiInfiniteIntegrationFunctionTest, OutputTest) {
   // Adaptive integration function.
   double value = semiInfiniteIntegrationUpper(fn, &params, lower);
 
-  EXPECT_EQ(value, 0.30603133345784983)
-      << "Value produced by semiInfiniteIntegrationUpper is not equal to "
-         "the expected value.";
+  EXPECT_NEAR(
+      value, expected::semi_infinite_integration_function_test::output_test,
+      5e-7
+  ) << "Value produced by semiInfiniteIntegrationUpper is not equal to "
+       "the expected value.";
 }
 /**
  * @brief Test that the adaptiveCentralDifferentiation function produces the
@@ -237,13 +241,16 @@ TEST(AdaptiveCentralDifferentiationFunctionTest, OutputTest) {
   void* params = nullptr;
 
   // Define function to differentate.
-  ModelFunc fn = [](double x, void* params) -> double { return pow(x, 2); };
+  ModelFunc fn = [](double point, void*) -> double { return pow(point, 2); };
 
   // Adaptive differentiation function.
   double value = adaptiveCentralDifferentiation(fn, params, x);
-  EXPECT_LT(value - 2, 1e-5)
-      << "Value produced by adaptiveCentralDifferentiation is not equal to "
-         "the expected value.";
+  EXPECT_NEAR(
+      value,
+      expected::adaptive_central_differentiation_function_test::output_test,
+      1e-9
+  ) << "Value produced by adaptiveCentralDifferentiation is not equal to "
+       "the expected value.";
 }
 double alwaysNan(double, void*) {
   return std::nan("");
@@ -284,19 +291,20 @@ TEST(BrentSolverFunctionTest, OutputTest) {
 
   double upper = 5;
   double lower = 0;
-  float tolerance = 1e-3;
+  const double tolerance = 3e-4;
 
   // Initialize model and define function to solve.
-  ModelFunc fn = [](double x, void* params) -> double {
-    return quadratic(x, params);
+  ModelFunc fn = [](double point, void* parameters) -> double {
+    return quadratic(point, parameters);
   };
 
   // Apply brent solver.
   double value = brentSolver(fn, &params, lower, upper);
 
-  EXPECT_LT(value - 2.236068, tolerance)
-      << "Value produced by brentSolver is not equal to "
-         "the expected value.";
+  EXPECT_NEAR(
+      value, expected::brent_solver_function_test::output_test, tolerance
+  ) << "Value produced by brentSolver is not equal to "
+       "the expected value.";
 }
 /**
  * @test Tests that brentSolver throws RootNotBracketedError when the function
@@ -456,7 +464,7 @@ TEST(SolverBoundsTest, upperSolverBoundOutputTest) {
   const double alpha = 16.6677;
   const double mu = 0.5388;
   const double sigma = 0.1599;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Create core model and optimal mean reversion instances.
   OrnsteinUhlenbeckModel model(mu, alpha, sigma);
@@ -465,9 +473,11 @@ TEST(SolverBoundsTest, upperSolverBoundOutputTest) {
   const double value = upperSolverBound(&model);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.649579, tolerance)
-      << "Value produced by upperSolverBound is not equal to the expected "
-         "value.";
+  EXPECT_NEAR(
+      value, expected::solver_bounds_test::upper_solver_bound_output_test,
+      tolerance
+  ) << "Value produced by upperSolverBound is not equal to the expected "
+       "value.";
 }
 /**
  * @test Tests the output of the lowerSolverBound function is near the expected
@@ -479,7 +489,7 @@ TEST(SolverBoundsTest, lowerSolverBoundOutputTest) {
   const double alpha = 16.6677;
   const double mu = 0.5388;
   const double sigma = 0.1599;
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Create core model and optimal mean reversion instances.
   OrnsteinUhlenbeckModel model(mu, alpha, sigma);
@@ -488,7 +498,9 @@ TEST(SolverBoundsTest, lowerSolverBoundOutputTest) {
   const double value = lowerSolverBound(&model);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(value, 8), 0.428021, tolerance)
-      << "Value produced by lowerSolverBound is not equal to the expected "
-         "value.";
+  EXPECT_NEAR(
+      value, expected::solver_bounds_test::lower_solver_bound_output_test,
+      tolerance
+  ) << "Value produced by lowerSolverBound is not equal to the expected "
+       "value.";
 }

@@ -2,9 +2,18 @@
 #include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/kalman_filter/kca.h"
 #include "stochastic_models/kalman_filter/states_exceptions.h"
+#include "support/assertions.h"
+#include "support/expected_values.h"
 
-#include <cstdlib>
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+constexpr double state_tolerance = 1e-12;
+
+using test_support::expectMatrixNear;
+using test_support::expectVectorNear;
 
 /**
  * @test Tests that the getInitializedKcaState function correctly initialises
@@ -27,21 +36,43 @@ TEST(KcaTest, getInitializedKcaStateTest) {
       "\"observation_offset\":0.0,\"state_covariance_columns\":3,\"state_"
       "covariance_rows\":3,\"state_mean_dimension\":3}";
 
-  // Get the initialised internal state as a JSON string from the KCA system.
-  const std::string internal_state =
-      getInitializedKcaState(data_series, h, q, system_dimension);
-  std::cout << internal_state << std::endl;
-  EXPECT_EQ(
-      internal_state,
-      "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
-      "0.0,0.0]],\"current_state_mean\":[10.27645,0.0,0.0],"
-      "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
-      "0,\"transition_covariance\":[[5e-05,0.000125,0.00016666666666666666],"
-      "[0.000125,0.0003333333333333333,0.0005],[0.00016666666666666666,0.0005,"
-      "0.001]],"
-      "\"transition_matrix\":[[1.0,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
-  ) << "The JSON string produced by the getInitializedKcaState "
-       "function is incorrect.";
+  const nlohmann::json state = nlohmann::json::parse(
+      getInitializedKcaState(data_series, h, q, system_dimension)
+  );
+
+  namespace initial = expected::kca_test;
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      state.at("transition_matrix"),
+      initial::get_initialized_kca_state_test_transition_matrix,
+      state_tolerance, "The initialised state has the wrong transition matrix."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      state.at("transition_covariance"),
+      initial::get_initialized_kca_state_test_transition_covariance,
+      state_tolerance,
+      "The initialised state has the wrong transition covariance."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      state.at("current_state_mean"),
+      initial::get_initialized_kca_state_test_current_state_mean,
+      state_tolerance, "The initialised state has the wrong current state mean."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      state.at("current_state_covariance"),
+      initial::get_initialized_kca_state_test_current_state_covariance,
+      state_tolerance,
+      "The initialised state has the wrong current state covariance."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      state.at("observation_matrix"),
+      initial::get_initialized_kca_state_test_observation_matrix,
+      state_tolerance, "The initialised state has the wrong observation matrix."
+  ));
+  EXPECT_NEAR(
+      state.at("observation_offset").get<double>(),
+      initial::get_initialized_kca_state_test_observation_offset,
+      state_tolerance
+  ) << "The initialised state has the wrong observation offset.";
 }
 /**
  * @test Tests that the getUpdatedKcaState function correctly performs single
@@ -66,27 +97,45 @@ TEST(KcaTest, getUpdatedKcaStateTest) {
   const double observation{10.3};
   const double innovation_sigma{0.1};
 
-  // Get the updated internal kinetic components state.
-  const std::string updated_state = getUpdatedKcaState(
-      state, system_dimension, observation, innovation_sigma
+  const nlohmann::json updated_state = nlohmann::json::parse(
+      getUpdatedKcaState(state, system_dimension, observation, innovation_sigma)
   );
 
-  std::cout << updated_state << std::endl;
-  EXPECT_EQ(
-      updated_state,
-      "{\"current_state_covariance\":[[0.009269818720519449,0.0,0.0],[0.0,0."
-      "001,0.0],[0.0,0.0,0.001]],\"current_state_mean\":[10.3000765492722,0."
-      "0,0.0],\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":"
-      "0.0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,0."
-      "001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1.0011961162353782,"
-      "1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
-  ) << "The JSON string produced "
-       "by the getUpdatedKcaState "
-       "function is incorrect.";
+  namespace updated = expected::kca_test;
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      updated_state.at("current_state_mean"),
+      updated::get_updated_kca_state_test_current_state_mean, state_tolerance,
+      "The updated state has the wrong current state mean."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      updated_state.at("current_state_covariance"),
+      updated::get_updated_kca_state_test_current_state_covariance,
+      state_tolerance,
+      "The updated state has the wrong current state covariance."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      updated_state.at("transition_matrix"),
+      updated::get_updated_kca_state_test_transition_matrix, state_tolerance,
+      "The updated state has the wrong transition matrix."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      updated_state.at("transition_covariance"),
+      updated::get_updated_kca_state_test_transition_covariance,
+      state_tolerance, "The updated state has the wrong transition covariance."
+  ));
+  ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
+      updated_state.at("observation_matrix"),
+      updated::get_updated_kca_state_test_observation_matrix, state_tolerance,
+      "The updated state has the wrong observation matrix."
+  ));
+  EXPECT_NEAR(
+      updated_state.at("observation_offset").get<double>(),
+      updated::get_updated_kca_state_test_observation_offset, state_tolerance
+  ) << "The updated state has the wrong observation offset.";
 }
 
 /**
- * @test A consistent dimension set that is not the fixed three-state KCA
+ * @test A consistent dimension set that is not the fixed 3-state KCA
  * scheme must be rejected by the initialise entrypoint with the typed
  * dimensions exception.
  */

@@ -1,7 +1,7 @@
 #include "stochastic_models/hitting_times/hitting_time_ornstein_uhlenbeck.h"
 #include "stochastic_models/likelihood/ornstein_uhlenbeck_likelihood.h"
-#include "stochastic_models/numeric_utils/helpers.h"
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
+#include "support/expected_values.h"
 
 #include <cmath>
 #include <cstddef>
@@ -15,31 +15,32 @@
  *
  */
 TEST(OrnsteinUhlenbeckModelTest, getUnconditionalVarianceOutputTest) {
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
   // Instantiate model and generate output of hitting time core function.
   OrnsteinUhlenbeckModel model(0.5, 0.02, 0.05);
   const double output = model.getUnconditionalVariance();
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(output, 8), 0.0625, tolerance)
-      << "OrnsteinUhlenbeckModel not calculating "
-         "correct value for getUnconditionalVariance method.";
+  EXPECT_NEAR(
+      output,
+      expected::ornstein_uhlenbeck_model_test::
+          get_unconditional_variance_output_test,
+      tolerance
+  ) << "OrnsteinUhlenbeckModel not calculating "
+       "correct value for getUnconditionalVariance method.";
 }
 /**
- * @test Tests the output of the OrnsteinUhlenbeckModel::getMean
- * method and asserts that it is near the expected value.
+ * @test Tests that OrnsteinUhlenbeckModel::getMean returns the mu value passed
+ * to the constructor.
  *
  */
 TEST(OrnsteinUhlenbeckModelTest, getMeanOutputTest) {
-  const float tolerance = 1e-5;
-  // Instantiate model and generate output of hitting time core function.
-  OrnsteinUhlenbeckModel model(0.5, 0.02, 0.05);
-  const double output = model.getMean();
+  const double mu = 0.5;
+  OrnsteinUhlenbeckModel model(mu, 0.02, 0.05);
 
-  // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(output, 8), 0.5, tolerance)
-      << "OrnsteinUhlenbeckModel not calculating "
-         "correct value for getMean method.";
+  EXPECT_EQ(model.getMean(), mu)
+      << "OrnsteinUhlenbeckModel::getMean did not return the mu value passed "
+         "to the constructor.";
 }
 /**
  * @test Conditional variance over a step t must equal
@@ -47,10 +48,18 @@ TEST(OrnsteinUhlenbeckModelTest, getMeanOutputTest) {
  */
 TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceOutputTest) {
   OrnsteinUhlenbeckModel model(0.5, 0.02, 0.05);
-  EXPECT_NEAR(model.getConditionalVariance(1.0), 0.0024506601, 1e-9)
-      << "OrnsteinUhlenbeckModel conditional variance wrong at t = 1.";
-  EXPECT_NEAR(model.getConditionalVariance(2.0), 0.0048052284, 1e-9)
-      << "OrnsteinUhlenbeckModel conditional variance wrong at t = 2.";
+  EXPECT_NEAR(
+      model.getConditionalVariance(1.0),
+      expected::ornstein_uhlenbeck_model_test::
+          get_conditional_variance_output_test_step_1,
+      1e-9
+  ) << "OrnsteinUhlenbeckModel conditional variance wrong at t = 1.";
+  EXPECT_NEAR(
+      model.getConditionalVariance(2.0),
+      expected::ornstein_uhlenbeck_model_test::
+          get_conditional_variance_output_test_step_2,
+      1e-9
+  ) << "OrnsteinUhlenbeckModel conditional variance wrong at t = 2.";
 }
 /**
  * @test Conditional variance at alpha = 0 must take the sigma^2 * t limit
@@ -59,19 +68,31 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceOutputTest) {
  */
 TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceZeroAlphaLimitTest) {
   OrnsteinUhlenbeckModel zero_alpha(0.5, 0.0, 0.05);
-  EXPECT_NEAR(zero_alpha.getConditionalVariance(1.0), 0.0025, 1e-12)
-      << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
-         "t = 1.";
-  EXPECT_NEAR(zero_alpha.getConditionalVariance(2.0), 0.005, 1e-12)
-      << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
-         "t = 2.";
+  EXPECT_NEAR(
+      zero_alpha.getConditionalVariance(1.0),
+      expected::ornstein_uhlenbeck_model_test::
+          get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_1,
+      1e-12
+  ) << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
+       "t = 1.";
+  EXPECT_NEAR(
+      zero_alpha.getConditionalVariance(2.0),
+      expected::ornstein_uhlenbeck_model_test::
+          get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_2,
+      1e-12
+  ) << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
+       "t = 2.";
 
   // Just above the guard, so the closed-form branch is exercised at the
   // smallest alpha it ever sees.
   OrnsteinUhlenbeckModel near_zero_alpha(0.5, 1.1e-12, 0.05);
-  EXPECT_NEAR(near_zero_alpha.getConditionalVariance(1.0), 0.0025, 1e-12)
-      << "OrnsteinUhlenbeckModel conditional variance discontinuous across "
-         "the alpha = 1e-12 guard threshold.";
+  EXPECT_NEAR(
+      near_zero_alpha.getConditionalVariance(1.0),
+      expected::ornstein_uhlenbeck_model_test::
+          get_conditional_variance_zero_alpha_limit_test_near_zero_alpha_step_1,
+      1e-12
+  ) << "OrnsteinUhlenbeckModel conditional variance discontinuous across "
+       "the alpha = 1e-12 guard threshold.";
 }
 /**
  * @test Tests the output of the
@@ -80,15 +101,19 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceZeroAlphaLimitTest) {
  *
  */
 TEST(HittingTimeOrnsteinUhlenbeckTest, hittingTimeCoreOutputTest) {
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
   // Instantiate model and generate output of hitting time core function.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.5, 0.02, 0.05);
   const double output = hitting_time_kernel.hittingTimeDensityCore(0.3);
 
   // Assert that the value is near the expected value.
-  EXPECT_NEAR(roundToDecimals(output, 8), 0.18637397, tolerance)
-      << "OrnsteinUhlenbeckModel not calculating "
-         "correct value for hitting time density.";
+  EXPECT_NEAR(
+      output,
+      expected::hitting_time_ornstein_uhlenbeck_test::
+          hitting_time_core_output_test,
+      tolerance
+  ) << "OrnsteinUhlenbeckModel not calculating "
+       "correct value for hitting time density.";
 }
 /**
  * @test Tests the output of the
@@ -97,15 +122,19 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, hittingTimeCoreOutputTest) {
  *
  */
 TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingFCoreOutputTest) {
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
   // Instantiate model and generate output of first passage time core
   // function F.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.5, 0.02, 0.05);
   const double output = hitting_time_kernel.optimalTradingFCore(0.3, 0.1, 0.02);
   // Expect equality for output.
-  EXPECT_NEAR(roundToDecimals(output, 8), 0.91851228, tolerance)
-      << "HittingTimeOrnsteinUhlenbeck not calculating "
-         "correct value for first passage time F function.";
+  EXPECT_NEAR(
+      output,
+      expected::hitting_time_ornstein_uhlenbeck_test::
+          optimal_trading_f_core_output_test,
+      tolerance
+  ) << "HittingTimeOrnsteinUhlenbeck not calculating "
+       "correct value for first passage time F function.";
 }
 /**
  * @test Tests the output of the
@@ -114,15 +143,19 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingFCoreOutputTest) {
  *
  */
 TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingGCoreOutputTest) {
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
   // Instantiate model and generate output of first passage time core
   // function G.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.5, 0.02, 0.05);
   const double output = hitting_time_kernel.optimalTradingGCore(0.3, 0.1, 0.02);
   // Expect equality for output.
-  EXPECT_NEAR(roundToDecimals(output, 8), 1.07788415, tolerance)
-      << "HittingTimeOrnsteinUhlenbeck not calculating "
-         "correct value for first passage time G function.";
+  EXPECT_NEAR(
+      output,
+      expected::hitting_time_ornstein_uhlenbeck_test::
+          optimal_trading_g_core_output_test,
+      tolerance
+  ) << "HittingTimeOrnsteinUhlenbeck not calculating "
+       "correct value for first passage time G function.";
 }
 /**
  * @test Tests the output of the
@@ -131,14 +164,18 @@ TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingGCoreOutputTest) {
  *
  */
 TEST(HittingTimeOrnsteinUhlenbeckTest, optimalTradingLCoreOutputTest) {
-  const float tolerance = 1e-5;
+  const double tolerance = 1e-9;
   // Instantiate model and generate output of core function L.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(0.3, 8, 0.3);
   const double output = hitting_time_kernel.optimalTradingLCore(0.05, 0.02);
   // Expect equality for output.
-  EXPECT_NEAR(roundToDecimals(output, 8), 0.298261, tolerance)
-      << "HittingTimeOrnsteinUhlenbeck not calculating correct value for L "
-         "function.";
+  EXPECT_NEAR(
+      output,
+      expected::hitting_time_ornstein_uhlenbeck_test::
+          optimal_trading_l_core_output_test,
+      tolerance
+  ) << "HittingTimeOrnsteinUhlenbeck not calculating correct value for L "
+       "function.";
 }
 /**
  * @test A path simulated with sigma > 0 must carry continuous Gaussian noise of
