@@ -1,12 +1,18 @@
-
 #include "stochastic_models/kalman_filter/kca.h"
+#include "support/assertions.h"
+#include "support/expected_values.h"
 
 #include <gtest/gtest.h>
+#include <vector>
+
+constexpr double kalman_tolerance = 1e-12;
+
+using test_support::expectVectorNear;
 /**
  * @brief Test that the KineticComponents initialiseFilter sets a
- * KinetiComponents instance to the correct initial state. Members are private,
- * however logically the method must set the isInitialised flag to true. We can
- * only test the public interface.
+ * KineticComponents instance to the correct initial state. Members are
+ * private, however logically the method must set the isInitialised flag to
+ * true. We can only test the public interface.
  */
 TEST(KalmanFilterUpdateTest, KineticComponentsinitialiseFilterTest) {
   // Mock data series to initialise the KineticComponents object.
@@ -27,10 +33,12 @@ TEST(KalmanFilterUpdateTest, KineticComponentsinitialiseFilterTest) {
       << "The KineticComponents object must correctly indicate whether it is "
          "initialised.";
 
-  std::vector<double> expected_current_state_mean{10.276450000000001, 0.0, 0.0};
+  const std::vector<double> expected_current_state_mean{
+      data_series.back(), 0.0, 0.0
+  };
   EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
-      << "The KineticComponents object must correctly set the current state "
-         "mean at initialisation.";
+      << "The KineticComponents object must set the current state mean to the "
+         "last observation at initialisation.";
 }
 /**
  * @brief Test that the KineticComponents updatePriors sets a KineticComponents
@@ -75,16 +83,14 @@ TEST(KalmanFilterUpdateTest, KineticComponentsupdatePriorsTest) {
       << "The KineticComponents object must correctly indicate whether its "
          "prior state is valid after prior update.";
 
-  std::vector<double> expected_current_state_mean{10.276567164179106, 0.0, 0.0};
-  EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
-      << "The KineticComponents object must not change the value of the the "
-         "current state when updating the prior state.";
+  EXPECT_EQ(kinetic_components.getCurrentState(), current_state_mean)
+      << "The KineticComponents object must not change the current state "
+         "when updating the prior state.";
 }
 
 /**
  * @brief Test that the KineticComponents updatePosteriors sets a
- * KineticComponents instance to the correct state and returns a the corrent
- * state objects.
+ * KineticComponents instance to the correct state after the posterior update.
  */
 TEST(KalmanFilterUpdateTest, KineticComponentsupdatePosteriorsTest) {
   // Mock data series to initialise a KCA states object.
@@ -125,7 +131,7 @@ TEST(KalmanFilterUpdateTest, KineticComponentsupdatePosteriorsTest) {
   KineticComponents kinetic_components(dimensions);
   kinetic_components.setFilterState(kca_states);
 
-  // Update the priors and check the prior state is valid.
+  // Update the posteriors and check the prior state is invalid.
   const double observation = 10.3;
   const double innovation_sigma = 0.1;
   kinetic_components.updatePosteriors(observation, innovation_sigma);
@@ -133,10 +139,14 @@ TEST(KalmanFilterUpdateTest, KineticComponentsupdatePosteriorsTest) {
       << "The KineticComponents object must correctly indicate whether its "
          "prior state is invalid after posterior update.";
 
-  std::vector<double> expected_current_state_mean{10.3000765492722, 0.0, 0.0};
-  EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
-      << "The KineticComponents object must correctly set the current state "
-         "mean at initialisation.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      kinetic_components.getCurrentState(),
+      expected::kalman_filter_update_test::
+          kinetic_componentsupdate_posteriors_test_current_state_mean,
+      kalman_tolerance,
+      "The KineticComponents object does not set the correct current state "
+      "mean after the posterior update."
+  ));
 }
 /**
  * @brief Test that the KineticComponents correctly completes a full initialize,
@@ -164,10 +174,12 @@ TEST(KalmanFilterUpdateTest, KineticComponentsFullFilterTest) {
   // Update the posteriors with the observation.
   kinetic_components.updatePosteriors(observation, innovation_sigma);
 
-  std::vector<double> expected_current_state_mean{
-      10.276567164179106, 0.00029291044776119624, 0.00039054726368159494
-  };
-  EXPECT_EQ(kinetic_components.getCurrentState(), expected_current_state_mean)
-      << "The KineticComponents object must correctly finish a kalman filter "
-         "predict and update round with the correct current state.";
+  ASSERT_NO_FATAL_FAILURE(expectVectorNear(
+      kinetic_components.getCurrentState(),
+      expected::kalman_filter_update_test::
+          kinetic_components_full_filter_test_current_state_mean,
+      kalman_tolerance,
+      "The KineticComponents object does not finish a Kalman filter predict "
+      "and update round with the correct current state."
+  ));
 }

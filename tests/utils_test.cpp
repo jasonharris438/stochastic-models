@@ -241,14 +241,14 @@ TEST(AdaptiveCentralDifferentiationFunctionTest, OutputTest) {
   void* params = nullptr;
 
   // Define function to differentate.
-  ModelFunc fn = [](double x, void*) -> double { return pow(x, 2); };
+  ModelFunc fn = [](double point, void*) -> double { return pow(point, 2); };
 
   // Adaptive differentiation function.
   double value = adaptiveCentralDifferentiation(fn, params, x);
   EXPECT_NEAR(
       value,
       expected::adaptive_central_differentiation_function_test::output_test,
-      1e-5
+      1e-9
   ) << "Value produced by adaptiveCentralDifferentiation is not equal to "
        "the expected value.";
 }
@@ -294,8 +294,8 @@ TEST(BrentSolverFunctionTest, OutputTest) {
   const double tolerance = 3e-4;
 
   // Initialize model and define function to solve.
-  ModelFunc fn = [](double x, void* params) -> double {
-    return quadratic(x, params);
+  ModelFunc fn = [](double point, void* parameters) -> double {
+    return quadratic(point, parameters);
   };
 
   // Apply brent solver.

@@ -44,27 +44,29 @@ TEST(KcaTest, getInitializedKcaStateTest) {
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("transition_matrix"),
       initial::get_initialized_kca_state_test_transition_matrix,
-      "transition_matrix", state_tolerance
+      state_tolerance, "The initialised state has the wrong transition matrix."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("transition_covariance"),
       initial::get_initialized_kca_state_test_transition_covariance,
-      "transition_covariance", state_tolerance
+      state_tolerance,
+      "The initialised state has the wrong transition covariance."
   ));
   ASSERT_NO_FATAL_FAILURE(expectVectorNear(
       state.at("current_state_mean"),
       initial::get_initialized_kca_state_test_current_state_mean,
-      "current_state_mean", state_tolerance
+      state_tolerance, "The initialised state has the wrong current state mean."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("current_state_covariance"),
       initial::get_initialized_kca_state_test_current_state_covariance,
-      "current_state_covariance", state_tolerance
+      state_tolerance,
+      "The initialised state has the wrong current state covariance."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       state.at("observation_matrix"),
       initial::get_initialized_kca_state_test_observation_matrix,
-      "observation_matrix", state_tolerance
+      state_tolerance, "The initialised state has the wrong observation matrix."
   ));
   EXPECT_NEAR(
       state.at("observation_offset").get<double>(),
@@ -102,28 +104,29 @@ TEST(KcaTest, getUpdatedKcaStateTest) {
   namespace updated = expected::kca_test;
   ASSERT_NO_FATAL_FAILURE(expectVectorNear(
       updated_state.at("current_state_mean"),
-      updated::get_updated_kca_state_test_current_state_mean,
-      "current_state_mean", state_tolerance
+      updated::get_updated_kca_state_test_current_state_mean, state_tolerance,
+      "The updated state has the wrong current state mean."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("current_state_covariance"),
       updated::get_updated_kca_state_test_current_state_covariance,
-      "current_state_covariance", state_tolerance
+      state_tolerance,
+      "The updated state has the wrong current state covariance."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("transition_matrix"),
-      updated::get_updated_kca_state_test_transition_matrix,
-      "transition_matrix", state_tolerance
+      updated::get_updated_kca_state_test_transition_matrix, state_tolerance,
+      "The updated state has the wrong transition matrix."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("transition_covariance"),
       updated::get_updated_kca_state_test_transition_covariance,
-      "transition_covariance", state_tolerance
+      state_tolerance, "The updated state has the wrong transition covariance."
   ));
   ASSERT_NO_FATAL_FAILURE(expectMatrixNear(
       updated_state.at("observation_matrix"),
-      updated::get_updated_kca_state_test_observation_matrix,
-      "observation_matrix", state_tolerance
+      updated::get_updated_kca_state_test_observation_matrix, state_tolerance,
+      "The updated state has the wrong observation matrix."
   ));
   EXPECT_NEAR(
       updated_state.at("observation_offset").get<double>(),
@@ -132,7 +135,7 @@ TEST(KcaTest, getUpdatedKcaStateTest) {
 }
 
 /**
- * @test A consistent dimension set that is not the fixed three-state KCA
+ * @test A consistent dimension set that is not the fixed 3-state KCA
  * scheme must be rejected by the initialise entrypoint with the typed
  * dimensions exception.
  */

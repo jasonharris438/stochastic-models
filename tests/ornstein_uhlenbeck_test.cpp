@@ -30,22 +30,17 @@ TEST(OrnsteinUhlenbeckModelTest, getUnconditionalVarianceOutputTest) {
        "correct value for getUnconditionalVariance method.";
 }
 /**
- * @test Tests the output of the OrnsteinUhlenbeckModel::getMean
- * method and asserts that it is near the expected value.
+ * @test Tests that OrnsteinUhlenbeckModel::getMean returns the mu value passed
+ * to the constructor.
  *
  */
 TEST(OrnsteinUhlenbeckModelTest, getMeanOutputTest) {
-  const double tolerance = 1e-9;
-  // Instantiate model and generate output of hitting time core function.
-  OrnsteinUhlenbeckModel model(0.5, 0.02, 0.05);
-  const double output = model.getMean();
+  const double mu = 0.5;
+  OrnsteinUhlenbeckModel model(mu, 0.02, 0.05);
 
-  // Assert that the value is near the expected value.
-  EXPECT_NEAR(
-      output, expected::ornstein_uhlenbeck_model_test::get_mean_output_test,
-      tolerance
-  ) << "OrnsteinUhlenbeckModel not calculating "
-       "correct value for getMean method.";
+  EXPECT_EQ(model.getMean(), mu)
+      << "OrnsteinUhlenbeckModel::getMean did not return the mu value passed "
+         "to the constructor.";
 }
 /**
  * @test Conditional variance over a step t must equal
@@ -56,13 +51,13 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceOutputTest) {
   EXPECT_NEAR(
       model.getConditionalVariance(1.0),
       expected::ornstein_uhlenbeck_model_test::
-          get_conditional_variance_output_test_step_one,
+          get_conditional_variance_output_test_step_1,
       1e-9
   ) << "OrnsteinUhlenbeckModel conditional variance wrong at t = 1.";
   EXPECT_NEAR(
       model.getConditionalVariance(2.0),
       expected::ornstein_uhlenbeck_model_test::
-          get_conditional_variance_output_test_step_two,
+          get_conditional_variance_output_test_step_2,
       1e-9
   ) << "OrnsteinUhlenbeckModel conditional variance wrong at t = 2.";
 }
@@ -76,15 +71,15 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceZeroAlphaLimitTest) {
   EXPECT_NEAR(
       zero_alpha.getConditionalVariance(1.0),
       expected::ornstein_uhlenbeck_model_test::
-          get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_one,
-      1e-9
+          get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_1,
+      1e-12
   ) << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
        "t = 1.";
   EXPECT_NEAR(
       zero_alpha.getConditionalVariance(2.0),
       expected::ornstein_uhlenbeck_model_test::
-          get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_two,
-      1e-9
+          get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_2,
+      1e-12
   ) << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
        "t = 2.";
 
@@ -94,8 +89,8 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceZeroAlphaLimitTest) {
   EXPECT_NEAR(
       near_zero_alpha.getConditionalVariance(1.0),
       expected::ornstein_uhlenbeck_model_test::
-          get_conditional_variance_zero_alpha_limit_test_near_zero_alpha_step_one,
-      1e-9
+          get_conditional_variance_zero_alpha_limit_test_near_zero_alpha_step_1,
+      1e-12
   ) << "OrnsteinUhlenbeckModel conditional variance discontinuous across "
        "the alpha = 1e-12 guard threshold.";
 }

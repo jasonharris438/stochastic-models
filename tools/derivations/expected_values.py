@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["numpy==2.5.3", "scipy==1.18.1"]
 # ///
-"""Independent replica of the expected values locked by the unit tests.
+"""Independent replica of the expected values in tests/support/expected_values.h.
 
 Every value is computed from the model formulas with scipy, not from the
 library. Quadrature uses QAWS for the algebraic endpoint singularity and
@@ -10,24 +10,27 @@ brentq for the roots. Run with:
 
     uv run --script tools/derivations/expected_values.py
 
-Without arguments the script prints one `name value` line per expected value,
+Without arguments the script prints 1 `name value` line per expected value,
 keyed by the gtest identifier that locks it. With `--header PATH` it writes the
-same values as a C++ header of compile time constants.
+same values as a C++ header of compile time constants. With `--check PATH` it
+compares the header at PATH with the same values and exits 1 when a value is
+not within 1e-10 relative or when any other text differs.
 """
 
 import argparse
+import math
 import re
+import sys
+from collections.abc import Callable
 from dataclasses import dataclass
-from decimal import Decimal
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import brentq
 from scipy.stats import norm
 
-ExpectedValue = Union[float, int, List[float], List[List[float]]]
+ExpectedValue = float | int | list[float] | list[list[float]]
 
 
 @dataclass(frozen=True)
@@ -49,7 +52,7 @@ class OrnsteinUhlenbeck:
         return np.sqrt(2.0 * self.alpha) / self.sigma
 
     def conditional_variance(self, step: float) -> float:
-        """Variance over one step, sigma^2 (1 - exp(-2 alpha t)) / (2 alpha)."""
+        """Variance over 1 step, sigma^2 (1 - exp(-2 alpha t)) / (2 alpha)."""
         if abs(self.alpha) < 1e-12:
             return self.sigma**2 * step
         return float(self.sigma**2 * -np.expm1(-2.0 * self.alpha * step) / (2.0 * self.alpha))
@@ -68,7 +71,7 @@ class GeneralLinear:
         return self.sigma**2 / (-2.0 * self.mu)
 
     def conditional_variance(self, step: float) -> float:
-        """Variance over one step, sigma^2 (exp(2 mu t) - 1) / (2 mu)."""
+        """Variance over 1 step, sigma^2 (exp(2 mu t) - 1) / (2 mu)."""
         if abs(self.mu) < 1e-12:
             return self.sigma**2 * step
         return float(self.sigma**2 * np.expm1(2.0 * self.mu * step) / (2.0 * self.mu))
@@ -94,24 +97,15 @@ class OrnsteinUhlenbeckSums:
     n_obs: int
 
 
-def net_gain(level: float, cost: float) -> float:
-    """Immediate payoff level - cost, subtracted as an exact decimal.
-
-    Binary subtraction of the two short decimals the tests use leaves a value
-    one unit in the last place below the decimal the assertion reads.
-    """
-    return float(Decimal(str(level)) - Decimal(str(cost)))
-
-
-def hitting_time_core(x: float, *, model: OrnsteinUhlenbeck) -> float:
+def hitting_time_core(point: float, *, model: OrnsteinUhlenbeck) -> float:
     """Unnormalised hitting time kernel exp(x alpha (x - 2 mu) / sigma^2)."""
-    return float(np.exp(x * model.alpha * (x - 2.0 * model.mu) / model.sigma**2))
+    return float(np.exp(x_exponent(point, model=model)))
 
 
 def hitting_time_density(
-    x: float, *, model: OrnsteinUhlenbeck, first: float, second: float
+    point: float, *, model: OrnsteinUhlenbeck, first: float, second: float
 ) -> float:
-    """Ratio of the kernel integral over [second, x] to that over [second, first].
+    """Ratio of the kernel integral over [second, point] to that over [second, first].
 
     The exponent is shifted by its value at `second` so that both integrals
     stay in floating point range.
@@ -121,18 +115,18 @@ def hitting_time_density(
     def shifted_kernel(point: float) -> float:
         return float(np.exp(x_exponent(point, model=model) - shift))
 
-    numerator, _ = quad(shifted_kernel, second, x, epsabs=0.0, epsrel=1e-12)
+    numerator, _ = quad(shifted_kernel, second, point, epsabs=0.0, epsrel=1e-12)
     denominator, _ = quad(shifted_kernel, second, first, epsabs=0.0, epsrel=1e-12)
     return numerator / denominator
 
 
 def x_exponent(point: float, *, model: OrnsteinUhlenbeck) -> float:
-    """Exponent of the hitting time kernel at one point."""
+    """Exponent of the hitting time kernel at 1 point."""
     return point * model.alpha * (point - 2.0 * model.mu) / model.sigma**2
 
 
 def kernel_integral(
-    x: float,
+    point: float,
     *,
     model: OrnsteinUhlenbeck,
     rate: float,
@@ -143,17 +137,19 @@ def kernel_integral(
     """Integral of u^(r/alpha - 1 + shift) exp(sign k (x - mu) u - u^2 / 2) over [lower, inf).
 
     With sign = +1 this is the Leung-Li F function, with sign = -1 the G
-    function. A power shift of one gives the derivative integrand. The
+    function. A power shift of 1 gives the derivative integrand. The
     algebraic singularity at zero is handled by QAWS on [0, 1].
     """
     power = rate / model.alpha - 1.0 + power_shift
-    drift = mean_sign * model.scaled_drift * (x - model.mu)
+    drift = mean_sign * model.scaled_drift * (point - model.mu)
 
-    def smooth_part(u: float) -> float:
-        return float(np.exp(drift * u - 0.5 * u * u))
+    def smooth_part(integration_variable: float) -> float:
+        return float(
+            np.exp(drift * integration_variable - 0.5 * integration_variable * integration_variable)
+        )
 
-    def full_integrand(u: float) -> float:
-        return u**power * smooth_part(u)
+    def full_integrand(integration_variable: float) -> float:
+        return integration_variable**power * smooth_part(integration_variable)
 
     if lower > 0.0:
         tail, _ = quad(full_integrand, lower, np.inf, epsabs=0.0, epsrel=1e-12, limit=200)
@@ -163,27 +159,27 @@ def kernel_integral(
     return head + tail
 
 
-def function_f(x: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
+def function_f(point: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
     """Leung-Li F(x)."""
-    return kernel_integral(x, model=model, rate=rate, mean_sign=1.0)
+    return kernel_integral(point, model=model, rate=rate, mean_sign=1.0)
 
 
-def function_g(x: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
+def function_g(point: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
     """Leung-Li G(x)."""
-    return kernel_integral(x, model=model, rate=rate, mean_sign=-1.0)
+    return kernel_integral(point, model=model, rate=rate, mean_sign=-1.0)
 
 
-def derivative_f(x: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
+def derivative_f(point: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
     """F'(x) by differentiation under the integral sign."""
     return model.scaled_drift * kernel_integral(
-        x, model=model, rate=rate, mean_sign=1.0, power_shift=1
+        point, model=model, rate=rate, mean_sign=1.0, power_shift=1
     )
 
 
-def derivative_g(x: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
+def derivative_g(point: float, *, model: OrnsteinUhlenbeck, rate: float) -> float:
     """G'(x) by differentiation under the integral sign."""
     return -model.scaled_drift * kernel_integral(
-        x, model=model, rate=rate, mean_sign=-1.0, power_shift=1
+        point, model=model, rate=rate, mean_sign=-1.0, power_shift=1
     )
 
 
@@ -234,36 +230,36 @@ def exit_residual_stop_loss(
 
 
 def value_function(
-    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+    point: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
 ) -> float:
     """Value function (b - c) F(x) / F(b) below the exit, x - c above it."""
-    if x >= exit_level:
-        return net_gain(x, costs.cost)
+    if point >= exit_level:
+        return point - costs.cost
     rate = costs.rate
     return (
         (exit_level - costs.cost)
-        * function_f(x, model=model, rate=rate)
+        * function_f(point, model=model, rate=rate)
         / function_f(exit_level, model=model, rate=rate)
     )
 
 
 def derivative_value_function(
-    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+    point: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
 ) -> float:
-    """V'(x) = (b - c) F'(x) / F(b) below the exit, one above it."""
-    if x >= exit_level:
+    """V'(x) = (b - c) F'(x) / F(b) below the exit, 1 above it."""
+    if point >= exit_level:
         return 1.0
     rate = costs.rate
     return (
         (exit_level - costs.cost)
-        * derivative_f(x, model=model, rate=rate)
+        * derivative_f(point, model=model, rate=rate)
         / function_f(exit_level, model=model, rate=rate)
     )
 
 
 def stop_loss_weights(
     *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float, stop_loss: float
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Weights C and D of the stop loss value function C F + D G."""
     rate = costs.rate
     level_less_cost = exit_level - costs.cost
@@ -279,7 +275,7 @@ def stop_loss_weights(
 
 
 def value_function_stop_loss(
-    x: float,
+    point: float,
     *,
     model: OrnsteinUhlenbeck,
     costs: TradingCosts,
@@ -287,65 +283,65 @@ def value_function_stop_loss(
     stop_loss: float,
 ) -> float:
     """Value function C F(x) + D G(x) between the stop loss and the exit, x - c outside."""
-    if not (exit_level > x > stop_loss):
-        return net_gain(x, costs.cost)
+    if not (exit_level > point > stop_loss):
+        return point - costs.cost
     weight_f, weight_g = stop_loss_weights(
         model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
     )
     rate = costs.rate
-    return weight_f * function_f(x, model=model, rate=rate) + weight_g * function_g(
-        x, model=model, rate=rate
+    return weight_f * function_f(point, model=model, rate=rate) + weight_g * function_g(
+        point, model=model, rate=rate
     )
 
 
 def derivative_value_function_stop_loss(
-    x: float,
+    point: float,
     *,
     model: OrnsteinUhlenbeck,
     costs: TradingCosts,
     exit_level: float,
     stop_loss: float,
 ) -> float:
-    """V'(x) = C F'(x) + D G'(x) from the stop loss up to the exit, one outside.
+    """V'(x) = C F'(x) + D G'(x) from the stop loss up to the exit, 1 outside.
 
     At the stop loss itself the slope is the limit from inside the
     continuation region, where the payoff kink makes the left slope differ.
     """
-    if not (exit_level > x >= stop_loss):
+    if not (exit_level > point >= stop_loss):
         return 1.0
     weight_f, weight_g = stop_loss_weights(
         model=model, costs=costs, exit_level=exit_level, stop_loss=stop_loss
     )
     rate = costs.rate
-    return weight_f * derivative_f(x, model=model, rate=rate) + weight_g * derivative_g(
-        x, model=model, rate=rate
+    return weight_f * derivative_f(point, model=model, rate=rate) + weight_g * derivative_g(
+        point, model=model, rate=rate
     )
 
 
 def value_function_exponential(
-    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+    point: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
 ) -> float:
     """Value function (e^b - c) F(x) / F(b) below the exit, e^x - c above it."""
-    if x >= exit_level:
-        return float(np.exp(x)) - costs.cost
+    if point >= exit_level:
+        return float(np.exp(point)) - costs.cost
     rate = costs.rate
     return (
         (float(np.exp(exit_level)) - costs.cost)
-        * function_f(x, model=model, rate=rate)
+        * function_f(point, model=model, rate=rate)
         / function_f(exit_level, model=model, rate=rate)
     )
 
 
 def derivative_value_function_exponential(
-    x: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
+    point: float, *, model: OrnsteinUhlenbeck, costs: TradingCosts, exit_level: float
 ) -> float:
     """V'(x) = (e^b - c) F'(x) / F(b) below the exit, e^x above it."""
-    if x >= exit_level:
-        return float(np.exp(x))
+    if point >= exit_level:
+        return float(np.exp(point))
     rate = costs.rate
     return (
         (float(np.exp(exit_level)) - costs.cost)
-        * derivative_f(x, model=model, rate=rate)
+        * derivative_f(point, model=model, rate=rate)
         / function_f(exit_level, model=model, rate=rate)
     )
 
@@ -435,7 +431,7 @@ def solve_exit_level(
     )
 
 
-def ornstein_uhlenbeck_sums(series: List[float]) -> OrnsteinUhlenbeckSums:
+def ornstein_uhlenbeck_sums(series: list[float]) -> OrnsteinUhlenbeckSums:
     """Sufficient statistics of a series with unit steps."""
     lag = np.asarray(series[:-1])
     lead = np.asarray(series[1:])
@@ -452,7 +448,7 @@ def ornstein_uhlenbeck_sums(series: List[float]) -> OrnsteinUhlenbeckSums:
 def update_sums(
     sums: OrnsteinUhlenbeckSums, *, new_observation: float, last_observation: float
 ) -> OrnsteinUhlenbeckSums:
-    """Sufficient statistics after one more lag and lead pair."""
+    """Sufficient statistics after 1 more lag and lead pair."""
     return OrnsteinUhlenbeckSums(
         lead_sum=sums.lead_sum + new_observation,
         lag_sum=sums.lag_sum + last_observation,
@@ -485,19 +481,19 @@ def ornstein_uhlenbeck_estimate(sums: OrnsteinUhlenbeckSums) -> OrnsteinUhlenbec
     return OrnsteinUhlenbeck(mu=float(mu), alpha=float(alpha), sigma=float(sigma))
 
 
-def vector_values(values: np.ndarray) -> List[float]:
+def vector_values(values: np.ndarray) -> list[float]:
     """Plain float list of a numpy vector."""
     return [float(value) for value in values]
 
 
-def matrix_values(values: np.ndarray) -> List[List[float]]:
+def matrix_values(values: np.ndarray) -> list[list[float]]:
     """Plain float list of lists of a numpy matrix."""
     return [[float(value) for value in row] for row in values]
 
 
 @dataclass(frozen=True)
 class KcaState:
-    """Kinetic components state: three-state constant-acceleration Kalman filter."""
+    """Kinetic components state: 3-state constant-acceleration Kalman filter."""
 
     transition_matrix: np.ndarray
     transition_covariance: np.ndarray
@@ -507,7 +503,43 @@ class KcaState:
     observation_offset: float = 0.0
 
 
-def kca_initial_state(series: List[float], *, step: float, noise: float) -> KcaState:
+KCA_SERIES = [
+    10.51255,
+    10.51985,
+    10.52405,
+    10.4656,
+    10.47,
+    10.5403,
+    10.4425,
+    10.3087,
+    10.1994,
+    10.1839,
+    10.24645,
+    10.1795,
+    10.21715,
+    10.14995,
+    10.194,
+    10.22505,
+    10.27325,
+    10.25095,
+    10.30575,
+    10.27645,
+]
+
+
+@dataclass(frozen=True)
+class KcaStep:
+    """Intermediate quantities and result of 1 predict and correct step."""
+
+    predicted_state_mean: np.ndarray
+    predicted_state_covariance: np.ndarray
+    predicted_observation_mean: np.ndarray
+    predicted_observation_covariance: np.ndarray
+    kalman_gain: np.ndarray
+    state: KcaState
+
+
+def kca_initial_state(series: list[float], *, step: float, noise: float) -> KcaState:
     """Initial state: last observation as position, zero covariance, white-noise jerk model."""
     transition = np.array([[1.0, step, step**2 / 2.0], [0.0, 1.0, step], [0.0, 0.0, 1.0]])
     covariance = noise * np.array(
@@ -526,34 +558,60 @@ def kca_initial_state(series: List[float], *, step: float, noise: float) -> KcaS
     )
 
 
-def kca_update(state: KcaState, *, observation: float, innovation_sigma: float) -> KcaState:
-    """One predict and correct step of the Kalman filter."""
+def kca_prior_state() -> KcaState:
+    """The prior state that the update tests set by hand."""
+    return KcaState(
+        transition_matrix=np.array(
+            [[1.0011961162353782, 1.0, 0.5], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
+        ),
+        transition_covariance=np.diag([0.12695229227341848, 0.001, 0.001]),
+        current_state_mean=np.array([10.288741828687053, 0.0, 0.0]),
+        current_state_covariance=np.zeros((3, 3)),
+        observation_matrix=np.array([[1.0, 0.0, 0.0]]),
+    )
+
+
+def kca_step(state: KcaState, *, observation: float, innovation_sigma: float) -> KcaStep:
+    """1 predict and correct step of the Kalman filter."""
     transition = state.transition_matrix
     predicted_mean = transition @ state.current_state_mean
     predicted_covariance = (
         transition @ state.current_state_covariance @ transition.T + state.transition_covariance
     )
     observation_matrix = state.observation_matrix
+    predicted_observation_mean = observation_matrix @ predicted_mean + state.observation_offset
     innovation_covariance = (
         observation_matrix @ predicted_covariance @ observation_matrix.T + innovation_sigma**2
     )
     gain = predicted_covariance @ observation_matrix.T @ np.linalg.inv(innovation_covariance)
-    innovation = observation - (observation_matrix @ predicted_mean)[0]
+    innovation = observation - predicted_observation_mean[0]
     corrected_mean = predicted_mean + gain[:, 0] * innovation
     corrected_covariance = predicted_covariance - gain @ (observation_matrix @ predicted_covariance)
-    return KcaState(
-        transition_matrix=transition,
-        transition_covariance=state.transition_covariance,
-        current_state_mean=corrected_mean,
-        current_state_covariance=corrected_covariance,
-        observation_matrix=observation_matrix,
-        observation_offset=state.observation_offset,
+    return KcaStep(
+        predicted_state_mean=predicted_mean,
+        predicted_state_covariance=predicted_covariance,
+        predicted_observation_mean=predicted_observation_mean,
+        predicted_observation_covariance=innovation_covariance,
+        kalman_gain=gain,
+        state=KcaState(
+            transition_matrix=transition,
+            transition_covariance=state.transition_covariance,
+            current_state_mean=corrected_mean,
+            current_state_covariance=corrected_covariance,
+            observation_matrix=observation_matrix,
+            observation_offset=state.observation_offset,
+        ),
     )
 
 
-def kca_state_values(prefix: str, state: KcaState, fields: List[str]) -> Dict[str, ExpectedValue]:
-    """Expected value entries for the named fields of one KCA state."""
-    values: Dict[str, ExpectedValue] = {}
+def kca_update(state: KcaState, *, observation: float, innovation_sigma: float) -> KcaState:
+    """State after 1 predict and correct step of the Kalman filter."""
+    return kca_step(state, observation=observation, innovation_sigma=innovation_sigma).state
+
+
+def kca_state_values(prefix: str, state: KcaState, fields: list[str]) -> dict[str, ExpectedValue]:
+    """Expected value entries for the named fields of 1 KCA state."""
+    values: dict[str, ExpectedValue] = {}
     for field in fields:
         member = getattr(state, field)
         if isinstance(member, float):
@@ -565,31 +623,9 @@ def kca_state_values(prefix: str, state: KcaState, fields: List[str]) -> Dict[st
     return values
 
 
-def kca_expected_values() -> Dict[str, ExpectedValue]:
-    """Expected state fields of the two KCA entry point tests."""
-    series = [
-        10.51255,
-        10.51985,
-        10.52405,
-        10.4656,
-        10.47,
-        10.5403,
-        10.4425,
-        10.3087,
-        10.1994,
-        10.1839,
-        10.24645,
-        10.1795,
-        10.21715,
-        10.14995,
-        10.194,
-        10.22505,
-        10.27325,
-        10.25095,
-        10.30575,
-        10.27645,
-    ]
-    initial = kca_initial_state(series, step=1.0, noise=0.001)
+def kca_expected_values() -> dict[str, ExpectedValue]:
+    """Expected state fields of the KCA entry point, filter state and filter update tests."""
+    initial = kca_initial_state(KCA_SERIES, step=1.0, noise=0.001)
     values = kca_state_values(
         "KcaTest.getInitializedKcaStateTest",
         initial,
@@ -602,16 +638,7 @@ def kca_expected_values() -> Dict[str, ExpectedValue]:
             "observation_offset",
         ],
     )
-    prior = KcaState(
-        transition_matrix=np.array(
-            [[1.0011961162353782, 1.0, 0.5], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
-        ),
-        transition_covariance=np.diag([0.12695229227341848, 0.001, 0.001]),
-        current_state_mean=np.array([10.288741828687053, 0.0, 0.0]),
-        current_state_covariance=np.zeros((3, 3)),
-        observation_matrix=np.array([[1.0, 0.0, 0.0]]),
-    )
-    posterior = kca_update(prior, observation=10.3, innovation_sigma=0.1)
+    posterior = kca_update(kca_prior_state(), observation=10.3, innovation_sigma=0.1)
     values.update(
         kca_state_values(
             "KcaTest.getUpdatedKcaStateTest",
@@ -626,12 +653,23 @@ def kca_expected_values() -> Dict[str, ExpectedValue]:
             ],
         )
     )
+    values["KalmanFilterStateTest.KcaStatessetInitialStateTest.transition_covariance"] = (
+        matrix_values(initial.transition_covariance)
+    )
+    values["KalmanFilterUpdateTest.KineticComponentsupdatePosteriorsTest.current_state_mean"] = (
+        vector_values(posterior.current_state_mean)
+    )
+    values["KalmanFilterUpdateTest.KineticComponentsFullFilterTest.current_state_mean"] = (
+        vector_values(
+            kca_update(initial, observation=10.3, innovation_sigma=0.1).current_state_mean
+        )
+    )
     return values
 
 
-def filter_states_expected_values() -> Dict[str, ExpectedValue]:
+def filter_states_expected_values() -> dict[str, ExpectedValue]:
     """Expected vectors and matrices of the Kalman filter state unit tests."""
-    values: Dict[str, ExpectedValue] = {}
+    values: dict[str, ExpectedValue] = {}
     observation_matrix = np.array([[1.0, 0.0, 0.0]])
     state_covariance = np.diag([0.013744, 0.001, 0.001])
     zero_covariance = np.zeros((3, 3))
@@ -666,53 +704,31 @@ def filter_states_expected_values() -> Dict[str, ExpectedValue]:
         matrix_values(state_covariance - gain_column @ (observation_matrix @ state_covariance))
     )
 
-    kca_transition_matrix = np.array(
-        [[1.0011961162353782, 1.0, 0.5], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
-    )
-    kca_transition_covariance = np.diag([0.12695229227341848, 0.001, 0.001])
-    kca_predicted_mean = kca_transition_matrix @ np.array([10.288741828687053, 0.0, 0.0])
-    kca_predicted_covariance = (
-        kca_transition_matrix @ zero_covariance @ kca_transition_matrix.T
-        + kca_transition_covariance
-    )
+    step = kca_step(kca_prior_state(), observation=10.3, innovation_sigma=0.1)
     values["KalmanFilterStateTest.KcaStatesupdatePredictedStateTest.predicted_state_mean"] = (
-        vector_values(kca_predicted_mean)
+        vector_values(step.predicted_state_mean)
     )
     values["KalmanFilterStateTest.KcaStatesupdatePredictedStateTest.predicted_state_covariance"] = (
-        matrix_values(kca_predicted_covariance)
+        matrix_values(step.predicted_state_covariance)
     )
-
-    innovation_sigma = 0.1
-    predicted_observation_mean = observation_matrix @ kca_predicted_mean + 0.0
-    predicted_observation_covariance = (
-        observation_matrix @ kca_predicted_covariance @ observation_matrix.T + innovation_sigma**2
-    )
-    kca_gain = (
-        kca_predicted_covariance
-        @ observation_matrix.T
-        @ np.linalg.inv(predicted_observation_covariance)
-    )
-    innovation = 10.3 - predicted_observation_mean[0]
     values["KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.predicted_observation_mean"] = (
-        vector_values(predicted_observation_mean)
+        vector_values(step.predicted_observation_mean)
     )
     values[
         "KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.predicted_observation_covariance"
-    ] = matrix_values(predicted_observation_covariance)
+    ] = matrix_values(step.predicted_observation_covariance)
     values["KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.current_state_mean"] = (
-        vector_values(kca_predicted_mean + kca_gain[:, 0] * innovation)
+        vector_values(step.state.current_state_mean)
     )
     values["KalmanFilterStateTest.KcaStatesupdateCurrentStateTest.current_state_covariance"] = (
-        matrix_values(
-            kca_predicted_covariance - kca_gain @ (observation_matrix @ kca_predicted_covariance)
-        )
+        matrix_values(step.state.current_state_covariance)
     )
     return values
 
 
-def expected_values() -> Dict[str, ExpectedValue]:
+def expected_values() -> dict[str, ExpectedValue]:
     """Every expected value, keyed by the gtest identifier that locks it."""
-    values: Dict[str, ExpectedValue] = {}
+    values: dict[str, ExpectedValue] = {}
 
     book_model = OrnsteinUhlenbeck(mu=0.3, alpha=8.0, sigma=0.3)
     book_costs = TradingCosts(rate=0.05, cost=0.02)
@@ -874,6 +890,25 @@ def expected_values() -> Dict[str, ExpectedValue]:
         exit_level=0.567304,
         stop_loss=0.4834,
     )
+    boundary_offset = 1e-6
+    values["OptimalMeanReversionTest.methodVStopLossBoundaryTest.at_exit"] = (
+        value_function_stop_loss(
+            0.567304 - boundary_offset,
+            model=stop_loss_model,
+            costs=stop_loss_costs,
+            exit_level=0.567304,
+            stop_loss=0.4834,
+        )
+    )
+    values["OptimalMeanReversionTest.methodVStopLossBoundaryTest.at_stop_loss"] = (
+        value_function_stop_loss(
+            0.4834 + boundary_offset,
+            model=stop_loss_model,
+            costs=stop_loss_costs,
+            exit_level=0.567304,
+            stop_loss=0.4834,
+        )
+    )
 
     values["GaussianDistributionTest.cdfTest"] = float(norm.cdf(1.2, loc=0.996, scale=1.1))
 
@@ -881,24 +916,22 @@ def expected_values() -> Dict[str, ExpectedValue]:
     values["OrnsteinUhlenbeckModelTest.getUnconditionalVarianceOutputTest"] = (
         slow_model.stationary_deviation**2
     )
-    values["OrnsteinUhlenbeckModelTest.getMeanOutputTest"] = slow_model.mu
-    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceOutputTest.step_one"] = (
+    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceOutputTest.step_1"] = (
         slow_model.conditional_variance(1.0)
     )
-    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceOutputTest.step_two"] = (
+    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceOutputTest.step_2"] = (
         slow_model.conditional_variance(2.0)
     )
     zero_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=0.0, sigma=0.05)
     near_zero_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=1.1e-12, sigma=0.05)
     values[
-        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.zero_alpha_step_one"
+        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.zero_alpha_step_1"
     ] = zero_alpha_model.conditional_variance(1.0)
     values[
-        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.zero_alpha_step_two"
+        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.zero_alpha_step_2"
     ] = zero_alpha_model.conditional_variance(2.0)
     values[
-        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest"
-        ".near_zero_alpha_step_one"
+        "OrnsteinUhlenbeckModelTest.getConditionalVarianceZeroAlphaLimitTest.near_zero_alpha_step_1"
     ] = near_zero_alpha_model.conditional_variance(1.0)
 
     values["HittingTimeOrnsteinUhlenbeckTest.hittingTimeCoreOutputTest"] = hitting_time_core(
@@ -920,21 +953,21 @@ def expected_values() -> Dict[str, ExpectedValue]:
     values["GeneralLinearModelTest.GetUnconditionalVarianceTest"] = (
         linear_model.unconditional_variance
     )
-    values["GeneralLinearModelTest.GetConditionalVarianceTest.step_one"] = (
+    values["GeneralLinearModelTest.GetConditionalVarianceTest.step_1"] = (
         linear_model.conditional_variance(1.0)
     )
-    values["GeneralLinearModelTest.GetConditionalVarianceTest.step_two"] = (
+    values["GeneralLinearModelTest.GetConditionalVarianceTest.step_2"] = (
         linear_model.conditional_variance(2.0)
     )
     zero_mu_model = GeneralLinear(mu=0.0, sigma=0.05)
     near_zero_mu_model = GeneralLinear(mu=1.1e-12, sigma=0.05)
-    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.zero_mu_step_one"] = (
+    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.zero_mu_step_1"] = (
         zero_mu_model.conditional_variance(1.0)
     )
-    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.zero_mu_step_two"] = (
+    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.zero_mu_step_2"] = (
         zero_mu_model.conditional_variance(2.0)
     )
-    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.near_zero_mu_step_one"] = (
+    values["GeneralLinearModelTest.GetConditionalVarianceZeroMuLimitTest.near_zero_mu_step_1"] = (
         near_zero_mu_model.conditional_variance(1.0)
     )
 
@@ -997,18 +1030,20 @@ def snake_case(name: str) -> str:
 
 
 def format_value(value: ExpectedValue) -> str:
-    """Listing representation of one expected value."""
-    if isinstance(value, list):
-        return repr(value)
-    if isinstance(value, int):
+    """Listing representation of 1 expected value."""
+    if isinstance(value, (list, int)):
         return repr(value)
     return repr(float(value))
 
 
 def format_constant(name: str, value: ExpectedValue) -> str:
-    """One inline constexpr definition of the generated header."""
+    """Inline constexpr definition of 1 expected value."""
+    if isinstance(value, bool) or (isinstance(value, int) and value < 0):
+        raise ValueError(f"{name} must be a count, not {value!r}.")
     if isinstance(value, list):
         if value and isinstance(value[0], list):
+            if any(len(row) != len(value[0]) for row in value):
+                raise ValueError(f"{name} has ragged rows.")
             rows = ", ".join(
                 "{" + ", ".join(repr(float(element)) for element in row) + "}" for row in value
             )
@@ -1023,9 +1058,9 @@ def format_constant(name: str, value: ExpectedValue) -> str:
     return f"inline constexpr double {name} = {repr(float(value))};"
 
 
-def generate_header(values: Dict[str, ExpectedValue]) -> str:
-    """C++ header of the expected values, one nested namespace per test suite."""
-    suites: Dict[str, Dict[str, ExpectedValue]] = {}
+def generate_header(values: dict[str, ExpectedValue]) -> str:
+    """C++ header of the expected values, 1 nested namespace per test suite."""
+    suites: dict[str, dict[str, ExpectedValue]] = {}
     for key, value in values.items():
         suite, _, remainder = key.partition(".")
         test_name, _, field = remainder.partition(".")
@@ -1038,7 +1073,8 @@ def generate_header(values: Dict[str, ExpectedValue]) -> str:
     lines = [
         "// Generated by tools/derivations/expected_values.py. Do not edit.",
         "// clang-format off",
-        "#pragma once",
+        "#ifndef STOCHASTIC_MODELS_TESTS_SUPPORT_EXPECTED_VALUES_H",
+        "#define STOCHASTIC_MODELS_TESTS_SUPPORT_EXPECTED_VALUES_H",
         "",
         "#include <array>",
         "",
@@ -1052,21 +1088,76 @@ def generate_header(values: Dict[str, ExpectedValue]) -> str:
         lines.append("}")
         lines.append("")
     lines.append("} // namespace expected")
+    lines.append("")
+    lines.append("#endif // STOCHASTIC_MODELS_TESTS_SUPPORT_EXPECTED_VALUES_H")
     return "\n".join(lines) + "\n"
 
 
+CHECK_RELATIVE_TOLERANCE = 1e-10
+VALUE_LITERAL = re.compile(r"(?<=[ {])-?\d+(?:\.\d+)?(?:e[-+]?\d+)?(?=[,;}])")
+
+
+def check_header(path: Path, values: dict[str, ExpectedValue]) -> list[str]:
+    """Differences between the header at `path` and the generated header.
+
+    A line may differ only in its numeric literals, and each literal only
+    within the relative tolerance. A zero must stay zero.
+    """
+    committed = path.read_text(encoding="utf-8").splitlines()
+    generated = generate_header(values).splitlines()
+    failures: list[str] = []
+    if len(committed) != len(generated):
+        failures.append(f"{path}: {len(committed)} lines, generated {len(generated)}")
+    for number, (old_line, new_line) in enumerate(zip(committed, generated), start=1):
+        if old_line == new_line:
+            continue
+        if VALUE_LITERAL.sub("?", old_line) != VALUE_LITERAL.sub("?", new_line):
+            failures.append(f"{path}:{number}: text differs")
+            failures.append(f"  committed: {old_line}")
+            failures.append(f"  generated: {new_line}")
+            continue
+        for old_text, new_text in zip(
+            VALUE_LITERAL.findall(old_line), VALUE_LITERAL.findall(new_line)
+        ):
+            old_value, new_value = float(old_text), float(new_text)
+            if not math.isclose(
+                old_value, new_value, rel_tol=CHECK_RELATIVE_TOLERANCE, abs_tol=0.0
+            ):
+                failures.append(
+                    f"{path}:{number}: {old_text} is not within "
+                    f"{CHECK_RELATIVE_TOLERANCE:g} relative of {new_text}"
+                )
+    return failures
+
+
 def main() -> None:
-    """Print every expected value, or write them as a C++ header."""
+    """Print every expected value, write them as a C++ header, or check a header."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument(
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument(
         "--header",
         metavar="PATH",
         help="write the expected values as a C++ header at PATH instead of printing them",
+    )
+    output.add_argument(
+        "--check",
+        metavar="PATH",
+        help="compare the header at PATH with the expected values and exit 1 on a difference",
     )
     arguments = parser.parse_args()
     values = expected_values()
     if arguments.header is not None:
         Path(arguments.header).write_text(generate_header(values), encoding="utf-8")
+        return
+    if arguments.check is not None:
+        failures = check_header(Path(arguments.check), values)
+        for failure in failures:
+            print(failure, file=sys.stderr)
+        if failures:
+            sys.exit(1)
+        print(
+            f"{arguments.check}: {len(values)} values within {CHECK_RELATIVE_TOLERANCE:g} relative"
+        )
         return
     for name, value in values.items():
         print(f"{name} {format_value(value)}")

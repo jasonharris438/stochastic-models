@@ -54,14 +54,12 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceTest) {
   const GeneralLinearModel model(-0.00143647, 10.4573);
   EXPECT_NEAR(
       model.getConditionalVariance(1.0),
-      expected::general_linear_model_test::
-          get_conditional_variance_test_step_one,
+      expected::general_linear_model_test::get_conditional_variance_test_step_1,
       1e-9
   ) << "getConditionalVariance wrong at t = 1.";
   EXPECT_NEAR(
       model.getConditionalVariance(2.0),
-      expected::general_linear_model_test::
-          get_conditional_variance_test_step_two,
+      expected::general_linear_model_test::get_conditional_variance_test_step_2,
       1e-9
   ) << "getConditionalVariance wrong at t = 2.";
 }
@@ -76,14 +74,14 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceZeroMuLimitTest) {
   EXPECT_NEAR(
       zero_mu.getConditionalVariance(1.0),
       expected::general_linear_model_test::
-          get_conditional_variance_zero_mu_limit_test_zero_mu_step_one,
-      1e-9
+          get_conditional_variance_zero_mu_limit_test_zero_mu_step_1,
+      1e-12
   ) << "GeneralLinearModel conditional variance wrong at mu = 0, t = 1.";
   EXPECT_NEAR(
       zero_mu.getConditionalVariance(2.0),
       expected::general_linear_model_test::
-          get_conditional_variance_zero_mu_limit_test_zero_mu_step_two,
-      1e-9
+          get_conditional_variance_zero_mu_limit_test_zero_mu_step_2,
+      1e-12
   ) << "GeneralLinearModel conditional variance wrong at mu = 0, t = 2.";
 
   // Just above the guard, so the closed-form branch is exercised at the
@@ -92,8 +90,8 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceZeroMuLimitTest) {
   EXPECT_NEAR(
       near_zero_mu.getConditionalVariance(1.0),
       expected::general_linear_model_test::
-          get_conditional_variance_zero_mu_limit_test_near_zero_mu_step_one,
-      1e-9
+          get_conditional_variance_zero_mu_limit_test_near_zero_mu_step_1,
+      1e-12
   ) << "GeneralLinearModel conditional variance discontinuous across the "
        "mu = 1e-12 guard threshold.";
 }

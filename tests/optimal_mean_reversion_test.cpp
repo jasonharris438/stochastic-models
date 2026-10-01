@@ -352,9 +352,9 @@ TEST(OptimalMeanReversionTest, methodBelowVStopLossOutputTest) {
 }
 
 /**
- * @test Tests that the stop-loss value function meets its boundary payoffs:
- * just inside b* it returns b* - c, and just above the stop loss it returns
- * stop_loss - c.
+ * @test Tests that the stop-loss value function returns the expected value
+ * 1e-6 inside each boundary of its continuation region. There it lies within
+ * 4e-6 of the boundary payoff.
  *
  */
 TEST(OptimalMeanReversionTest, methodVStopLossBoundaryTest) {
@@ -367,7 +367,7 @@ TEST(OptimalMeanReversionTest, methodVStopLossBoundaryTest) {
   const double c = 0.05;
   const double r = 0.05;
   const double offset = 1e-6;
-  const double tolerance = 1e-5;
+  const double tolerance = 1e-6;
 
   // Create core model and optimal mean reversion instances.
   HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
@@ -381,11 +381,19 @@ TEST(OptimalMeanReversionTest, methodVStopLossBoundaryTest) {
       &hitting_time_kernel, stop_loss + offset, b_star, stop_loss, r, c
   );
 
-  // Assert that both boundary values match the payoffs.
-  EXPECT_NEAR(at_exit, b_star - c, tolerance)
-      << "Value produced by OptimalMeanReversion::V just below b* does not "
-         "meet the exit payoff when a stop loss is provided.";
-  EXPECT_NEAR(at_stop_loss, stop_loss - c, tolerance)
-      << "Value produced by OptimalMeanReversion::V just above the stop loss "
-         "does not meet the stop loss payoff.";
+  // Assert that both values are near the expected values.
+  EXPECT_NEAR(
+      at_exit,
+      expected::optimal_mean_reversion_test::
+          method_v_stop_loss_boundary_test_at_exit,
+      tolerance
+  ) << "Value produced by OptimalMeanReversion::V just below b* with a stop "
+       "loss is not the expected value.";
+  EXPECT_NEAR(
+      at_stop_loss,
+      expected::optimal_mean_reversion_test::
+          method_v_stop_loss_boundary_test_at_stop_loss,
+      tolerance
+  ) << "Value produced by OptimalMeanReversion::V just above the stop loss "
+       "is not the expected value.";
 }

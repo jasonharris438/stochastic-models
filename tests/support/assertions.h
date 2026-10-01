@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <limits>
 #include <nlohmann/json.hpp>
 
 namespace test_support {
@@ -12,21 +13,21 @@ namespace test_support {
   }
 
   inline double asDouble(const nlohmann::json& value) {
-    return value.get<double>();
+    return value.is_number() ? value.get<double>()
+                             : std::numeric_limits<double>::quiet_NaN();
   }
 
   template <typename Actual, typename Expected>
   void expectVectorNear(
       const Actual& actual,
       const Expected& expected,
-      const char* field,
-      const double tolerance
+      const double tolerance,
+      const char* message
   ) {
-    ASSERT_EQ(actual.size(), expected.size())
-        << "Field '" << field << "' has the wrong length.";
+    ASSERT_EQ(actual.size(), expected.size()) << message << " Wrong length.";
     for (std::size_t i{0}; i < expected.size(); i++) {
       EXPECT_NEAR(asDouble(actual.at(i)), expected.at(i), tolerance)
-          << "Field '" << field << "' differs at index " << i << ".";
+          << message << " Element [" << i << "] differs.";
     }
   }
 
@@ -34,18 +35,23 @@ namespace test_support {
   void expectMatrixNear(
       const Actual& actual,
       const Expected& expected,
-      const char* field,
-      const double tolerance
+      const double tolerance,
+      const char* message
   ) {
-    ASSERT_EQ(actual.size(), expected.size())
-        << "Field '" << field << "' has the wrong row count.";
-    for (std::size_t i{0}; i < expected.size(); i++) {
-      ASSERT_NO_FATAL_FAILURE(
-          expectVectorNear(actual.at(i), expected.at(i), field, tolerance)
-      );
+    ASSERT_EQ(actual.size(), expected.size()) << message << " Wrong row count.";
+    for (std::size_t row{0}; row < expected.size(); row++) {
+      ASSERT_EQ(actual.at(row).size(), expected.at(row).size())
+          << message << " Row " << row << " has the wrong length.";
+      for (std::size_t column{0}; column < expected.at(row).size(); column++) {
+        EXPECT_NEAR(
+            asDouble(actual.at(row).at(column)), expected.at(row).at(column),
+            tolerance
+        ) << message
+          << " Element [" << row << "][" << column << "] differs.";
+      }
     }
   }
 
 } // namespace test_support
 
-#endif
+#endif // STOCHASTIC_MODELS_TESTS_SUPPORT_ASSERTIONS_H
