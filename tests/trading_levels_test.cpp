@@ -7,29 +7,38 @@
 #include "stochastic_models/trading/trading_levels_exponential.h"
 #include "stochastic_models/trading/trading_levels_params.h"
 #include "support/expected_values.h"
+#include "support/trading_fixtures.h"
 
 #include <gtest/gtest.h>
 #include <stdexcept>
+
+namespace {
+
+  class TradingLevelsTest : public test_support::TradingFixture<
+                                test_support::ornstein_uhlenbeck_set> {
+  protected:
+    OrnsteinUhlenbeckTradingLevels trading_levels{mu, alpha, sigma};
+  };
+
+  class TradingLevelsExponentialTest
+      : public test_support::TradingFixture<test_support::exponential_set> {
+  protected:
+    OrnsteinUhlenbeckTradingLevelsExponential trading_levels{mu, alpha, sigma};
+  };
+
+} // namespace
 /**
  * @test Tests the output of the TradingLevels::optimalExit method with a stop
  * loss provided and asserts that it is near the expected value.
  *
  */
-TEST(TradingLevelsTest, exitLevelStopLossOutputTest) {
+TEST_F(TradingLevelsTest, exitLevelStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 5e-5;
 
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
-
   // Calculate b*.
-  const double value = tradingLevels.optimalExit(stop_loss, r, c);
+  const double value = trading_levels.optimalExit(stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -43,20 +52,12 @@ TEST(TradingLevelsTest, exitLevelStopLossOutputTest) {
  * that it is near the expected value.
  *
  */
-TEST(TradingLevelsTest, exitLevelOutputTest) {
+TEST_F(TradingLevelsTest, exitLevelOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 5e-5;
 
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
-
   // Calculate b*.
-  const double value = tradingLevels.optimalExit(r, c);
+  const double value = trading_levels.optimalExit(rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -70,24 +71,18 @@ TEST(TradingLevelsTest, exitLevelOutputTest) {
  * near the expected value.
  *
  */
-TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
+TEST_F(TradingLevelsExponentialTest, exitLevelExponentialOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-4;
 
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
-
   // Calculate b*.
-  const double value = tradingLevels.optimalExit(r, c);
+  const double value = trading_levels.optimalExit(rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
-      value, expected::trading_levels_test::exit_level_exponential_output_test,
+      value,
+      expected::trading_levels_exponential_test::
+          exit_level_exponential_output_test,
       tolerance
   ) << "Value produced by "
        "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit "
@@ -100,24 +95,16 @@ TEST(TradingLevelsTest, exitLevelExponentialOutputTest) {
  * provided.
  *
  */
-TEST(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
+TEST_F(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
   const double d_star = 0.13093;
   const double b_star = 0.455191;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-5;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
   // Calculate d*.
   const double value =
-      tradingLevels.optimalEntryLower(d_star, b_star, stop_loss, r, c);
+      trading_levels.optimalEntryLower(d_star, b_star, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -134,22 +121,15 @@ TEST(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
  * that it is near the expected value when a stop loss level is provided.
  *
  */
-TEST(TradingLevelsTest, entryLevelStopLossOutputTest) {
+TEST_F(TradingLevelsTest, entryLevelStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
   const double b_star = 0.455191;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-5;
 
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
-
   // Calculate d*.
-  const double value = tradingLevels.optimalEntry(b_star, stop_loss, r, c);
+  const double value =
+      trading_levels.optimalEntry(b_star, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -163,21 +143,13 @@ TEST(TradingLevelsTest, entryLevelStopLossOutputTest) {
  * that it is near the expected value.
  *
  */
-TEST(TradingLevelsTest, entryLevelOutputTest) {
+TEST_F(TradingLevelsTest, entryLevelOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double b_star = 0.466836;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-5;
 
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
-
   // Calculate d*.
-  const double value = tradingLevels.optimalEntry(b_star, r, c);
+  const double value = trading_levels.optimalEntry(b_star, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -190,22 +162,15 @@ TEST(TradingLevelsTest, entryLevelOutputTest) {
  * that it throws safely when the upper and lower bound values are invalid.
  *
  */
-TEST(TradingLevelsTest, entryLevelBoundsErrorTest) {
+TEST_F(TradingLevelsTest, entryLevelBoundsErrorTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double b_star = -4.466836;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
   // Assert that the method is not implemented.
-  ASSERT_THROW(tradingLevels.optimalEntry(b_star, r, c), std::invalid_argument)
-      << "OrnsteinUhlenbeckTradingLevels::optimalEntry did not throw "
-         "with invalid upper and lower bound values.";
+  ASSERT_THROW(
+      trading_levels.optimalEntry(b_star, rate, cost), std::invalid_argument
+  ) << "OrnsteinUhlenbeckTradingLevels::optimalEntry did not throw "
+       "with invalid upper and lower bound values.";
 }
 /**
  * @test Asserts that the OU trading levels reject a no-stop-loss lower entry
@@ -213,22 +178,15 @@ TEST(TradingLevelsTest, entryLevelBoundsErrorTest) {
  * model.
  *
  */
-TEST(TradingLevelsTest, entryLevelLowerNotImplementedTest) {
+TEST_F(TradingLevelsTest, entryLevelLowerNotImplementedTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double b_star = 0.4551908;
   const double d_star = 0.13093;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
   // Assert that the method is not implemented.
   EXPECT_THROW(
-      tradingLevels.optimalEntryLower(d_star, b_star, r, c), std::logic_error
+      trading_levels.optimalEntryLower(d_star, b_star, rate, cost),
+      std::logic_error
   ) << "OrnsteinUhlenbeckTradingLevels::optimalEntryLower without a stop "
        "loss did not throw.";
 }
@@ -238,25 +196,19 @@ TEST(TradingLevelsTest, entryLevelLowerNotImplementedTest) {
  * expected value.
  *
  */
-TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
+TEST_F(TradingLevelsExponentialTest, entryLevelExponentialOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double b_star = 1.4093;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-4;
 
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
-
   // Calculate d*.
-  const double value = tradingLevels.optimalEntry(b_star, r, c);
+  const double value = trading_levels.optimalEntry(b_star, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
-      value, expected::trading_levels_test::entry_level_exponential_output_test,
+      value,
+      expected::trading_levels_exponential_test::
+          entry_level_exponential_output_test,
       tolerance
   ) << "Value produced by "
        "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry "
@@ -269,22 +221,14 @@ TEST(TradingLevelsTest, entryLevelExponentialOutputTest) {
  * d*-equation has no root in the bracket.
  *
  */
-TEST(TradingLevelsTest, entryLevelLowerExponentialNoRootTest) {
+TEST_F(TradingLevelsExponentialTest, entryLevelLowerExponentialNoRootTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double d_star = 1.236887;
   const double b_star = 1.4093;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
   // Assert that the no-root bracket is reported.
   EXPECT_THROW(
-      tradingLevels.optimalEntryLower(d_star, b_star, r, c),
+      trading_levels.optimalEntryLower(d_star, b_star, rate, cost),
       RootNotBracketedError
   ) << "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower did not "
        "throw RootNotBracketedError for a bracket with no root.";
@@ -294,25 +238,18 @@ TEST(TradingLevelsTest, entryLevelLowerExponentialNoRootTest) {
  * ordering stop_loss < a* < d* < b*_L < b*, and asserts each solved value.
  *
  */
-TEST(TradingLevelsTest, levelOrderingChainTest) {
+TEST_F(TradingLevelsTest, levelOrderingChainTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevels tradingLevels(mu, alpha, sigma);
 
   // Solve the full chain of levels.
-  const double b_star = tradingLevels.optimalExit(r, c);
-  const double b_star_stop_loss = tradingLevels.optimalExit(stop_loss, r, c);
+  const double b_star = trading_levels.optimalExit(rate, cost);
+  const double b_star_stop_loss =
+      trading_levels.optimalExit(stop_loss, rate, cost);
   const double d_star =
-      tradingLevels.optimalEntry(b_star_stop_loss, stop_loss, r, c);
-  const double a_star = tradingLevels.optimalEntryLower(
-      d_star, b_star_stop_loss, stop_loss, r, c
+      trading_levels.optimalEntry(b_star_stop_loss, stop_loss, rate, cost);
+  const double a_star = trading_levels.optimalEntryLower(
+      d_star, b_star_stop_loss, stop_loss, rate, cost
   );
 
   // Assert the ordering of the levels.
@@ -351,44 +288,35 @@ TEST(TradingLevelsTest, levelOrderingChainTest) {
  * which has no mathematical definition for the exponential model.
  *
  */
-TEST(TradingLevelsTest, exitLevelStopLossExponentialNotImplementedTest) {
+TEST_F(
+    TradingLevelsExponentialTest, exitLevelStopLossExponentialNotImplementedTest
+) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double stop_loss = 0.04;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
   // Assert that the method is not implemented.
-  EXPECT_THROW(tradingLevels.optimalExit(stop_loss, r, c), std::logic_error)
-      << "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit with a stop "
-         "loss did not throw.";
+  EXPECT_THROW(
+      trading_levels.optimalExit(stop_loss, rate, cost), std::logic_error
+  ) << "OrnsteinUhlenbeckTradingLevelsExponential::optimalExit with a stop "
+       "loss did not throw.";
 }
 /**
  * @test Asserts that the exponential trading levels reject a stop-loss entry
  * level d*, which has no mathematical definition for the exponential model.
  *
  */
-TEST(TradingLevelsTest, entryLevelStopLossExponentialNotImplementedTest) {
+TEST_F(
+    TradingLevelsExponentialTest,
+    entryLevelStopLossExponentialNotImplementedTest
+) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double stop_loss = 0.04;
   const double b_star = 1.5;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
   // Assert that the method is not implemented.
   EXPECT_THROW(
-      tradingLevels.optimalEntry(b_star, stop_loss, r, c), std::logic_error
+      trading_levels.optimalEntry(b_star, stop_loss, rate, cost),
+      std::logic_error
   ) << "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntry with a stop "
        "loss did not throw.";
 }
@@ -398,24 +326,82 @@ TEST(TradingLevelsTest, entryLevelStopLossExponentialNotImplementedTest) {
  * model.
  *
  */
-TEST(TradingLevelsTest, entryLevelLowerStopLossExponentialNotImplementedTest) {
+TEST_F(
+    TradingLevelsExponentialTest,
+    entryLevelLowerStopLossExponentialNotImplementedTest
+) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double stop_loss = 0.04;
   const double b_star = 1.5;
   const double d_star = 1.0;
-  const double c = 0.02;
-  const double r = 0.05;
-
-  // Create trading levels instance to manage allocations.
-  OrnsteinUhlenbeckTradingLevelsExponential tradingLevels(mu, alpha, sigma);
 
   // Assert that the method is not implemented.
   EXPECT_THROW(
-      tradingLevels.optimalEntryLower(d_star, b_star, stop_loss, r, c),
+      trading_levels.optimalEntryLower(d_star, b_star, stop_loss, rate, cost),
       std::logic_error
   ) << "OrnsteinUhlenbeckTradingLevelsExponential::optimalEntryLower with a "
        "stop loss did not throw.";
+}
+/**
+ * @test Solves every Ornstein-Uhlenbeck level on the fixture set and asserts
+ * that each lies strictly inside the bracket its solver received.
+ *
+ */
+TEST_F(TradingLevelsTest, solvedLevelsInsideBracketsTest) {
+  const double stop_loss = 0.04;
+
+  // Solve the levels in dependency order.
+  const double b_star = trading_levels.optimalExit(rate, cost);
+  const double b_star_stop_loss =
+      trading_levels.optimalExit(stop_loss, rate, cost);
+  const double d_star = trading_levels.optimalEntry(b_star, rate, cost);
+  const double d_star_stop_loss =
+      trading_levels.optimalEntry(b_star_stop_loss, stop_loss, rate, cost);
+  const double a_star = trading_levels.optimalEntryLower(
+      d_star_stop_loss, b_star_stop_loss, stop_loss, rate, cost
+  );
+
+  // Assert each level against the bracket its solver received.
+  const double exit_lower = trading_levels.optimalExitLowerBound(rate, cost);
+  const double exit_upper = trading_levels.optimalExitUpperBound();
+  const double entry_lower = trading_levels.optimalEntryLowerBound();
+  EXPECT_GT(b_star, exit_lower)
+      << "Exit level b* is not above the exit lower bound.";
+  EXPECT_LT(b_star, exit_upper)
+      << "Exit level b* is not below the exit upper bound.";
+  EXPECT_GT(b_star_stop_loss, exit_lower)
+      << "Stop-loss exit level b*_L is not above the exit lower bound.";
+  EXPECT_LT(b_star_stop_loss, exit_upper)
+      << "Stop-loss exit level b*_L is not below the exit upper bound.";
+  EXPECT_GT(d_star, entry_lower)
+      << "Entry level d* is not above the entry lower bound.";
+  EXPECT_LT(d_star, b_star) << "Entry level d* is not below the exit level b*.";
+  EXPECT_GT(d_star_stop_loss, stop_loss)
+      << "Stop-loss entry level d* is not above the stop loss.";
+  EXPECT_LT(d_star_stop_loss, b_star_stop_loss)
+      << "Stop-loss entry level d* is not below the stop-loss exit level b*_L.";
+  EXPECT_GT(a_star, stop_loss)
+      << "Lower entry level a* is not above the stop loss.";
+  EXPECT_LT(a_star, d_star_stop_loss)
+      << "Lower entry level a* is not below the stop-loss entry level d*.";
+}
+/**
+ * @test Solves the 2 exponential levels on the fixture set and asserts that
+ * each lies strictly inside the bracket its solver received.
+ *
+ */
+TEST_F(TradingLevelsExponentialTest, solvedLevelsInsideBracketsTest) {
+  // Solve the levels in dependency order.
+  const double b_star = trading_levels.optimalExit(rate, cost);
+  const double d_star = trading_levels.optimalEntry(b_star, rate, cost);
+
+  // Assert each level against the bracket its solver received.
+  EXPECT_GT(b_star, trading_levels.optimalExitLowerBound(rate, cost))
+      << "Exponential exit level b* is not above the exit lower bound.";
+  EXPECT_LT(b_star, trading_levels.optimalExitUpperBound())
+      << "Exponential exit level b* is not below the exit upper bound.";
+  EXPECT_GT(d_star, trading_levels.optimalEntryLowerBound())
+      << "Exponential entry level d* is not above the entry lower bound.";
+  EXPECT_LT(d_star, b_star)
+      << "Exponential entry level d* is not below the exit level b*.";
 }

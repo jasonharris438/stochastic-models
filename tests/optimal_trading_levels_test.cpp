@@ -1,29 +1,36 @@
 #include "stochastic_models/entrypoints/optimal_trading_levels.h"
 #include "stochastic_models/exceptions/errors.h"
 #include "support/expected_values.h"
+#include "support/trading_fixtures.h"
 
 #include <gtest/gtest.h>
 
+namespace {
+
+  using OptimalTradingLevelsTest =
+      test_support::TradingFixture<test_support::ornstein_uhlenbeck_set>;
+  using OptimalTradingLevelsExponentialTest =
+      test_support::TradingFixture<test_support::exponential_set>;
+  using OptimalTradingLevelsNoSolutionTest =
+      test_support::TradingFixture<test_support::no_solution_set>;
+
+} // namespace
 /**
  * @test Tests the output of the optimalEntryLevelLower with a stop loss
  * provided function and asserts that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
+TEST_F(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
   const double d_star = 0.13093;
   const double b_star = 0.455191;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-5;
 
   // Calculate a*.
-  const double value =
-      optimalEntryLevelLower(d_star, b_star, mu, alpha, sigma, stop_loss, r, c);
+  const double value = optimalEntryLevelLower(
+      d_star, b_star, mu, alpha, sigma, stop_loss, rate, cost
+  );
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -38,18 +45,14 @@ TEST(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
  * @test Tests that the optimalEntryLevel function errors due to no solution
  * being found with the provided parameters.
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLevelNoSolutionTest) {
+TEST_F(OptimalTradingLevelsNoSolutionTest, optimalEntryLevelNoSolutionTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 0.000116;
-  const double mu = 1.818978;
-  const double sigma = 0.006623;
   const double b_star = 0.750895;
-  const double c = 0.02;
-  const double r = 0.05;
 
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      optimalEntryLevel(b_star, mu, alpha, sigma, r, c), std::runtime_error
+      optimalEntryLevel(b_star, mu, alpha, sigma, rate, cost),
+      std::runtime_error
   ) << "optimalEntryLevel did not throw "
        "with invalid parameters.";
 }
@@ -58,20 +61,15 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelNoSolutionTest) {
  * function and asserts that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
+TEST_F(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
   const double b_star = 0.455191;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-5;
 
   // Calculate d*.
   const double value =
-      optimalEntryLevel(b_star, mu, alpha, sigma, stop_loss, r, c);
+      optimalEntryLevel(b_star, mu, alpha, sigma, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -87,18 +85,14 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
  * function and asserts that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
+TEST_F(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double stop_loss = 0.04;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 5e-5;
 
   // Calculate b*.
-  const double value = optimalExitLevel(mu, alpha, sigma, stop_loss, r, c);
+  const double value =
+      optimalExitLevel(mu, alpha, sigma, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -114,17 +108,12 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
  * that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
+TEST_F(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 5e-5;
 
   // Calculate b*.
-  const double value = optimalExitLevel(mu, alpha, sigma, r, c);
+  const double value = optimalExitLevel(mu, alpha, sigma, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -139,22 +128,20 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
  * asserts that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialOutputTest) {
+TEST_F(
+    OptimalTradingLevelsExponentialTest, optimalExitLevelExponentialOutputTest
+) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-4;
 
   // Calculate b*.
-  const double value = optimalExitLevelExponential(mu, alpha, sigma, r, c);
+  const double value =
+      optimalExitLevelExponential(mu, alpha, sigma, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
       value,
-      expected::optimal_trading_levels_test::
+      expected::optimal_trading_levels_exponential_test::
           optimal_exit_level_exponential_output_test,
       tolerance
   ) << "Value produced by optimalExitLevelExponential function "
@@ -165,24 +152,21 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialOutputTest) {
  * asserts that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLevelExponentialOutputTest) {
+TEST_F(
+    OptimalTradingLevelsExponentialTest, optimalEntryLevelExponentialOutputTest
+) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double b_star = 1.4093;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-4;
 
   // Calculate d*.
   const double value =
-      optimalEntryLevelExponential(b_star, mu, alpha, sigma, r, c);
+      optimalEntryLevelExponential(b_star, mu, alpha, sigma, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
       value,
-      expected::optimal_trading_levels_test::
+      expected::optimal_trading_levels_exponential_test::
           optimal_entry_level_exponential_output_test,
       tolerance
   ) << "Value produced by optimalEntryLevelExponential function "
@@ -193,17 +177,14 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelExponentialOutputTest) {
  * no solution being found with the provided parameters.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialNoSolutionTest) {
-  // Declare and initialize model and test parameters.
-  const double alpha = 0.000116;
-  const double mu = 1.818978;
-  const double sigma = 0.006623;
-  const double c = 0.02;
-  const double r = 0.05;
-
+TEST_F(
+    OptimalTradingLevelsNoSolutionTest,
+    optimalExitLevelExponentialNoSolutionTest
+) {
   // Assert that the method is not implemented.
   ASSERT_THROW(
-      optimalExitLevelExponential(mu, alpha, sigma, r, c), std::runtime_error
+      optimalExitLevelExponential(mu, alpha, sigma, rate, cost),
+      std::runtime_error
   ) << "optimalExitLevelExponential did not throw a runtime error when "
        "provided "
        "with invalid parameters.";
@@ -213,19 +194,19 @@ TEST(OptimalTradingLevelsTest, optimalExitLevelExponentialNoSolutionTest) {
  * RootNotBracketedError when the d*-equation has no root in the bracket.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialNoRootTest) {
+TEST_F(
+    OptimalTradingLevelsExponentialTest,
+    optimalEntryLevelLowerExponentialNoRootTest
+) {
   // Declare and initialize model and test parameters.
-  const double alpha = 5;
-  const double mu = 1.3499;
-  const double sigma = 0.15;
   const double d_star = 1.236887;
   const double b_star = 1.4093;
-  const double c = 0.02;
-  const double r = 0.05;
 
   // Assert that the no-root bracket is reported.
   EXPECT_THROW(
-      optimalEntryLevelLowerExponential(d_star, b_star, mu, alpha, sigma, r, c),
+      optimalEntryLevelLowerExponential(
+          d_star, b_star, mu, alpha, sigma, rate, cost
+      ),
       RootNotBracketedError
   ) << "optimalEntryLevelLowerExponential did not throw "
        "RootNotBracketedError for a bracket with no root.";
@@ -235,18 +216,13 @@ TEST(OptimalTradingLevelsTest, optimalEntryLevelLowerExponentialNoRootTest) {
  * that it is near the expected value.
  *
  */
-TEST(OptimalTradingLevelsTest, optimalEntryLevelOutputTest) {
+TEST_F(OptimalTradingLevelsTest, optimalEntryLevelOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double b_star = 0.466836;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-5;
 
   // Calculate d*.
-  const double value = optimalEntryLevel(b_star, mu, alpha, sigma, r, c);
+  const double value = optimalEntryLevel(b_star, mu, alpha, sigma, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(

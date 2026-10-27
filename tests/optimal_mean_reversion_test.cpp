@@ -2,14 +2,33 @@
 #include "stochastic_models/sde/ornstein_uhlenbeck.h"
 #include "stochastic_models/trading/optimal_mean_reversion.h"
 #include "support/expected_values.h"
+#include "support/trading_fixtures.h"
 
 #include <gtest/gtest.h>
+
+namespace {
+
+  class OptimalMeanReversionTest : public test_support::TradingFixture<
+                                       test_support::ornstein_uhlenbeck_set> {
+  protected:
+    HittingTimeOrnsteinUhlenbeck hitting_time_kernel{mu, alpha, sigma};
+    OptimalMeanReversion mean_reversion;
+  };
+
+  class OptimalMeanReversionStopLossValueTest
+      : public test_support::TradingFixture<test_support::stop_loss_value_set> {
+  protected:
+    HittingTimeOrnsteinUhlenbeck hitting_time_kernel{mu, alpha, sigma};
+    OptimalMeanReversion mean_reversion;
+  };
+
+} // namespace
 /**
  * @test Tests the output of the OptimalMeanReversion::F method and asserts that
  * it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodFOutputTest) {
+TEST(OptimalMeanReversionMethodFTest, methodFOutputTest) {
   // Declare and initialize model and test parameters.
   const double sigma = 0.003;
   const double mu = 0.995;
@@ -28,7 +47,8 @@ TEST(OptimalMeanReversionTest, methodFOutputTest) {
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
-      value, expected::optimal_mean_reversion_test::method_f_output_test,
+      value,
+      expected::optimal_mean_reversion_method_f_test::method_f_output_test,
       tolerance
   ) << "Value produced by OptimalMeanReversion::F is not equal to the "
        "expected value.";
@@ -38,22 +58,13 @@ TEST(OptimalMeanReversionTest, methodFOutputTest) {
  * it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodGOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodGOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double x = 0.2;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 2e-4;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate G(x;r).
-  const double value = mean_reversion.G(&hitting_time_kernel, x, r, c);
+  const double value = mean_reversion.G(&hitting_time_kernel, x, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -67,22 +78,14 @@ TEST(OptimalMeanReversionTest, methodGOutputTest) {
  * it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodBOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodBOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double guess = 0.4;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 1e-3;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate b().
-  const double value = mean_reversion.b(guess, &hitting_time_kernel, r, c);
+  const double value =
+      mean_reversion.b(guess, &hitting_time_kernel, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -96,24 +99,15 @@ TEST(OptimalMeanReversionTest, methodBOutputTest) {
  * level is provided and asserts that it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodBStopLossOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodBStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
   const double stop_loss = 0.2;
-  const double sigma = 0.3;
   const double guess = 0.28;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 5e-3;
-
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
 
   // Calculate b().
   const double value =
-      mean_reversion.b(guess, &hitting_time_kernel, stop_loss, r, c);
+      mean_reversion.b(guess, &hitting_time_kernel, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -128,24 +122,15 @@ TEST(OptimalMeanReversionTest, methodBStopLossOutputTest) {
  * it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodDOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodDOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double guess = 0.4;
   const double b_star = 0.46683583;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 1e-3;
-
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
 
   // Calculate d().
   const double value =
-      mean_reversion.d(guess, &hitting_time_kernel, b_star, r, c);
+      mean_reversion.d(guess, &hitting_time_kernel, b_star, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -159,25 +144,17 @@ TEST(OptimalMeanReversionTest, methodDOutputTest) {
  * is provided and asserts that it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodDStopLossOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodDStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double guess = 0.4;
   const double stop_loss = 0.1;
   const double b_star = 0.466836;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 1e-3;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate d().
-  const double value =
-      mean_reversion.d(guess, &hitting_time_kernel, b_star, stop_loss, r, c);
+  const double value = mean_reversion.d(
+      guess, &hitting_time_kernel, b_star, stop_loss, rate, cost
+  );
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -192,25 +169,17 @@ TEST(OptimalMeanReversionTest, methodDStopLossOutputTest) {
  * is provided and asserts that it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodAStopLossOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodAStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double guess = 0.4;
   const double stop_loss = -0.3;
   const double b_star = 0.466836;
-  const double c = 0.02;
-  const double r = 0.05;
   const double tolerance = 1e-3;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate a().
-  const double value =
-      mean_reversion.a(guess, &hitting_time_kernel, b_star, stop_loss, r, c);
+  const double value = mean_reversion.a(
+      guess, &hitting_time_kernel, b_star, stop_loss, rate, cost
+  );
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -225,23 +194,15 @@ TEST(OptimalMeanReversionTest, methodAStopLossOutputTest) {
  * is above b_star. Asserts that it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodAboveVOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodAboveVOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double b_star = 0.466836;
-  const double c = 0.02;
-  const double r = 0.05;
   const double x = 0.55;
   const double tolerance = 1e-9;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate V(x).
-  const double value = mean_reversion.V(&hitting_time_kernel, x, b_star, r, c);
+  const double value =
+      mean_reversion.V(&hitting_time_kernel, x, b_star, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -255,23 +216,15 @@ TEST(OptimalMeanReversionTest, methodAboveVOutputTest) {
  * is below b_star. Asserts that it is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodBelowVOutputTest) {
+TEST_F(OptimalMeanReversionTest, methodBelowVOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 8;
-  const double mu = 0.3;
-  const double sigma = 0.3;
   const double b_star = 0.466836;
-  const double c = 0.02;
-  const double r = 0.05;
   const double x = 0.15;
   const double tolerance = 1e-6;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate V(x).
-  const double value = mean_reversion.V(&hitting_time_kernel, x, b_star, r, c);
+  const double value =
+      mean_reversion.V(&hitting_time_kernel, x, b_star, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
@@ -286,30 +239,21 @@ TEST(OptimalMeanReversionTest, methodBelowVOutputTest) {
  * expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodAboveVStopLossOutputTest) {
+TEST_F(OptimalMeanReversionStopLossValueTest, methodAboveVStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 16.6677;
-  const double mu = 0.5388;
-  const double sigma = 0.1599;
   const double stop_loss = 0.4834;
   const double b_star = 0.567304;
-  const double c = 0.05;
-  const double r = 0.05;
   const double x = 0.6;
   const double tolerance = 1e-9;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate V(x).
   const double value =
-      mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, r, c);
+      mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
       value,
-      expected::optimal_mean_reversion_test::
+      expected::optimal_mean_reversion_stop_loss_value_test::
           method_above_v_stop_loss_output_test,
       tolerance
   ) << "Value produced by OptimalMeanReversion::V is not equal to the "
@@ -321,30 +265,21 @@ TEST(OptimalMeanReversionTest, methodAboveVStopLossOutputTest) {
  * is near the expected value.
  *
  */
-TEST(OptimalMeanReversionTest, methodBelowVStopLossOutputTest) {
+TEST_F(OptimalMeanReversionStopLossValueTest, methodBelowVStopLossOutputTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 16.6677;
-  const double mu = 0.5388;
-  const double sigma = 0.1599;
   const double stop_loss = 0.4834;
   const double b_star = 0.567304;
-  const double c = 0.05;
-  const double r = 0.05;
   const double x = 0.5;
   const double tolerance = 1e-6;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Calculate V(x).
   const double value =
-      mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, r, c);
+      mean_reversion.V(&hitting_time_kernel, x, b_star, stop_loss, rate, cost);
 
   // Assert that the value is near the expected value.
   EXPECT_NEAR(
       value,
-      expected::optimal_mean_reversion_test::
+      expected::optimal_mean_reversion_stop_loss_value_test::
           method_below_v_stop_loss_output_test,
       tolerance
   ) << "Value produced by OptimalMeanReversion::V is not equal to the "
@@ -357,41 +292,32 @@ TEST(OptimalMeanReversionTest, methodBelowVStopLossOutputTest) {
  * 4e-6 of the boundary payoff.
  *
  */
-TEST(OptimalMeanReversionTest, methodVStopLossBoundaryTest) {
+TEST_F(OptimalMeanReversionStopLossValueTest, methodVStopLossBoundaryTest) {
   // Declare and initialize model and test parameters.
-  const double alpha = 16.6677;
-  const double mu = 0.5388;
-  const double sigma = 0.1599;
   const double stop_loss = 0.4834;
   const double b_star = 0.567304;
-  const double c = 0.05;
-  const double r = 0.05;
   const double offset = 1e-6;
   const double tolerance = 1e-6;
 
-  // Create core model and optimal mean reversion instances.
-  HittingTimeOrnsteinUhlenbeck hitting_time_kernel(mu, alpha, sigma);
-  OptimalMeanReversion mean_reversion;
-
   // Evaluate V(x) just inside each boundary of the continuation region.
   const double at_exit = mean_reversion.V(
-      &hitting_time_kernel, b_star - offset, b_star, stop_loss, r, c
+      &hitting_time_kernel, b_star - offset, b_star, stop_loss, rate, cost
   );
   const double at_stop_loss = mean_reversion.V(
-      &hitting_time_kernel, stop_loss + offset, b_star, stop_loss, r, c
+      &hitting_time_kernel, stop_loss + offset, b_star, stop_loss, rate, cost
   );
 
   // Assert that both values are near the expected values.
   EXPECT_NEAR(
       at_exit,
-      expected::optimal_mean_reversion_test::
+      expected::optimal_mean_reversion_stop_loss_value_test::
           method_v_stop_loss_boundary_test_at_exit,
       tolerance
   ) << "Value produced by OptimalMeanReversion::V just below b* with a stop "
        "loss is not the expected value.";
   EXPECT_NEAR(
       at_stop_loss,
-      expected::optimal_mean_reversion_test::
+      expected::optimal_mean_reversion_stop_loss_value_test::
           method_v_stop_loss_boundary_test_at_stop_loss,
       tolerance
   ) << "Value produced by OptimalMeanReversion::V just above the stop loss "

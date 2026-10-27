@@ -81,6 +81,10 @@ target_compile_options(
     $<$<BOOL:${STOCHASTIC_MODELS_WERROR}>:-Werror>
 )
 
+# Coverage counters for the fuzzers; libFuzzer reads them from the library.
+target_compile_options(stochastic_models PRIVATE
+    $<$<BOOL:${STOCHASTIC_MODELS_FUZZ}>:-fsanitize=fuzzer-no-link>)
+
 # The library parses untrusted JSON: keep container bounds checks and
 # stack protection on in every configuration.
 target_compile_definitions(stochastic_models PRIVATE _GLIBCXX_ASSERTIONS)

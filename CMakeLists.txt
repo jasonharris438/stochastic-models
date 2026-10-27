@@ -5,6 +5,8 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
 option(STOCHASTIC_MODELS_WERROR "Treat library warnings as errors" OFF)
 
+option(STOCHASTIC_MODELS_FUZZ "Build the libFuzzer targets" OFF)
+
 # Set the project name and version.
 project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
@@ -21,6 +23,18 @@ endif()
 # specify the C++ standard.
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# libFuzzer ships with Clang only. The sanitizers apply to every target: the
+# fuzzers run under them, and the sanitizer runtime defines the coverage
+# callbacks that the instrumented library references.
+if(STOCHASTIC_MODELS_FUZZ)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR
+            "STOCHASTIC_MODELS_FUZZ needs a Clang compiler, found ${CMAKE_CXX_COMPILER_ID}.")
+    endif()
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all)
+    add_link_options(-fsanitize=address,undefined)
+endif()
 
 # Include the FetchContent module.
 include(FetchContent)
@@ -61,6 +75,9 @@ endif()
 add_subdirectory(src)
 if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING)
     add_subdirectory(tests)
+endif()
+if(PROJECT_IS_TOP_LEVEL AND STOCHASTIC_MODELS_FUZZ)
+    add_subdirectory(fuzz)
 endif()
 
 # Namespaced alias: add_subdirectory consumers link the same name the package exports.

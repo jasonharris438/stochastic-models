@@ -1,3 +1,4 @@
+#include "stochastic_models/likelihood/general_linear_likelihood.h"
 #include "stochastic_models/sde/general_linear.h"
 #include "support/expected_values.h"
 
@@ -125,4 +126,39 @@ TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
     EXPECT_NEAR(sample_variance, expected, 0.1 * expected)
         << "GL simulator per-step variance off at t = " << t << ".";
   }
+}
+
+/**
+ * @test Simulate-then-estimate round trip at t = 1 and t = 2 with n = 50000.
+ * The estimator returns mu * t. Its sigma is the standard deviation of 1
+ * increment, sigma * sqrt((exp(2 mu t) - 1) / (2 mu)), not the model sigma.
+ */
+TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
+  const double mu = -0.5;
+  const double sigma = 0.2;
+  const double mu_tolerance = 0.05;
+  const double sigma_tolerance = 0.03;
+  const GeneralLinearModel model(mu, sigma);
+  const GeneralLinearLikelihood likelihood;
+  const auto innovation_standard_deviation = [mu, sigma](const unsigned int t) {
+    return sigma * std::sqrt(std::expm1(2.0 * mu * t) / (2.0 * mu));
+  };
+
+  const std::vector<double> path_1 = model.Simulate(1.0, 50000, 1);
+  const GeneralLinearParameters estimate_1 =
+      likelihood.calculateParameters(likelihood.calculateComponents(path_1));
+  EXPECT_NEAR(estimate_1.mu, mu, mu_tolerance)
+      << "GL round trip fails to recover mu at t = 1.";
+  EXPECT_NEAR(
+      estimate_1.sigma, innovation_standard_deviation(1), sigma_tolerance
+  ) << "GL round trip fails to recover the increment sigma at t = 1.";
+
+  const std::vector<double> path_2 = model.Simulate(1.0, 50000, 2);
+  const GeneralLinearParameters estimate_2 =
+      likelihood.calculateParameters(likelihood.calculateComponents(path_2));
+  EXPECT_NEAR(estimate_2.mu, 2 * mu, mu_tolerance)
+      << "GL round trip fails to recover mu * t at t = 2.";
+  EXPECT_NEAR(
+      estimate_2.sigma, innovation_standard_deviation(2), sigma_tolerance
+  ) << "GL round trip fails to recover the increment sigma at t = 2.";
 }

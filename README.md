@@ -189,6 +189,25 @@ $ cmake --build build
 $ cmake --install build
 ```
 
+### Options and checks
+
+| Option | Default | Effect |
+|---|---|---|
+| `BUILD_SHARED_LIBS` | `ON` | Builds `stochastic_models` as a shared library. |
+| `STOCHASTIC_MODELS_WERROR` | `OFF` | Treats compiler warnings as errors in the library, the tests and the fuzzers. |
+| `STOCHASTIC_MODELS_FUZZ` | `OFF` | Builds the libFuzzer targets in `fuzz/` with Clang, with the address and undefined-behavior sanitizers on every target. |
+
+To run the unit tests after a build:
+```
+$ ctest --test-dir build --output-on-failure
+```
+
+To run each fuzzer for 30 seconds from its seed corpus:
+```
+$ ./build/fuzz/kca_state_fuzzer -max_total_time=30 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict build/fuzz/corpus/state fuzz/corpus/state
+$ ./build/fuzz/kca_dimensions_fuzzer -max_total_time=30 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict build/fuzz/corpus/dimensions fuzz/corpus/dimensions
+```
+
 ### Dependencies
 
 #### Boost
