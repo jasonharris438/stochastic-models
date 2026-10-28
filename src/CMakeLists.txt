@@ -67,23 +67,15 @@ target_link_libraries(
 
 # Warnings apply to the library target only; fetched dependencies are not
 # warning-clean. -Wnon-virtual-dtor is outside -Wall and guards every
-# polymorphic base. Each suppression is temporary and has an owning fix:
-#   -Wno-ignored-qualifiers      const-qualified value returns (API cleanup)
+# polymorphic base. The local suppression is temporary and has an owning fix:
 #   -Wno-unused-parameter        not-implemented stubs
 target_compile_options(
     stochastic_models
     PRIVATE
-    -Wall
-    -Wextra
+    ${STOCHASTIC_MODELS_WARNING_FLAGS}
     -Wnon-virtual-dtor
-    -Wno-ignored-qualifiers
     -Wno-unused-parameter
-    $<$<BOOL:${STOCHASTIC_MODELS_WERROR}>:-Werror>
 )
-
-# Coverage counters for the fuzzers; libFuzzer reads them from the library.
-target_compile_options(stochastic_models PRIVATE
-    $<$<BOOL:${STOCHASTIC_MODELS_FUZZ}>:-fsanitize=fuzzer-no-link>)
 
 # The library parses untrusted JSON: keep container bounds checks and
 # stack protection on in every configuration.

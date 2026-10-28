@@ -15,13 +15,14 @@ namespace {
       test_support::TradingFixture<test_support::no_solution_set>;
 
 } // namespace
+
 /**
  * @test Tests the output of the optimalEntryLevelLower with a stop loss
  * provided function and asserts that it is near the expected value.
  *
  */
 TEST_F(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double d_star = 0.13093;
   const double b_star = 0.455191;
@@ -46,7 +47,7 @@ TEST_F(OptimalTradingLevelsTest, optimalEntryLowerStopLossOutputTest) {
  * being found with the provided parameters.
  */
 TEST_F(OptimalTradingLevelsNoSolutionTest, optimalEntryLevelNoSolutionTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 0.750895;
 
   // Assert that the method is not implemented.
@@ -62,7 +63,7 @@ TEST_F(OptimalTradingLevelsNoSolutionTest, optimalEntryLevelNoSolutionTest) {
  *
  */
 TEST_F(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double b_star = 0.455191;
   const double tolerance = 2e-5;
@@ -86,7 +87,7 @@ TEST_F(OptimalTradingLevelsTest, optimalEntryLevelStopLossOutputTest) {
  *
  */
 TEST_F(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double tolerance = 5e-5;
 
@@ -109,7 +110,7 @@ TEST_F(OptimalTradingLevelsTest, optimalExitLevelStopLossOutputTest) {
  *
  */
 TEST_F(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double tolerance = 5e-5;
 
   // Calculate b*.
@@ -131,7 +132,7 @@ TEST_F(OptimalTradingLevelsTest, optimalExitLevelOutputTest) {
 TEST_F(
     OptimalTradingLevelsExponentialTest, optimalExitLevelExponentialOutputTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double tolerance = 2e-4;
 
   // Calculate b*.
@@ -155,7 +156,7 @@ TEST_F(
 TEST_F(
     OptimalTradingLevelsExponentialTest, optimalEntryLevelExponentialOutputTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 1.4093;
   const double tolerance = 2e-4;
 
@@ -198,7 +199,7 @@ TEST_F(
     OptimalTradingLevelsExponentialTest,
     optimalEntryLevelLowerExponentialNoRootTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double d_star = 1.236887;
   const double b_star = 1.4093;
 
@@ -217,7 +218,7 @@ TEST_F(
  *
  */
 TEST_F(OptimalTradingLevelsTest, optimalEntryLevelOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 0.466836;
   const double tolerance = 2e-5;
 

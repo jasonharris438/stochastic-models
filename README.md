@@ -202,11 +202,14 @@ To run the unit tests after a build:
 $ ctest --test-dir build --output-on-failure
 ```
 
-To run each fuzzer for 30 seconds from its seed corpus:
+To build the fuzzers, configure with Clang and the fuzz option. Then run each fuzzer for 30 seconds from its seed corpus:
 ```
-$ ./build/fuzz/kca_state_fuzzer -max_total_time=30 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict build/fuzz/corpus/state fuzz/corpus/state
-$ ./build/fuzz/kca_dimensions_fuzzer -max_total_time=30 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict build/fuzz/corpus/dimensions fuzz/corpus/dimensions
+$ CXX=clang++ cmake -B build -DSTOCHASTIC_MODELS_FUZZ=ON
+$ cmake --build build
+$ ./build/fuzz/kca_state_fuzzer -max_total_time=30 -timeout=60 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict -artifact_prefix=build/fuzz/ build/fuzz/corpus/state fuzz/corpus/state
+$ ./build/fuzz/kca_dimensions_fuzzer -max_total_time=30 -timeout=60 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict -artifact_prefix=build/fuzz/ build/fuzz/corpus/dimensions fuzz/corpus/dimensions
 ```
+libFuzzer writes a crash, timeout or slow input to `build/fuzz/`.
 
 ### Dependencies
 

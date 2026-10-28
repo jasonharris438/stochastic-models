@@ -27,13 +27,14 @@ namespace {
   };
 
 } // namespace
+
 /**
  * @test Tests the output of the TradingLevels::optimalExit method with a stop
  * loss provided and asserts that it is near the expected value.
  *
  */
 TEST_F(TradingLevelsTest, exitLevelStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double tolerance = 5e-5;
 
@@ -53,7 +54,7 @@ TEST_F(TradingLevelsTest, exitLevelStopLossOutputTest) {
  *
  */
 TEST_F(TradingLevelsTest, exitLevelOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double tolerance = 5e-5;
 
   // Calculate b*.
@@ -72,7 +73,7 @@ TEST_F(TradingLevelsTest, exitLevelOutputTest) {
  *
  */
 TEST_F(TradingLevelsExponentialTest, exitLevelExponentialOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double tolerance = 2e-4;
 
   // Calculate b*.
@@ -96,7 +97,7 @@ TEST_F(TradingLevelsExponentialTest, exitLevelExponentialOutputTest) {
  *
  */
 TEST_F(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double d_star = 0.13093;
   const double b_star = 0.455191;
@@ -122,7 +123,7 @@ TEST_F(TradingLevelsTest, entryLevelLowerBoundStopLossOutputTest) {
  *
  */
 TEST_F(TradingLevelsTest, entryLevelStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double b_star = 0.455191;
   const double tolerance = 2e-5;
@@ -144,7 +145,7 @@ TEST_F(TradingLevelsTest, entryLevelStopLossOutputTest) {
  *
  */
 TEST_F(TradingLevelsTest, entryLevelOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 0.466836;
   const double tolerance = 2e-5;
 
@@ -163,7 +164,7 @@ TEST_F(TradingLevelsTest, entryLevelOutputTest) {
  *
  */
 TEST_F(TradingLevelsTest, entryLevelBoundsErrorTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = -4.466836;
 
   // Assert that the method is not implemented.
@@ -179,7 +180,7 @@ TEST_F(TradingLevelsTest, entryLevelBoundsErrorTest) {
  *
  */
 TEST_F(TradingLevelsTest, entryLevelLowerNotImplementedTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 0.4551908;
   const double d_star = 0.13093;
 
@@ -197,7 +198,7 @@ TEST_F(TradingLevelsTest, entryLevelLowerNotImplementedTest) {
  *
  */
 TEST_F(TradingLevelsExponentialTest, entryLevelExponentialOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 1.4093;
   const double tolerance = 2e-4;
 
@@ -222,7 +223,7 @@ TEST_F(TradingLevelsExponentialTest, entryLevelExponentialOutputTest) {
  *
  */
 TEST_F(TradingLevelsExponentialTest, entryLevelLowerExponentialNoRootTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double d_star = 1.236887;
   const double b_star = 1.4093;
 
@@ -239,7 +240,7 @@ TEST_F(TradingLevelsExponentialTest, entryLevelLowerExponentialNoRootTest) {
  *
  */
 TEST_F(TradingLevelsTest, levelOrderingChainTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
 
   // Solve the full chain of levels.
@@ -291,7 +292,7 @@ TEST_F(TradingLevelsTest, levelOrderingChainTest) {
 TEST_F(
     TradingLevelsExponentialTest, exitLevelStopLossExponentialNotImplementedTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
 
   // Assert that the method is not implemented.
@@ -309,7 +310,7 @@ TEST_F(
     TradingLevelsExponentialTest,
     entryLevelStopLossExponentialNotImplementedTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double b_star = 1.5;
 
@@ -330,7 +331,7 @@ TEST_F(
     TradingLevelsExponentialTest,
     entryLevelLowerStopLossExponentialNotImplementedTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.04;
   const double b_star = 1.5;
   const double d_star = 1.0;

@@ -113,9 +113,23 @@ jobs:
       run: ctest --test-dir build --output-on-failure --no-tests=error
     - name: Run fuzzers
       if: matrix.fuzz_option
+      shell: bash
       run: |
-        ./build/fuzz/kca_state_fuzzer -max_total_time=30 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict -artifact_prefix=build/fuzz/ build/fuzz/corpus/state fuzz/corpus/state
-        ./build/fuzz/kca_dimensions_fuzzer -max_total_time=30 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict -artifact_prefix=build/fuzz/ build/fuzz/corpus/dimensions fuzz/corpus/dimensions
+        flags=(-max_total_time=30 -timeout=60 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict -artifact_prefix=build/fuzz/)
+        ./build/fuzz/kca_state_fuzzer "${flags[@]}" build/fuzz/corpus/state fuzz/corpus/state
+        ./build/fuzz/kca_dimensions_fuzzer "${flags[@]}" build/fuzz/corpus/dimensions fuzz/corpus/dimensions
+    - name: Upload fuzzer artifacts
+      if: ${{ !cancelled() && matrix.fuzz_option }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: fuzz-artifacts
+        path: |
+          build/fuzz/crash-*
+          build/fuzz/leak-*
+          build/fuzz/oom-*
+          build/fuzz/slow-unit-*
+          build/fuzz/timeout-*
+        if-no-files-found: ignore
 
   valgrind:
     timeout-minutes: 20

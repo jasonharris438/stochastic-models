@@ -6,6 +6,7 @@
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 
 #include <concepts>
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -35,23 +36,24 @@ namespace kca_fuzz {
     }
   };
 
-  inline Counts& counts() {
-    static Counts instance;
-    return instance;
-  }
+  inline Counts tally;
 
-  // Constructed at start-up so the summary prints even when nothing is counted.
-  inline Counts& tally = counts();
-
-  [[noreturn]] inline void recordUnexpected() {
+  /**
+   * @brief Prints the type and message of an unexpected exception, then traps
+   * so that libFuzzer records the input.
+   */
+  [[noreturn]] inline void
+  recordUnexpected(const char* type_name, const char* message) {
+    std::cerr << "unexpected exception " << type_name << ": " << message
+              << "\n";
     __builtin_trap();
   }
 
   /**
    * @brief Runs 1 entry point call and classifies what it throws.
    *
-   * A rejection by design returns. A known fault is counted. Anything else
-   * traps, so libFuzzer records the input.
+   * A rejection by design returns. A known fault is counted. Anything else is
+   * reported and trapped.
    */
   template <std::invocable EntryPoint>
   Outcome runClassified(EntryPoint entry_point) {
@@ -65,20 +67,22 @@ namespace kca_fuzz {
     } catch (const InvalidNumberObservationsError&) {
       return Outcome::Rejected;
     } catch (const filter_uninitialised&) {
-      counts().known_faults++;
+      tally.known_faults++;
       return Outcome::KnownFault;
     } catch (const filter_invalid_operation&) {
-      counts().known_faults++;
+      tally.known_faults++;
       return Outcome::KnownFault;
     } catch (const std::runtime_error& error) {
-      // Only the bare type from the GSL LU wrapper is a known fault.
+      // A bare std::runtime_error is a known fault. A derived type is not.
       if (typeid(error) == typeid(std::runtime_error)) {
-        counts().known_faults++;
+        tally.known_faults++;
         return Outcome::KnownFault;
       }
-      recordUnexpected();
+      recordUnexpected(typeid(error).name(), error.what());
+    } catch (const std::exception& error) {
+      recordUnexpected(typeid(error).name(), error.what());
     } catch (...) {
-      recordUnexpected();
+      recordUnexpected("unknown type", "no message");
     }
   }
 
@@ -94,7 +98,7 @@ namespace kca_fuzz {
     try {
       KcaStatesJsonAdapter{}.deserialize(output, dimensions);
     } catch (const json_parse_error&) {
-      counts().round_trip_failures++;
+      tally.round_trip_failures++;
     }
   }
 

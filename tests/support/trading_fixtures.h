@@ -6,7 +6,7 @@
 namespace test_support {
 
   /**
-   * @brief One trading parameter set: the Ornstein-Uhlenbeck model parameters
+   * @brief A trading parameter set: the Ornstein-Uhlenbeck model parameters
    * with the trading cost and the discount rate.
    */
   struct TradingParameters {

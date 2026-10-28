@@ -54,15 +54,7 @@ target_link_libraries(
     GSL::gsl
 )
 
-# The same warning gate as the library target.
-target_compile_options(
-    unit_tests
-    PRIVATE
-    -Wall
-    -Wextra
-    -Wno-ignored-qualifiers
-    $<$<BOOL:${STOCHASTIC_MODELS_WERROR}>:-Werror>
-)
+target_compile_options(unit_tests PRIVATE ${STOCHASTIC_MODELS_WARNING_FLAGS})
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)

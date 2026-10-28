@@ -23,6 +23,7 @@ namespace {
   };
 
 } // namespace
+
 /**
  * @test Tests the output of the OptimalMeanReversion::F method and asserts that
  * it is near the expected value.
@@ -59,7 +60,7 @@ TEST(OptimalMeanReversionMethodFTest, methodFOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodGOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double x = 0.2;
   const double tolerance = 2e-4;
 
@@ -79,7 +80,7 @@ TEST_F(OptimalMeanReversionTest, methodGOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodBOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double guess = 0.4;
   const double tolerance = 1e-3;
 
@@ -100,7 +101,7 @@ TEST_F(OptimalMeanReversionTest, methodBOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodBStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.2;
   const double guess = 0.28;
   const double tolerance = 5e-3;
@@ -123,7 +124,7 @@ TEST_F(OptimalMeanReversionTest, methodBStopLossOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodDOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double guess = 0.4;
   const double b_star = 0.46683583;
   const double tolerance = 1e-3;
@@ -145,7 +146,7 @@ TEST_F(OptimalMeanReversionTest, methodDOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodDStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double guess = 0.4;
   const double stop_loss = 0.1;
   const double b_star = 0.466836;
@@ -170,7 +171,7 @@ TEST_F(OptimalMeanReversionTest, methodDStopLossOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodAStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double guess = 0.4;
   const double stop_loss = -0.3;
   const double b_star = 0.466836;
@@ -195,7 +196,7 @@ TEST_F(OptimalMeanReversionTest, methodAStopLossOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodAboveVOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 0.466836;
   const double x = 0.55;
   const double tolerance = 1e-9;
@@ -217,7 +218,7 @@ TEST_F(OptimalMeanReversionTest, methodAboveVOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionTest, methodBelowVOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double b_star = 0.466836;
   const double x = 0.15;
   const double tolerance = 1e-6;
@@ -240,7 +241,7 @@ TEST_F(OptimalMeanReversionTest, methodBelowVOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionStopLossValueTest, methodAboveVStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.4834;
   const double b_star = 0.567304;
   const double x = 0.6;
@@ -266,7 +267,7 @@ TEST_F(OptimalMeanReversionStopLossValueTest, methodAboveVStopLossOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionStopLossValueTest, methodBelowVStopLossOutputTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.4834;
   const double b_star = 0.567304;
   const double x = 0.5;
@@ -293,7 +294,7 @@ TEST_F(OptimalMeanReversionStopLossValueTest, methodBelowVStopLossOutputTest) {
  *
  */
 TEST_F(OptimalMeanReversionStopLossValueTest, methodVStopLossBoundaryTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double stop_loss = 0.4834;
   const double b_star = 0.567304;
   const double offset = 1e-6;

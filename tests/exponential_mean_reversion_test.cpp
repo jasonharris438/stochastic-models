@@ -18,13 +18,14 @@ namespace {
   };
 
 } // namespace
+
 /**
  * @test Tests the method ExponentialMeanReversion::b with a stop_loss argument
  * is not implemented
  *
  */
 TEST_F(ExponentialMeanReversionTest, stopLossBNotImplementedTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double x = 0.2;
   const double stop_loss = 0.04;
 
@@ -41,7 +42,7 @@ TEST_F(ExponentialMeanReversionTest, stopLossBNotImplementedTest) {
  *
  */
 TEST_F(ExponentialMeanReversionTest, stopLossDNotImplementedTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double x = 0.2;
   const double b_star = 0.466;
   const double stop_loss = 0.04;
@@ -59,7 +60,7 @@ TEST_F(ExponentialMeanReversionTest, stopLossDNotImplementedTest) {
  *
  */
 TEST_F(ExponentialMeanReversionTest, stopLossANotImplementedTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double x = 0.2;
   const double b_star = 0.466;
   const double stop_loss = 0.04;
@@ -77,7 +78,7 @@ TEST_F(ExponentialMeanReversionTest, stopLossANotImplementedTest) {
  *
  */
 TEST_F(ExponentialMeanReversionTest, stopLossVNotImplementedTest) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double x = 0.2;
   const double b_star = 0.466;
   const double stop_loss = 0.04;
@@ -98,7 +99,7 @@ TEST_F(
     ExponentialMeanReversionTest,
     stopLossinstantaneousDifferentialNotImplementedTest
 ) {
-  // Declare and initialize model and test parameters.
+  // Declare and initialize test parameters.
   const double x = 0.2;
   const double b_star = 0.466;
   const double stop_loss = 0.04;

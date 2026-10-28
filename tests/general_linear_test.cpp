@@ -129,36 +129,32 @@ TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
 }
 
 /**
- * @test Simulate-then-estimate round trip at t = 1 and t = 2 with n = 50000.
- * The estimator returns mu * t. Its sigma is the standard deviation of 1
- * increment, sigma * sqrt((exp(2 mu t) - 1) / (2 mu)), not the model sigma.
+ * @test Simulate-then-estimate round trip at horizons 1 and 2 with n = 50000.
+ * The estimator returns mu * horizon. Its sigma is the standard deviation of
+ * 1 increment, sigma * sqrt((exp(2 mu horizon) - 1) / (2 mu)), not the model
+ * sigma.
  */
 TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
   const double mu = -0.5;
   const double sigma = 0.2;
+  // Standard errors at n = 50000: mu below 0.012, sigma below 0.001. The
+  // tolerances give an unseeded path a margin of 4 standard errors or more.
   const double mu_tolerance = 0.05;
   const double sigma_tolerance = 0.03;
   const GeneralLinearModel model(mu, sigma);
   const GeneralLinearLikelihood likelihood;
-  const auto innovation_standard_deviation = [mu, sigma](const unsigned int t) {
-    return sigma * std::sqrt(std::expm1(2.0 * mu * t) / (2.0 * mu));
-  };
 
-  const std::vector<double> path_1 = model.Simulate(1.0, 50000, 1);
-  const GeneralLinearParameters estimate_1 =
-      likelihood.calculateParameters(likelihood.calculateComponents(path_1));
-  EXPECT_NEAR(estimate_1.mu, mu, mu_tolerance)
-      << "GL round trip fails to recover mu at t = 1.";
-  EXPECT_NEAR(
-      estimate_1.sigma, innovation_standard_deviation(1), sigma_tolerance
-  ) << "GL round trip fails to recover the increment sigma at t = 1.";
-
-  const std::vector<double> path_2 = model.Simulate(1.0, 50000, 2);
-  const GeneralLinearParameters estimate_2 =
-      likelihood.calculateParameters(likelihood.calculateComponents(path_2));
-  EXPECT_NEAR(estimate_2.mu, 2 * mu, mu_tolerance)
-      << "GL round trip fails to recover mu * t at t = 2.";
-  EXPECT_NEAR(
-      estimate_2.sigma, innovation_standard_deviation(2), sigma_tolerance
-  ) << "GL round trip fails to recover the increment sigma at t = 2.";
+  for (const unsigned int horizon : {1u, 2u}) {
+    const std::vector<double> path = model.Simulate(1.0, 50000, horizon);
+    const GeneralLinearParameters estimate =
+        likelihood.calculateParameters(likelihood.calculateComponents(path));
+    const double innovation_standard_deviation =
+        sigma * std::sqrt(std::expm1(2.0 * mu * horizon) / (2.0 * mu));
+    EXPECT_NEAR(estimate.mu, mu * horizon, mu_tolerance)
+        << "GL round trip fails to recover mu * horizon at horizon " << horizon
+        << ".";
+    EXPECT_NEAR(estimate.sigma, innovation_standard_deviation, sigma_tolerance)
+        << "GL round trip fails to recover the increment sigma at horizon "
+        << horizon << ".";
+  }
 }
