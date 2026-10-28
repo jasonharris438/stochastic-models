@@ -754,10 +754,10 @@ def expected_values() -> dict[str, ExpectedValue]:
         model=exponential_model,
         costs=book_costs,
     )
-    values["OptimalTradingLevelsTest.optimalExitLevelExponentialOutputTest"] = (
+    values["OptimalTradingLevelsExponentialTest.optimalExitLevelExponentialOutputTest"] = (
         exit_level_exponential
     )
-    values["TradingLevelsTest.exitLevelExponentialOutputTest"] = exit_level_exponential
+    values["TradingLevelsExponentialTest.exitLevelExponentialOutputTest"] = exit_level_exponential
 
     exit_level_stop_loss = solve_exit_level(
         lambda level: exit_residual_stop_loss(
@@ -816,10 +816,10 @@ def expected_values() -> dict[str, ExpectedValue]:
         lower=exponential_model.mu - 4.0 * exponential_model.stationary_deviation,
         upper=1.4093,
     )
-    values["OptimalTradingLevelsTest.optimalEntryLevelExponentialOutputTest"] = (
+    values["OptimalTradingLevelsExponentialTest.optimalEntryLevelExponentialOutputTest"] = (
         entry_level_exponential
     )
-    values["TradingLevelsTest.entryLevelExponentialOutputTest"] = entry_level_exponential
+    values["TradingLevelsExponentialTest.entryLevelExponentialOutputTest"] = entry_level_exponential
 
     chain_entry_level = solve_level(
         lambda level: entry_residual_stop_loss(
@@ -849,7 +849,7 @@ def expected_values() -> dict[str, ExpectedValue]:
     values["TradingLevelsTest.levelOrderingChainTest.a_star"] = chain_lower_entry_level
 
     narrow_model = OrnsteinUhlenbeck(mu=0.995, alpha=0.02, sigma=0.003)
-    values["OptimalMeanReversionTest.methodFOutputTest"] = function_f(
+    values["OptimalMeanReversionMethodFTest.methodFOutputTest"] = function_f(
         1.01, model=narrow_model, rate=0.05
     )
     values["OptimalMeanReversionTest.methodGOutputTest"] = function_g(
@@ -876,22 +876,26 @@ def expected_values() -> dict[str, ExpectedValue]:
     values["OptimalMeanReversionTest.methodBelowVOutputTest"] = value_function(
         0.15, model=book_model, costs=book_costs, exit_level=0.466836
     )
-    values["OptimalMeanReversionTest.methodAboveVStopLossOutputTest"] = value_function_stop_loss(
-        0.6,
-        model=stop_loss_model,
-        costs=stop_loss_costs,
-        exit_level=0.567304,
-        stop_loss=0.4834,
+    values["OptimalMeanReversionStopLossValueTest.methodAboveVStopLossOutputTest"] = (
+        value_function_stop_loss(
+            0.6,
+            model=stop_loss_model,
+            costs=stop_loss_costs,
+            exit_level=0.567304,
+            stop_loss=0.4834,
+        )
     )
-    values["OptimalMeanReversionTest.methodBelowVStopLossOutputTest"] = value_function_stop_loss(
-        0.5,
-        model=stop_loss_model,
-        costs=stop_loss_costs,
-        exit_level=0.567304,
-        stop_loss=0.4834,
+    values["OptimalMeanReversionStopLossValueTest.methodBelowVStopLossOutputTest"] = (
+        value_function_stop_loss(
+            0.5,
+            model=stop_loss_model,
+            costs=stop_loss_costs,
+            exit_level=0.567304,
+            stop_loss=0.4834,
+        )
     )
     boundary_offset = 1e-6
-    values["OptimalMeanReversionTest.methodVStopLossBoundaryTest.at_exit"] = (
+    values["OptimalMeanReversionStopLossValueTest.methodVStopLossBoundaryTest.at_exit"] = (
         value_function_stop_loss(
             0.567304 - boundary_offset,
             model=stop_loss_model,
@@ -900,7 +904,7 @@ def expected_values() -> dict[str, ExpectedValue]:
             stop_loss=0.4834,
         )
     )
-    values["OptimalMeanReversionTest.methodVStopLossBoundaryTest.at_stop_loss"] = (
+    values["OptimalMeanReversionStopLossValueTest.methodVStopLossBoundaryTest.at_stop_loss"] = (
         value_function_stop_loss(
             0.4834 + boundary_offset,
             model=stop_loss_model,

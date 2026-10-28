@@ -35,7 +35,7 @@ jobs:
     - name: check shell scripts
       run: shellcheck setup-env.sh install-cmake.sh install-valgrind.sh setup-linters.sh
     - name: lint code
-      run: find src include tests examples -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format-20 --dry-run --Werror -style=file {} +
+      run: find src include tests examples fuzz -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format-20 --dry-run --Werror -style=file {} +
     - name: Install uv
       run: |
         archive=uv-x86_64-unknown-linux-gnu.tar.gz
@@ -79,6 +79,9 @@ jobs:
             build_type: Release
             compile_flags: ''
             link_flags: ''
+          - compiler: clang-18
+            config: sanitize
+            fuzz_option: -DSTOCHASTIC_MODELS_FUZZ=ON
     steps:
     - name: Checkout code
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -100,6 +103,7 @@ jobs:
         cmake -B build
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DSTOCHASTIC_MODELS_WERROR=ON
+        ${{ matrix.fuzz_option }}
         -DCMAKE_CXX_FLAGS="${{ matrix.compile_flags }}"
         -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.link_flags }}"
         -DCMAKE_SHARED_LINKER_FLAGS="${{ matrix.link_flags }}"
@@ -107,6 +111,25 @@ jobs:
       run: cmake --build build -j"$(nproc)"
     - name: Run tests
       run: ctest --test-dir build --output-on-failure --no-tests=error
+    - name: Run fuzzers
+      if: matrix.fuzz_option
+      shell: bash
+      run: |
+        flags=(-max_total_time=30 -timeout=60 -max_len=4096 -rss_limit_mb=1024 -dict=fuzz/kca_json.dict -artifact_prefix=build/fuzz/)
+        ./build/fuzz/kca_state_fuzzer "${flags[@]}" build/fuzz/corpus/state fuzz/corpus/state
+        ./build/fuzz/kca_dimensions_fuzzer "${flags[@]}" build/fuzz/corpus/dimensions fuzz/corpus/dimensions
+    - name: Upload fuzzer artifacts
+      if: ${{ !cancelled() && matrix.fuzz_option }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: fuzz-artifacts
+        path: |
+          build/fuzz/crash-*
+          build/fuzz/leak-*
+          build/fuzz/oom-*
+          build/fuzz/slow-unit-*
+          build/fuzz/timeout-*
+        if-no-files-found: ignore
 
   valgrind:
     timeout-minutes: 20

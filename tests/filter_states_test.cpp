@@ -41,7 +41,7 @@ const matrix<double> create_boost_transition_matrix() {
 
   // Allocate a boost matrix and then move the values from the std::vector.
   matrix<double> boost_matrix(std_vectors.size(), std_vectors[0].size());
-  for (int i{0}; i < std_vectors.size(); i++) {
+  for (std::size_t i{0}; i < std_vectors.size(); i++) {
     std::move(
         std_vectors.at(i).begin(), std_vectors.at(i).end(),
         row(boost_matrix, i).begin()
@@ -70,7 +70,7 @@ std::vector<std::vector<double>> current_covariance() {
 const matrix<double> create_boost_current_covariance_matrix() {
   std::vector<std::vector<double>> std_vectors = current_covariance();
   matrix<double> current_cov(std_vectors.size(), std_vectors[0].size());
-  for (int i{0}; i < std_vectors.size(); i++) {
+  for (std::size_t i{0}; i < std_vectors.size(); i++) {
     std::move(
         std_vectors.at(i).begin(), std_vectors.at(i).end(),
         row(current_cov, i).begin()

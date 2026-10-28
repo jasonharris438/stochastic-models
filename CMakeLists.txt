@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.28)
 # This is a shared library project.
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
-option(STOCHASTIC_MODELS_WERROR "Treat library warnings as errors" OFF)
+option(STOCHASTIC_MODELS_WERROR "Treat warnings as errors" OFF)
+
+option(STOCHASTIC_MODELS_FUZZ "Build the libFuzzer targets" OFF)
 
 # Set the project name and version.
 project(StochasticModels
@@ -21,6 +23,25 @@ endif()
 # specify the C++ standard.
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Warning gate shared by the library, the tests and the fuzzers. The
+# suppression is temporary: const-qualified value returns (API cleanup).
+set(STOCHASTIC_MODELS_WARNING_FLAGS
+    -Wall
+    -Wextra
+    -Wno-ignored-qualifiers
+    $<$<BOOL:${STOCHASTIC_MODELS_WERROR}>:-Werror>
+)
+
+# libFuzzer needs Clang. The sanitizers apply to every target in this tree.
+if(STOCHASTIC_MODELS_FUZZ)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR
+            "STOCHASTIC_MODELS_FUZZ needs a Clang compiler, found ${CMAKE_CXX_COMPILER_ID}.")
+    endif()
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all)
+    add_link_options(-fsanitize=address,undefined)
+endif()
 
 # Include the FetchContent module.
 include(FetchContent)
@@ -61,6 +82,11 @@ endif()
 add_subdirectory(src)
 if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING)
     add_subdirectory(tests)
+endif()
+if(PROJECT_IS_TOP_LEVEL AND STOCHASTIC_MODELS_FUZZ)
+    # Coverage counters in the library for the fuzzers.
+    target_compile_options(stochastic_models PRIVATE -fsanitize=fuzzer-no-link)
+    add_subdirectory(fuzz)
 endif()
 
 # Namespaced alias: add_subdirectory consumers link the same name the package exports.

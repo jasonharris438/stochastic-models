@@ -1,3 +1,4 @@
+#include "stochastic_models/likelihood/general_linear_likelihood.h"
 #include "stochastic_models/sde/general_linear.h"
 #include "support/expected_values.h"
 
@@ -124,5 +125,36 @@ TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
     const double expected = model.getConditionalVariance(t);
     EXPECT_NEAR(sample_variance, expected, 0.1 * expected)
         << "GL simulator per-step variance off at t = " << t << ".";
+  }
+}
+
+/**
+ * @test Simulate-then-estimate round trip at horizons 1 and 2 with n = 50000.
+ * The estimator returns mu * horizon. Its sigma is the standard deviation of
+ * 1 increment, sigma * sqrt((exp(2 mu horizon) - 1) / (2 mu)), not the model
+ * sigma.
+ */
+TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
+  const double mu = -0.5;
+  const double sigma = 0.2;
+  // Standard errors at n = 50000: mu below 0.012, sigma below 0.001. The
+  // tolerances give an unseeded path a margin of 4 standard errors or more.
+  const double mu_tolerance = 0.05;
+  const double sigma_tolerance = 0.03;
+  const GeneralLinearModel model(mu, sigma);
+  const GeneralLinearLikelihood likelihood;
+
+  for (const unsigned int horizon : {1u, 2u}) {
+    const std::vector<double> path = model.Simulate(1.0, 50000, horizon);
+    const GeneralLinearParameters estimate =
+        likelihood.calculateParameters(likelihood.calculateComponents(path));
+    const double innovation_standard_deviation =
+        sigma * std::sqrt(std::expm1(2.0 * mu * horizon) / (2.0 * mu));
+    EXPECT_NEAR(estimate.mu, mu * horizon, mu_tolerance)
+        << "GL round trip fails to recover mu * horizon at horizon " << horizon
+        << ".";
+    EXPECT_NEAR(estimate.sigma, innovation_standard_deviation, sigma_tolerance)
+        << "GL round trip fails to recover the increment sigma at horizon "
+        << horizon << ".";
   }
 }
