@@ -21,6 +21,19 @@ OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel(
   dist = new GaussianDistribution();
 }
 /**
+ * @brief Seeded constructor for reproducible simulation.
+ *
+ */
+OrnsteinUhlenbeckModel::OrnsteinUhlenbeckModel(
+    const double mu,
+    const double alpha,
+    const double sigma,
+    const std::uint64_t seed
+)
+    : mu(mu), alpha(alpha), sigma(sigma) {
+  dist = new GaussianDistribution(0.0, 1.0, seed);
+}
+/**
  * @brief Copy constructor.
  *
  * @param other The OrnsteinUhlenbeckModel to copy.

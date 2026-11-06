@@ -54,5 +54,7 @@ target_link_libraries(
     GSL::gsl
 )
 
+target_compile_options(unit_tests PRIVATE ${STOCHASTIC_MODELS_WARNING_FLAGS})
+
 include(GoogleTest)
 gtest_discover_tests(unit_tests)

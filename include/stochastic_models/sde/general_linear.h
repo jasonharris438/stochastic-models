@@ -1,6 +1,8 @@
 #ifndef STOCHASTIC_MODELS_SDE_GENERAL_LINEAR_H
 #define STOCHASTIC_MODELS_SDE_GENERAL_LINEAR_H
 #include "stochastic_models/sde/stochastic_model.h"
+
+#include <cstdint>
 /**
  * @brief General Linear Model class that handles fitting, evaluating, and
  * simulating specifically the General Linear SDE model specification.
@@ -22,6 +24,17 @@ private:
 public:
   GeneralLinearModel();
   GeneralLinearModel(const double mu, const double sigma);
+  /**
+   * @brief Construct with an explicit seed for the simulation noise, so that
+   * Simulate is reproducible. A copy draws a fresh nondeterministic stream.
+   *
+   * @param mu The drift parameter.
+   * @param sigma The diffusion parameter.
+   * @param seed Seed for the noise distribution's pseudo-random engine.
+   */
+  GeneralLinearModel(
+      const double mu, const double sigma, const std::uint64_t seed
+  );
   GeneralLinearModel(const GeneralLinearModel& other);
 
   /**
