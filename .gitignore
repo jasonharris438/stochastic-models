@@ -30,10 +30,3 @@ __pycache__/
 
 # Local agent settings
 .claude/settings.local.json
-
-# libFuzzer artifacts
-crash-*
-leak-*
-oom-*
-slow-unit-*
-timeout-*

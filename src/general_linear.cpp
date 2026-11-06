@@ -10,6 +10,12 @@ GeneralLinearModel::GeneralLinearModel(const double mu, const double sigma)
     : mu(mu), sigma(sigma) {
   dist = new GaussianDistribution();
 }
+GeneralLinearModel::GeneralLinearModel(
+    const double mu, const double sigma, const std::uint64_t seed
+)
+    : mu(mu), sigma(sigma) {
+  dist = new GaussianDistribution(0.0, 1.0, seed);
+}
 GeneralLinearModel::GeneralLinearModel(const GeneralLinearModel& other)
     : mu(other.mu), sigma(other.sigma) {
   dist = new GaussianDistribution();

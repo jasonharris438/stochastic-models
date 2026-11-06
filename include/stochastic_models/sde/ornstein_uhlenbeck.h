@@ -2,6 +2,8 @@
 #define STOCHASTIC_MODELS_SDE_ORNSTEIN_UHLENBECK_H
 #include "stochastic_models/sde/stochastic_model.h"
 
+#include <cstdint>
+
 /**
  * @brief Handles fitting, evaluating, and simulating specifically the
  * Ornstein-Uhlenbeck model specification.
@@ -28,6 +30,21 @@ public:
   OrnsteinUhlenbeckModel();
   OrnsteinUhlenbeckModel(
       const double mu, const double alpha, const double sigma
+  );
+  /**
+   * @brief Construct with an explicit seed for the simulation noise, so that
+   * Simulate is reproducible. A copy draws a fresh nondeterministic stream.
+   *
+   * @param mu The mean.
+   * @param alpha The mean-reverting velocity.
+   * @param sigma The standard deviation.
+   * @param seed Seed for the noise distribution's pseudo-random engine.
+   */
+  OrnsteinUhlenbeckModel(
+      const double mu,
+      const double alpha,
+      const double sigma,
+      const std::uint64_t seed
   );
   OrnsteinUhlenbeckModel(const OrnsteinUhlenbeckModel& other);
   /**

@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <vector>
@@ -261,11 +262,11 @@ TEST(OrnsteinUhlenbeckModelTest, SimulatorVarianceMatchesConditionalVariance) {
  * inputs. For t = 2 the unit-step estimator sees an exact OU with
  * alpha' = 2 alpha and sigma' = sigma * sqrt(2) (mu unchanged) — see
  * docs/derivations/sde-mle-derivations.md. Tolerances >= 6 standard errors
- * at n = 50000.
+ * at n = 50000; the seed fixes the path so that a failure reproduces.
  */
 TEST(OrnsteinUhlenbeckModelTest, SimulateEstimateRoundTrip) {
   const double mu = 1.0, alpha = 0.7, sigma = 0.5;
-  OrnsteinUhlenbeckModel model(mu, alpha, sigma);
+  const OrnsteinUhlenbeckModel model(mu, alpha, sigma, std::uint64_t{40});
   OrnsteinUhlenbeckLikelihood likelihood;
 
   const std::vector<double> path1 = model.Simulate(mu, 50000, 1);
@@ -285,4 +286,20 @@ TEST(OrnsteinUhlenbeckModelTest, SimulateEstimateRoundTrip) {
       << "OU round trip fails to recover alpha * t at t=2.";
   EXPECT_NEAR(p2.sigma, sigma * std::sqrt(2.0), 0.03)
       << "OU round trip fails to recover sigma * sqrt(t) at t=2.";
+}
+
+/**
+ * @test 2 models built with the same seed simulate the same path and a third
+ * seed changes it. Exact equality is the reproducibility claim, as in
+ * GaussianSeedingTest, not a numerical result.
+ */
+TEST(OrnsteinUhlenbeckModelTest, SeededSimulateIsReproducible) {
+  const OrnsteinUhlenbeckModel first(1.0, 0.7, 0.5, std::uint64_t{7});
+  const OrnsteinUhlenbeckModel second(1.0, 0.7, 0.5, std::uint64_t{7});
+  const OrnsteinUhlenbeckModel other(1.0, 0.7, 0.5, std::uint64_t{8});
+  const std::vector<double> path = first.Simulate(1.0, 50, 1);
+  EXPECT_EQ(path, second.Simulate(1.0, 50, 1))
+      << "OU models with the same seed simulate different paths.";
+  EXPECT_NE(path, other.Simulate(1.0, 50, 1))
+      << "OU models with different seeds simulate the same path.";
 }

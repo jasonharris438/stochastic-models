@@ -23,30 +23,35 @@ namespace kca_fuzz {
   enum class Outcome { Completed, Rejected, KnownFault };
 
   /**
-   * @brief Tallies of the lenient classifications, printed when the process
-   * exits.
+   * @brief Tally of the known faults, printed when the process exits.
    */
   struct Counts {
     unsigned long known_faults{0};
-    unsigned long round_trip_failures{0};
 
     ~Counts() {
-      std::cerr << "known faults: " << known_faults
-                << ", round-trip failures: " << round_trip_failures << "\n";
+      std::cerr << "known faults: " << known_faults << "\n";
     }
   };
 
   inline Counts tally;
 
   /**
-   * @brief Prints the type and message of an unexpected exception, then traps
-   * so that libFuzzer records the input.
+   * @brief Prints a labelled message, then traps so that libFuzzer records
+   * the input.
+   */
+  [[noreturn]] inline void recordFault(const char* label, const char* message) {
+    std::cerr << label << ": " << message << "\n";
+    __builtin_trap();
+  }
+
+  /**
+   * @brief Reports an unexpected exception by type and message, then traps.
    */
   [[noreturn]] inline void
   recordUnexpected(const char* type_name, const char* message) {
-    std::cerr << "unexpected exception " << type_name << ": " << message
-              << "\n";
-    __builtin_trap();
+    recordFault(
+        ("unexpected exception " + std::string{type_name}).c_str(), message
+    );
   }
 
   /**
@@ -88,7 +93,11 @@ namespace kca_fuzz {
 
   /**
    * @brief Parses an entry point output back through the state adapter and
-   * counts a failure instead of failing.
+   * traps when the adapter rejects it.
+   *
+   * The adapter writes a non-finite value as JSON null and rejects null on the
+   * way back, so an output that contains null is reported as a non-finite
+   * state. Any other rejection is a serialization asymmetry.
    */
   inline void checkRoundTrip(
       const std::string& output, const std::string& dimensions_json
@@ -97,8 +106,13 @@ namespace kca_fuzz {
         FilterSystemDimensionsJsonAdapter{}.deserialize(dimensions_json);
     try {
       KcaStatesJsonAdapter{}.deserialize(output, dimensions);
-    } catch (const json_parse_error&) {
-      tally.round_trip_failures++;
+    } catch (const json_parse_error& error) {
+      recordFault(
+          output.find("null") != std::string::npos
+              ? "non-finite state serialized as null"
+              : "round-trip failure",
+          error.what()
+      );
     }
   }
 

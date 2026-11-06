@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <vector>
@@ -138,10 +139,11 @@ TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
   const double mu = -0.5;
   const double sigma = 0.2;
   // Standard errors at n = 50000: mu below 0.012, sigma below 0.001. The
-  // tolerances give an unseeded path a margin of 4 standard errors or more.
+  // tolerances leave a margin of 4 standard errors or more, and the seed
+  // fixes the path so that a failure reproduces.
   const double mu_tolerance = 0.05;
   const double sigma_tolerance = 0.03;
-  const GeneralLinearModel model(mu, sigma);
+  const GeneralLinearModel model(mu, sigma, std::uint64_t{40});
   const GeneralLinearLikelihood likelihood;
 
   for (const unsigned int horizon : {1u, 2u}) {
@@ -157,4 +159,20 @@ TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
         << "GL round trip fails to recover the increment sigma at horizon "
         << horizon << ".";
   }
+}
+
+/**
+ * @test 2 models built with the same seed simulate the same path and a third
+ * seed changes it. Exact equality is the reproducibility claim, as in
+ * GaussianSeedingTest, not a numerical result.
+ */
+TEST(GeneralLinearModelTest, SeededSimulateIsReproducible) {
+  const GeneralLinearModel first(-0.5, 0.2, std::uint64_t{7});
+  const GeneralLinearModel second(-0.5, 0.2, std::uint64_t{7});
+  const GeneralLinearModel other(-0.5, 0.2, std::uint64_t{8});
+  const std::vector<double> path = first.Simulate(1.0, 50, 1);
+  EXPECT_EQ(path, second.Simulate(1.0, 50, 1))
+      << "GL models with the same seed simulate different paths.";
+  EXPECT_NE(path, other.Simulate(1.0, 50, 1))
+      << "GL models with different seeds simulate the same path.";
 }
