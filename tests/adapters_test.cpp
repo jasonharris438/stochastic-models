@@ -4,6 +4,8 @@
 #include "stochastic_models/kalman_filter/type_conversion.h"
 
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 /**
  * @brief Test that the FilterSystemDimensionsJsonAdapter deserialize method
@@ -189,6 +191,55 @@ TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeTest) {
   EXPECT_EQ(kca_states.getObservationOffset(), 0.0)
       << "The observation offset value was set to an invalid or inconsistent "
          "value.";
+}
+
+/**
+ * @test deserialize does not write the 4 predicted buffers, so each must read
+ * as 0 at its scheme size, with the flags the adapter leaves.
+ */
+TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeZeroesPredictedBuffers) {
+  const std::string state =
+      "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
+      "0.0,0.0]],\"current_state_mean\":[10.288741828687053,0.0,0.0],"
+      "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
+      "0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,"
+      "0.001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1."
+      "0011961162353782,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}";
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  const KcaStatesJsonAdapter adapter;
+
+  const KcaStates restored = adapter.deserialize(state, dimensions);
+
+  const boost::numeric::ublas::vector<double>& predicted_observation_mean =
+      restored.getPredictedObservationMean();
+  EXPECT_EQ(
+      std::vector<double>(
+          predicted_observation_mean.begin(), predicted_observation_mean.end()
+      ),
+      std::vector<double>(1, 0.0)
+  ) << "The predicted observation mean is not 0 after deserialize.";
+  const boost::numeric::ublas::vector<double>& predicted_state_mean =
+      restored.getPredictedStateMean();
+  EXPECT_EQ(
+      std::vector<double>(
+          predicted_state_mean.begin(), predicted_state_mean.end()
+      ),
+      std::vector<double>(3, 0.0)
+  ) << "The predicted state mean is not 0 after deserialize.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(
+          restored.getPredictedObservationCovariance()
+      ),
+      std::vector<std::vector<double>>(1, std::vector<double>(1, 0.0))
+  ) << "The predicted observation covariance is not 0 after deserialize.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(restored.getPredictedStateCovariance()),
+      std::vector<std::vector<double>>(3, std::vector<double>(3, 0.0))
+  ) << "The predicted state covariance is not 0 after deserialize.";
+  EXPECT_TRUE(restored.isInitialised())
+      << "deserialize did not mark the state as initialised.";
+  EXPECT_FALSE(restored.arePriorsValid())
+      << "deserialize marked the priors as valid.";
 }
 
 /**

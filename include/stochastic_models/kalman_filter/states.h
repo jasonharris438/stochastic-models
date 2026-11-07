@@ -239,6 +239,7 @@ private:
  * @brief Struct to represent the prior state of the Kalman Filter.
  *
  * Contains the predicted observation and state mean and covariance matrices.
+ * Every element is 0 after construction.
  *
  * @param dimensions The validated dimensions of the Kalman Filter system.
  */
@@ -256,7 +257,8 @@ struct PriorState {
 /**
  * @brief Struct to represent the posterior state of the Kalman Filter.
  *
- * Contains the current state mean and covariance matrices.
+ * Contains the current state mean and covariance matrices. Every element is 0
+ * after construction.
  *
  * @param dimensions The validated dimensions of the Kalman Filter system.
  */
@@ -271,7 +273,8 @@ struct PosteriorState {
  * @brief Struct to represent the transition state of the Kalman Filter.
  *
  * Contains components that determine the transition between states. The
- * transition matrix and covariance matrices are stored.
+ * transition matrix and covariance matrices are stored. Every element is 0
+ * after construction.
  *
  * @param dimensions The validated dimensions of the Kalman Filter system.
  */
@@ -305,6 +308,9 @@ struct FilterState {
  *
  * The complete state is stored and managed by this class, separating it from
  * the low-level detail of the kalman filter.
+ *
+ * A buffer that has not been written reads as 0. The accessors do not test the
+ * initialisation flags.
  *
  * @param dimensions The dimensions of the internals of the Kalman Filter
  * system.

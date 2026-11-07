@@ -1013,6 +1013,82 @@ TEST(FilterStatesValidationTest, transitionStateSizesBuffersFromDimensions) {
 }
 
 /**
+ * @test A KcaStates constructed right after a populated instance is destroyed
+ * reads 0 from every accessor, so no buffer exposes the freed heap.
+ */
+TEST(
+    FilterStatesValidationTest,
+    kcaStatesReadsZeroAfterPopulatedInstanceDestroyed
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  {
+    KcaStates populated(dimensions);
+    populated.setInitialState({100.0, 101.0}, 1.0, 1.0);
+    populated.updatePredictedState();
+    populated.updateCurrentState(102.0, 1.0);
+  }
+  const KcaStates fresh(dimensions);
+
+  const std::vector<std::vector<double>> zero_1x1(
+      1, std::vector<double>(1, 0.0)
+  );
+  const std::vector<std::vector<double>> zero_1x3(
+      1, std::vector<double>(3, 0.0)
+  );
+  const std::vector<std::vector<double>> zero_3x3(
+      3, std::vector<double>(3, 0.0)
+  );
+  const std::vector<double> zero_1(1, 0.0);
+  const std::vector<double> zero_3(3, 0.0);
+
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getPredictedObservationCovariance()),
+      zero_1x1
+  ) << "The predicted observation covariance is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getPredictedStateCovariance()),
+      zero_3x3
+  ) << "The predicted state covariance is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getObservationMatrix()), zero_1x3
+  ) << "The observation matrix is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getCurrentStateCovariance()),
+      zero_3x3
+  ) << "The current state covariance is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getTransitionMatrix()), zero_3x3
+  ) << "The transition matrix is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getTransitionCovariance()), zero_3x3
+  ) << "The transition covariance is not 0 after construction.";
+
+  const vector<double>& predicted_observation_mean =
+      fresh.getPredictedObservationMean();
+  EXPECT_EQ(
+      std::vector<double>(
+          predicted_observation_mean.begin(), predicted_observation_mean.end()
+      ),
+      zero_1
+  ) << "The predicted observation mean is not 0 after construction.";
+  const vector<double>& predicted_state_mean = fresh.getPredictedStateMean();
+  EXPECT_EQ(
+      std::vector<double>(
+          predicted_state_mean.begin(), predicted_state_mean.end()
+      ),
+      zero_3
+  ) << "The predicted state mean is not 0 after construction.";
+  EXPECT_EQ(fresh.getCurrentStateMeanVector(), zero_3)
+      << "The current state mean is not 0 after construction.";
+  EXPECT_EQ(fresh.getObservationOffset(), 0.0)
+      << "The observation offset is not 0 after construction.";
+  EXPECT_FALSE(fresh.isInitialised())
+      << "A fresh KcaStates reports itself as initialised.";
+  EXPECT_FALSE(fresh.arePriorsValid())
+      << "A fresh KcaStates reports its priors as valid.";
+}
+
+/**
  * @test The std::vector overload of setTransitionCovariance must reject a
  * source with more rows than the target.
  */

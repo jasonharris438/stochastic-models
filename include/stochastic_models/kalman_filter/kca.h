@@ -23,7 +23,8 @@ private:
 public:
   /**
    * @brief Construct a KineticComponents instance with the given dimensions.
-   * @param dimensions Dimensions that determine internal buffer sizes.
+   * @param dimensions Dimensions that size the internal buffers. Every buffer
+   * starts zero-filled.
    */
   explicit KineticComponents(const FilterSystemDimensions& dimensions);
 
