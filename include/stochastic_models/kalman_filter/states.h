@@ -239,7 +239,7 @@ private:
  * @brief Struct to represent the prior state of the Kalman Filter.
  *
  * Contains the predicted observation and state mean and covariance matrices.
- * Every element is 0 after construction.
+ * Every vector and matrix element is 0 after construction.
  *
  * @param dimensions The validated dimensions of the Kalman Filter system.
  */

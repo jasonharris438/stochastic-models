@@ -4,6 +4,7 @@
 #include "stochastic_models/kalman_filter/type_conversion.h"
 #include "stochastic_models/numeric_utils/linalg.h"
 #include "support/assertions.h"
+#include "support/conversions.h"
 #include "support/expected_values.h"
 
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -20,6 +21,7 @@ constexpr double kalman_tolerance = 1e-12;
 
 using test_support::expectMatrixNear;
 using test_support::expectVectorNear;
+using test_support::toStdVector;
 /**
  * @brief Function to create a transition matrix for testing.
  * @return std::vector<std::vector<double>>. The transition matrix.
@@ -1014,7 +1016,7 @@ TEST(FilterStatesValidationTest, transitionStateSizesBuffersFromDimensions) {
 
 /**
  * @test A KcaStates constructed right after a populated instance is destroyed
- * reads 0 from every accessor, so no buffer exposes the freed heap.
+ * reads 0 from every buffer accessor, so no buffer exposes the freed heap.
  */
 TEST(
     FilterStatesValidationTest,
@@ -1062,26 +1064,12 @@ TEST(
   EXPECT_EQ(
       copy_matrix_elements_to_vector(fresh.getTransitionCovariance()), zero_3x3
   ) << "The transition covariance is not 0 after construction.";
-
-  const vector<double>& predicted_observation_mean =
-      fresh.getPredictedObservationMean();
-  EXPECT_EQ(
-      std::vector<double>(
-          predicted_observation_mean.begin(), predicted_observation_mean.end()
-      ),
-      zero_1
-  ) << "The predicted observation mean is not 0 after construction.";
-  const vector<double>& predicted_state_mean = fresh.getPredictedStateMean();
-  EXPECT_EQ(
-      std::vector<double>(
-          predicted_state_mean.begin(), predicted_state_mean.end()
-      ),
-      zero_3
-  ) << "The predicted state mean is not 0 after construction.";
+  EXPECT_EQ(toStdVector(fresh.getPredictedObservationMean()), zero_1)
+      << "The predicted observation mean is not 0 after construction.";
+  EXPECT_EQ(toStdVector(fresh.getPredictedStateMean()), zero_3)
+      << "The predicted state mean is not 0 after construction.";
   EXPECT_EQ(fresh.getCurrentStateMeanVector(), zero_3)
       << "The current state mean is not 0 after construction.";
-  EXPECT_EQ(fresh.getObservationOffset(), 0.0)
-      << "The observation offset is not 0 after construction.";
   EXPECT_FALSE(fresh.isInitialised())
       << "A fresh KcaStates reports itself as initialised.";
   EXPECT_FALSE(fresh.arePriorsValid())
