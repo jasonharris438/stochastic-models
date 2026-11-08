@@ -4,6 +4,7 @@
 #include "stochastic_models/kalman_filter/type_conversion.h"
 #include "stochastic_models/numeric_utils/linalg.h"
 #include "support/assertions.h"
+#include "support/conversions.h"
 #include "support/expected_values.h"
 
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -20,6 +21,7 @@ constexpr double kalman_tolerance = 1e-12;
 
 using test_support::expectMatrixNear;
 using test_support::expectVectorNear;
+using test_support::toStdVector;
 /**
  * @brief Function to create a transition matrix for testing.
  * @return std::vector<std::vector<double>>. The transition matrix.
@@ -1010,6 +1012,68 @@ TEST(FilterStatesValidationTest, transitionStateSizesBuffersFromDimensions) {
       << "transition_matrix rows were not sized by the dimensions.";
   EXPECT_EQ(transition_state.transition_covariance.size2(), 3u)
       << "transition_covariance columns were not sized by the dimensions.";
+}
+
+/**
+ * @test A KcaStates constructed right after a populated instance is destroyed
+ * reads 0 from every buffer accessor, so no buffer exposes the freed heap.
+ */
+TEST(
+    FilterStatesValidationTest,
+    kcaStatesReadsZeroAfterPopulatedInstanceDestroyed
+) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  {
+    KcaStates populated(dimensions);
+    populated.setInitialState({100.0, 101.0}, 1.0, 1.0);
+    populated.updatePredictedState();
+    populated.updateCurrentState(102.0, 1.0);
+  }
+  const KcaStates fresh(dimensions);
+
+  const std::vector<std::vector<double>> zero_1x1(
+      1, std::vector<double>(1, 0.0)
+  );
+  const std::vector<std::vector<double>> zero_1x3(
+      1, std::vector<double>(3, 0.0)
+  );
+  const std::vector<std::vector<double>> zero_3x3(
+      3, std::vector<double>(3, 0.0)
+  );
+  const std::vector<double> zero_1(1, 0.0);
+  const std::vector<double> zero_3(3, 0.0);
+
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getPredictedObservationCovariance()),
+      zero_1x1
+  ) << "The predicted observation covariance is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getPredictedStateCovariance()),
+      zero_3x3
+  ) << "The predicted state covariance is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getObservationMatrix()), zero_1x3
+  ) << "The observation matrix is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getCurrentStateCovariance()),
+      zero_3x3
+  ) << "The current state covariance is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getTransitionMatrix()), zero_3x3
+  ) << "The transition matrix is not 0 after construction.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(fresh.getTransitionCovariance()), zero_3x3
+  ) << "The transition covariance is not 0 after construction.";
+  EXPECT_EQ(toStdVector(fresh.getPredictedObservationMean()), zero_1)
+      << "The predicted observation mean is not 0 after construction.";
+  EXPECT_EQ(toStdVector(fresh.getPredictedStateMean()), zero_3)
+      << "The predicted state mean is not 0 after construction.";
+  EXPECT_EQ(fresh.getCurrentStateMeanVector(), zero_3)
+      << "The current state mean is not 0 after construction.";
+  EXPECT_FALSE(fresh.isInitialised())
+      << "A fresh KcaStates reports itself as initialised.";
+  EXPECT_FALSE(fresh.arePriorsValid())
+      << "A fresh KcaStates reports its priors as valid.";
 }
 
 /**

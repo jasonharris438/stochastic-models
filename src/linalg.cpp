@@ -47,7 +47,7 @@ const boost::numeric::ublas::matrix<double>
 BoostMatrixInverter::copyGslToBoostMatrix(const gsl_matrix* gsl_mat) const {
   std::size_t rows = gsl_mat->size1;
   std::size_t cols = gsl_mat->size2;
-  boost::numeric::ublas::matrix<double> boost_matrix(rows, cols);
+  boost::numeric::ublas::matrix<double> boost_matrix(rows, cols, 0.0);
   for (std::size_t i = 0; i < rows; ++i) {
     for (std::size_t j = 0; j < cols; ++j) {
       boost_matrix(i, j) = gsl_matrix_get(gsl_mat, i, j);

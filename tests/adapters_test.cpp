@@ -2,8 +2,21 @@
 #include "stochastic_models/kalman_filter/states.h"
 #include "stochastic_models/kalman_filter/states_exceptions.h"
 #include "stochastic_models/kalman_filter/type_conversion.h"
+#include "support/conversions.h"
 
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
+
+using test_support::toStdVector;
+
+const std::string kca_state_json =
+    "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
+    "0.0,0.0]],\"current_state_mean\":[10.288741828687053,0.0,0.0],"
+    "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
+    "0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,"
+    "0.001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1."
+    "0011961162353782,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}";
 
 /**
  * @brief Test that the FilterSystemDimensionsJsonAdapter deserialize method
@@ -101,33 +114,19 @@ TEST(AdaptersTest, KcaStatesJsonAdapterSerializeTest) {
   const KcaStatesJsonAdapter adapter;
   const std::string state = adapter.serialize(kca_states);
 
-  EXPECT_EQ(
-      state, "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
-             "0.0,0.0]],\"current_state_mean\":[10.288741828687053,0.0,0.0],"
-             "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
-             "0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,"
-             "0.001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1."
-             "0011961162353782,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}"
-  ) << "The JSON string produced by the KcaStatesJsonAdapter.serialize "
-       "method is incorrect.";
+  EXPECT_EQ(state, kca_state_json)
+      << "The JSON string produced by the KcaStatesJsonAdapter.serialize "
+         "method is incorrect.";
 }
 /**
  * @brief Test that the KcaStatesJsonAdapter deserialize method
  * returns the correct result.
  */
 TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeTest) {
-  // Mock data to initialise state objects.
-  std::string state =
-      "{\"current_state_covariance\":[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,"
-      "0.0,0.0]],\"current_state_mean\":[10.288741828687053,0.0,0.0],"
-      "\"observation_matrix\":[[1.0,0.0,0.0]],\"observation_offset\":0."
-      "0,\"transition_covariance\":[[0.12695229227341848,0.0,0.0],[0.0,"
-      "0.001,0.0],[0.0,0.0,0.001]],\"transition_matrix\":[[1."
-      "0011961162353782,1.0,0.5],[0.0,1.0,1.0],[0.0,0.0,1.0]]}";
   const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
 
   const KcaStatesJsonAdapter adapter;
-  const KcaStates kca_states = adapter.deserialize(state, dimensions);
+  const KcaStates kca_states = adapter.deserialize(kca_state_json, dimensions);
 
   // Extract and check the transition, current, observation states from the
   // KCA states object.
@@ -162,18 +161,13 @@ TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeTest) {
          "inconsistent values.";
 
   // Current state mean.
-  std::vector<double> current_state_mean_vector(3);
-  const vector<double> current_state_mean = kca_states.getCurrentStateMean();
-  std::copy(
-      current_state_mean.begin(), current_state_mean.end(),
-      current_state_mean_vector.begin()
-  );
   const std::vector<double> expected_current_state_mean{
       10.288741828687053, 0.0, 0.0
   };
-  EXPECT_EQ(current_state_mean_vector, expected_current_state_mean)
-      << "The current state mean vector was set with invalid or inconsistent "
-         "values.";
+  EXPECT_EQ(
+      toStdVector(kca_states.getCurrentStateMean()), expected_current_state_mean
+  ) << "The current state mean vector was set with invalid or inconsistent "
+       "values.";
 
   // Observation matrix.
   const std::vector<std::vector<double>> observation_state =
@@ -189,6 +183,39 @@ TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeTest) {
   EXPECT_EQ(kca_states.getObservationOffset(), 0.0)
       << "The observation offset value was set to an invalid or inconsistent "
          "value.";
+}
+
+/**
+ * @test deserialize does not write the 4 predicted buffers, so each must read
+ * as 0 at its scheme size, with the flags the adapter leaves.
+ */
+TEST(AdaptersTest, KcaStatesJsonAdapterDeserializeZeroesPredictedBuffers) {
+  const FilterSystemDimensions dimensions(3, 3, 3, 1, 3, 1, 1, 0.0);
+  const KcaStatesJsonAdapter adapter;
+
+  const KcaStates restored = adapter.deserialize(kca_state_json, dimensions);
+
+  EXPECT_EQ(
+      toStdVector(restored.getPredictedObservationMean()),
+      std::vector<double>(1, 0.0)
+  ) << "The predicted observation mean is not 0 after deserialize.";
+  EXPECT_EQ(
+      toStdVector(restored.getPredictedStateMean()), std::vector<double>(3, 0.0)
+  ) << "The predicted state mean is not 0 after deserialize.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(
+          restored.getPredictedObservationCovariance()
+      ),
+      std::vector<std::vector<double>>(1, std::vector<double>(1, 0.0))
+  ) << "The predicted observation covariance is not 0 after deserialize.";
+  EXPECT_EQ(
+      copy_matrix_elements_to_vector(restored.getPredictedStateCovariance()),
+      std::vector<std::vector<double>>(3, std::vector<double>(3, 0.0))
+  ) << "The predicted state covariance is not 0 after deserialize.";
+  EXPECT_TRUE(restored.isInitialised())
+      << "deserialize did not mark the state as initialised.";
+  EXPECT_FALSE(restored.arePriorsValid())
+      << "deserialize marked the priors as valid.";
 }
 
 /**

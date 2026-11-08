@@ -210,39 +210,45 @@ const matrix<double> CurrentState::calculateCovariance(
 
 // Prior state data class / struct implementation.
 PriorState::PriorState(const FilterSystemDimensions& dimensions)
-    : predicted_observation_mean(dimensions.getObservationMatrixRows()),
-      predicted_state_mean(dimensions.getStateMeanDimension()),
+    : predicted_observation_mean(dimensions.getObservationMatrixRows(), 0.0),
+      predicted_state_mean(dimensions.getStateMeanDimension(), 0.0),
       predicted_observation_covariance(
           dimensions.getObservationCovarianceRows(),
-          dimensions.getObservationCovarianceColumns()
+          dimensions.getObservationCovarianceColumns(),
+          0.0
       ),
       predicted_state_covariance(
           dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns()
+          dimensions.getStateCovarianceColumns(),
+          0.0
       ),
       observation_matrix(
           dimensions.getObservationMatrixRows(),
-          dimensions.getObservationMatrixColumns()
+          dimensions.getObservationMatrixColumns(),
+          0.0
       ),
       observation_offset(dimensions.getObservationOffset()) {}
 
 // Posterior state data class / struct implementation.
 PosteriorState::PosteriorState(const FilterSystemDimensions& dimensions)
-    : current_state_mean(dimensions.getStateMeanDimension()),
+    : current_state_mean(dimensions.getStateMeanDimension(), 0.0),
       current_state_covariance(
           dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns()
+          dimensions.getStateCovarianceColumns(),
+          0.0
       ) {}
 
 // Transition state data class / struct implementation
 TransitionState::TransitionState(const FilterSystemDimensions& dimensions)
     : transition_matrix(
           dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns()
+          dimensions.getStateCovarianceColumns(),
+          0.0
       ),
       transition_covariance(
           dimensions.getStateCovarianceRows(),
-          dimensions.getStateCovarianceColumns()
+          dimensions.getStateCovarianceColumns(),
+          0.0
       ) {}
 
 // Filter boolean state data class / struct implementation
@@ -439,7 +445,7 @@ void KcaStates::updateCurrentState(
   );
   const double innovation = observation - predicted_observation_mean(0);
 
-  vector<double> kalman_gain_vector = vector<double>(kalman_gain.size1());
+  vector<double> kalman_gain_vector(kalman_gain.size1(), 0.0);
   std::copy(
       column(kalman_gain, 0).begin(), column(kalman_gain, 0).end(),
       kalman_gain_vector.begin()

@@ -39,7 +39,7 @@ boost::numeric::ublas::matrix<double> create_boost_matrix_from_vectors(
 
   // Allocate a boost matrix with the same dimensions as the input vectors.
   boost::numeric::ublas::matrix<double> boost_matrix(
-      matrix_as_vectors.size(), columns
+      matrix_as_vectors.size(), columns, 0.0
   );
 
   // Copy the values from the std::vector<std::vector<>>.
@@ -54,7 +54,9 @@ boost::numeric::ublas::matrix<double> create_boost_matrix_from_vectors(
 boost::numeric::ublas::vector<double>
 create_boost_vector_from_vector(const std::vector<double>& vector_as_vector) {
   // Allocate a boost vector with the same dimensions as the input vector.
-  boost::numeric::ublas::vector<double> boost_vector(vector_as_vector.size());
+  boost::numeric::ublas::vector<double> boost_vector(
+      vector_as_vector.size(), 0.0
+  );
 
   // Copy the values from the std::vector<>.
   std::copy(
