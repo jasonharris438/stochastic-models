@@ -61,6 +61,19 @@ $$\hat{\sigma} = \sqrt{\tilde{v}\cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
 
 The conversion factor has limit $1$ as $\mu \to 0$.
 
+### Exact online update of the squared error
+
+With $\hat{a} = S_{xy}/S_{xx}$ before a new pair $(x, y)$ is added, and
+$S'_{xx} = S_{xx} + x^2$ after it,
+
+$$\mathrm{SSE}' = \mathrm{SSE} + (y - \hat{a}x)^2\,\frac{S_{xx}}{S'_{xx}}$$
+
+which follows from $\mathrm{SSE} = S_{yy} - S_{xy}^2 / S_{xx}$: the difference
+of the 2 values has numerator $(y S_{xx} - x S_{xy})^2$ over $S_{xx} S'_{xx}$.
+When $S_{xx} = 0$ there is no prior pair and the increment is $0$. The same
+recursion with the OU sums is not needed, because the OU estimator recomputes
+its closed forms from the 5 accumulated sums.
+
 ## Simulator discretization (exact scheme)
 
 Both simulators step with the exact conditional mean plus a Gaussian increment
@@ -71,7 +84,6 @@ for $Z \sim \mathcal{N}(0, 1)$:
 - **GL:** $X_{s+t} = X_s e^{\mu t} + \sigma\sqrt{\dfrac{e^{2\mu t} - 1}{2\mu}}\,Z$
 
 The noise scales have limit $\sigma\sqrt{t}$ as $\alpha \to 0$ / $\mu \to 0$.
-The GL scheme is implemented by a later change; the OU scheme is current.
 
 ## Sampling at spacing $t$ (round-trip identities used by the tests)
 

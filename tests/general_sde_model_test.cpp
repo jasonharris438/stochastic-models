@@ -1,5 +1,6 @@
 #include "stochastic_models/entrypoints/general_sde.h"
 #include "stochastic_models/exceptions/errors.h"
+#include "support/expected_values.h"
 
 #include <gtest/gtest.h>
 
@@ -8,7 +9,7 @@
  * asserts that the values are as expected.
  */
 TEST(GeneralSdeModelTest, updateGeneralLinearSDEModelOutputTest) {
-  const double tolerance = 1e-5;
+  const double tolerance = 1e-9;
 
   // Declare and initialize model and test parameters.
   const double mu = 0.5;
@@ -20,18 +21,26 @@ TEST(GeneralSdeModelTest, updateGeneralLinearSDEModelOutputTest) {
   const double squared_error = 0.002;
   const uint32_t n_obs = 100;
 
-  // Simulate the Ornstein-Uhlenbeck process.
+  // Apply 1 online update.
   const std::vector<double> series = updateGeneralLinearSDEModel(
       mu, sigma, new_observation, last_observation, lag_squared,
       lead_lag_inner_product, squared_error, n_obs
   );
 
-  EXPECT_NEAR(series.at(0), 0.15822400521489416, tolerance)
-      << "The mu value of the parameters returned by "
-         "updateGeneralLinearSDEModel is not the correct value.";
-  EXPECT_NEAR(series.at(1), 0.007882560795765492, tolerance)
-      << "The sigma value of the parameters returned by "
-         "updateGeneralLinearSDEModel is not the correct value.";
+  EXPECT_NEAR(
+      series.at(0),
+      expected::general_sde_model_test::
+          update_general_linear_sde_model_output_test_mu,
+      tolerance
+  ) << "The mu value of the parameters returned by "
+       "updateGeneralLinearSDEModel is not the correct value.";
+  EXPECT_NEAR(
+      series.at(1),
+      expected::general_sde_model_test::
+          update_general_linear_sde_model_output_test_sigma,
+      tolerance
+  ) << "The sigma value of the parameters returned by "
+       "updateGeneralLinearSDEModel is not the correct value.";
 }
 
 /**

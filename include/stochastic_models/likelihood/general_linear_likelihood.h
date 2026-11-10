@@ -1,5 +1,16 @@
 #ifndef STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_LIKELIHOOD_H
 #define STOCHASTIC_MODELS_LIKELIHOOD_GENERAL_LINEAR_LIKELIHOOD_H
+
+/**
+ * @file include/stochastic_models/likelihood/general_linear_likelihood.h
+ * @brief Maximum likelihood estimators for the General Linear SDE model.
+ * @ingroup likelihood
+ * @details
+ * The estimators assume unit spacing between consecutive observations
+ * (dt = 1). Applied to a series sampled every t time units of the continuous
+ * process they return mu t and sigma sqrt(t), with sigma the diffusion
+ * coefficient of the SDE. See docs/derivations/sde-mle-derivations.md.
+ */
 #include <cstdint>
 #include <vector>
 
@@ -7,7 +18,7 @@
  * @brief Maximum-likelihood parameters for the General Linear SDE model.
  *
  * @param mu: estimated autoregressive coefficient (log scale),
- * @param sigma: estimated innovation standard deviation.
+ * @param sigma: estimated diffusion coefficient of the SDE.
  */
 struct GeneralLinearParameters {
   double mu;
@@ -100,24 +111,27 @@ public:
       const double& lag_squared, const double& last_observation
   ) const;
   /**
-   * @brief Update the accumulated squared error term used in sigma MLE.
+   * @brief Adds 1 pair to the accumulated squared error exactly.
    *
-   * This implements a Welford-like incremental update suitable for
-   * one-observation-at-a-time streaming updates.
+   * Adds `(new - prior_mean * last)^2 * lag_squared_old / lag_squared_new`,
+   * which equals a batch recalculation over the extended series. A zero old
+   * sum means no prior pair, and adds 0.
    *
    * @param squared_error Current accumulated squared error.
    * @param new_observation New time t (lead) observation.
    * @param last_observation Previous time t-1 (lag) observation.
-   * @param mean Current running estimate of the mean used in the update.
-   * @param n_observations Current number of observations (before this update).
+   * @param prior_mean The autoregressive coefficient before this pair.
+   * @param lag_squared_old The sum of squared lags before this pair.
+   * @param lag_squared_new The sum of squared lags including this pair.
    * @return const double Updated squared error.
    */
   const double updateSquaredError(
       const double& squared_error,
       const double& new_observation,
       const double& last_observation,
-      const double& mean,
-      const uint32_t& n_observations
+      const double& prior_mean,
+      const double& lag_squared_old,
+      const double& lag_squared_new
   ) const;
 
   /**
@@ -133,7 +147,8 @@ public:
    *
    * @param components Precomputed likelihood components.
    * @param mu The mu parameter (estimated separately).
-   * @return const double Estimated sigma (innovation standard deviation).
+   * @return const double Estimated sigma, the diffusion coefficient of the
+   * SDE, from the squared error over the n - 1 pairs.
    */
   const double calculateSigma(
       const GeneralLinearLikelihoodComponents& components, const double& mu

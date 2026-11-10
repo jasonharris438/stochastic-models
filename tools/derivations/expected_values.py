@@ -469,16 +469,87 @@ def ornstein_uhlenbeck_estimate(sums: OrnsteinUhlenbeckSums) -> OrnsteinUhlenbec
     alpha = np.log(sums.lag_sum_squared - 2.0 * mu * sums.lag_sum + pairs * mu**2) - np.log(
         sums.lead_lag_sum_product - mu * (sums.lag_sum + sums.lead_sum) + pairs * mu**2
     )
-    decay = np.exp(-alpha)
+    sigma = ornstein_uhlenbeck_sigma(sums, mu=float(mu), alpha=float(alpha))
+    return OrnsteinUhlenbeck(mu=float(mu), alpha=float(alpha), sigma=sigma)
+
+
+def ornstein_uhlenbeck_sigma(sums: OrnsteinUhlenbeckSums, *, mu: float, alpha: float) -> float:
+    """Diffusion coefficient from the sufficient statistics and the drift estimates."""
+    pairs = sums.n_obs - 1
+    decay = float(np.exp(-alpha))
+    one_minus_decay = float(-np.expm1(-alpha))
     transition_variance = (
         sums.lead_sum_squared
         - 2.0 * decay * sums.lead_lag_sum_product
         + decay**2 * sums.lag_sum_squared
-        - 2.0 * mu * (1.0 - decay) * (sums.lead_sum - decay * sums.lag_sum)
-        + pairs * mu**2 * (1.0 - decay) ** 2
+        - 2.0 * mu * one_minus_decay * (sums.lead_sum - decay * sums.lag_sum)
+        + pairs * mu**2 * one_minus_decay**2
     ) / pairs
-    sigma = np.sqrt(transition_variance * 2.0 * alpha / (1.0 - decay**2))
-    return OrnsteinUhlenbeck(mu=float(mu), alpha=float(alpha), sigma=float(sigma))
+    conversion = 1.0 if alpha == 0.0 else float(2.0 * alpha / -np.expm1(-2.0 * alpha))
+    return float(np.sqrt(transition_variance * conversion))
+
+
+@dataclass(frozen=True)
+class GeneralLinearSums:
+    """Sufficient statistics of the general linear estimator with unit steps."""
+
+    lag_squared: float
+    lead_lag_inner_product: float
+    squared_error: float
+    n_obs: int
+
+
+@dataclass(frozen=True)
+class GeneralLinearEstimate:
+    """Maximum likelihood estimate of dX = mu X dt + sigma dW."""
+
+    mu: float
+    sigma: float
+
+
+def general_linear_conversion(mu: float) -> float:
+    """Transition variance to squared diffusion coefficient, 2 mu / (e^(2 mu) - 1)."""
+    if mu == 0.0:
+        return 1.0
+    return float(2.0 * mu / np.expm1(2.0 * mu))
+
+
+def general_linear_sums(series: list[float]) -> GeneralLinearSums:
+    """Sufficient statistics of a series with unit steps."""
+    lag = np.asarray(series[:-1])
+    lead = np.asarray(series[1:])
+    lag_squared = float((lag**2).sum())
+    lead_lag_inner_product = float((lead * lag).sum())
+    slope = lead_lag_inner_product / lag_squared
+    return GeneralLinearSums(
+        lag_squared=lag_squared,
+        lead_lag_inner_product=lead_lag_inner_product,
+        squared_error=float(((lead - slope * lag) ** 2).sum()),
+        n_obs=len(series),
+    )
+
+
+def update_general_linear_sums(
+    sums: GeneralLinearSums, *, new_observation: float, last_observation: float
+) -> GeneralLinearSums:
+    """Sufficient statistics after 1 more pair, with the exact rank-1 squared-error update."""
+    prior_slope = sums.lead_lag_inner_product / sums.lag_squared if sums.lag_squared else 0.0
+    lag_squared = sums.lag_squared + last_observation**2
+    residual = new_observation - prior_slope * last_observation
+    return GeneralLinearSums(
+        lag_squared=lag_squared,
+        lead_lag_inner_product=sums.lead_lag_inner_product + new_observation * last_observation,
+        squared_error=sums.squared_error + residual**2 * sums.lag_squared / lag_squared,
+        n_obs=sums.n_obs + 1,
+    )
+
+
+def general_linear_estimate(sums: GeneralLinearSums) -> GeneralLinearEstimate:
+    """Maximum likelihood estimate from the sufficient statistics, unit steps."""
+    pairs = sums.n_obs - 1
+    mu = float(np.log(sums.lead_lag_inner_product / sums.lag_squared))
+    sigma = float(np.sqrt(sums.squared_error / pairs * general_linear_conversion(mu)))
+    return GeneralLinearEstimate(mu=mu, sigma=sigma)
 
 
 def vector_values(values: np.ndarray) -> list[float]:
@@ -998,6 +1069,52 @@ def expected_values() -> dict[str, ExpectedValue]:
         values[f"OrnsteinUhlenbeckLikelihoodCalculateTest.ComponentsTest.{field_name}"] = (
             field_value
         )
+    values["OrnsteinUhlenbeckLikelihoodCalculateTest.SigmaNearZeroAlphaTest"] = (
+        ornstein_uhlenbeck_sigma(fixed_sums, mu=0.5, alpha=1e-9)
+    )
+
+    linear_series = [
+        1094.1,
+        1104.1,
+        1107.7,
+        1123.6,
+        1115.6,
+        1112.7,
+        1118.4,
+        1116.9,
+        1127.9,
+        1153.2,
+        1159.6,
+        1153.6,
+        1138.3,
+        1124.6,
+        1122.6,
+        1134.0,
+        1132.5,
+        1139.8,
+        1133.6,
+        1124.5,
+    ]
+    linear_sums = general_linear_sums(linear_series)
+    linear_estimate = general_linear_estimate(linear_sums)
+    values["GeneralLinearLikelihoodCalculateTest.ParameterTest.mu"] = linear_estimate.mu
+    values["GeneralLinearLikelihoodCalculateTest.ParameterTest.sigma"] = linear_estimate.sigma
+    updated_linear_estimate = general_linear_estimate(
+        update_general_linear_sums(linear_sums, new_observation=1125.25, last_observation=1124.5)
+    )
+    values["GeneralLinearOnlineTest.UpdateMuTest"] = updated_linear_estimate.mu
+    values["GeneralLinearOnlineTest.UpdateSigmaTest"] = updated_linear_estimate.sigma
+    entry_linear_estimate = general_linear_estimate(
+        update_general_linear_sums(
+            GeneralLinearSums(0.1, 0.15, 0.002, 100), new_observation=0.52, last_observation=0.5
+        )
+    )
+    values["GeneralSdeModelTest.updateGeneralLinearSDEModelOutputTest.mu"] = (
+        entry_linear_estimate.mu
+    )
+    values["GeneralSdeModelTest.updateGeneralLinearSDEModelOutputTest.sigma"] = (
+        entry_linear_estimate.sigma
+    )
 
     values["SolverBoundsTest.upperSolverBoundOutputTest"] = (
         stop_loss_model.mu + 4.0 * stop_loss_model.stationary_deviation

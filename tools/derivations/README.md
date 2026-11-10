@@ -4,11 +4,6 @@
 `tests/support/expected_values.h` from the model formulas with numpy and scipy.
 It never calls the library.
 
-It does not cover the General Linear estimator outputs in
-`general_linear_likelihood_test.cpp`, `general_linear_online_test.cpp` and
-`general_sde_model_test.cpp`. Those tests lock the library's current output
-until the estimator is corrected.
-
 The tests include the header and name each value. Never edit the header by
 hand.
 

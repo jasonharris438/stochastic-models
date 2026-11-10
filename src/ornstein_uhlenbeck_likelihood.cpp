@@ -152,22 +152,21 @@ const double OrnsteinUhlenbeckLikelihoodComponentCalculator::calculateSigma(
     const double& alpha
 ) const {
   const double n_pairs = components.n_obs - 1.0;
-  const double exp_alpha{std::exp(-alpha)};
+  const double decay{std::exp(-alpha)};
+  const double one_minus_decay{-std::expm1(-alpha)};
   double transition_variance{
       components.lead_sum_squared -
-      (2 * exp_alpha * components.lead_lag_sum_product) +
-      ((std::pow(exp_alpha, 2)) * components.lag_sum_squared) -
-      ((2 * mu * (1 - exp_alpha)) *
-       (components.lead_sum - (exp_alpha * components.lag_sum))) +
-      (n_pairs * std::pow(mu, 2) * std::pow(1 - exp_alpha, 2))
+      (2 * decay * components.lead_lag_sum_product) +
+      (std::pow(decay, 2) * components.lag_sum_squared) -
+      ((2 * mu * one_minus_decay) *
+       (components.lead_sum - (decay * components.lag_sum))) +
+      (n_pairs * std::pow(mu, 2) * std::pow(one_minus_decay, 2))
   };
   transition_variance *= (1.0 / n_pairs);
-  // Transition-variance -> SDE diffusion coefficient. The factor is
-  // 2*alpha/(1 - e^{-2 alpha}); its removable singularity at alpha == 0 has
-  // limit 1. See docs/derivations/sde-mle-derivations.md.
-  const double conversion = (std::abs(alpha) < 1e-12)
-                                ? 1.0
-                                : (2 * alpha) / (1 - std::pow(exp_alpha, 2));
+  // Transition variance to squared diffusion coefficient; the removable
+  // singularity at alpha == 0 has limit 1.
+  const double conversion =
+      (alpha == 0.0) ? 1.0 : (2 * alpha) / -std::expm1(-2 * alpha);
   return std::sqrt(transition_variance * conversion);
 };
 const OrnsteinUhlenbeckParameters

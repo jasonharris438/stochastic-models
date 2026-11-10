@@ -37,9 +37,7 @@ with $\mu(X,t)$ the drift term and $\sigma(X,t)$ diffusion term. The term $\math
 
 ### Online Updating of MLE Parameters
 
-A method to update model parameters as new data arrives is implemented using a simple corrected sums of squares approach. This is based on the Welford (1962) method for calculating variance in a numerically stable way.
-
-**Citation:** Welford, B. P. (1962). Note on a Method for Calculating Corrected Sums of Squares and Products. Technometrics, 4(3), 419–420.
+A method to update model parameters as new data arrives is implemented by accumulating the sufficient statistics of each estimator, so 1 update costs the same as 1 more observation pair and reproduces a batch fit over the extended series.
 
 This method drops the assumption that parameters are time-varying and requires the client to maintain a stateful representation of the current model parameters.
 
@@ -47,33 +45,35 @@ This method drops the assumption that parameters are time-varying and requires t
 
 $$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$
 
-The likelihood function being optimized is:
+The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(X_{t-1}e^{\mu},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{e^{2\mu}-1}{2\mu}$, and the likelihood function being optimized over the $n$ transition pairs is:
 
-$$\mathcal{L}(\mu,\sigma)=-\frac{n\log{2\pi}}{2}-n\log{\hat{\sigma}}-\frac{1}{2\hat{\sigma}^2}\sum^n_{i=1}{(X_t-X_{t-1}e^{\mu})^2}$$
+$$\mathcal{L}(\mu,\sigma)=-\frac{n\log{2\pi}}{2}-\frac{n}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=1}{(X_t-X_{t-1}e^{\mu})^2}$$
+
+Here $n$ is the number of transition pairs, 1 fewer than the number of observations, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
 
 When a new observation $X_t$ arrives, the `GeneralLinearUpdater` performs the following update steps:
 
-**1. Update $\mu$ parameter components:** Accumulate individual components used in calculations for the MLE solution:
+**1. Update $\mu$ parameter components:** With $\hat{a} = S_{xy} / S_{xx}$ the autoregressive coefficient before the new pair, accumulate the pair:
 
-$$\sum^n_{t=1}{X_{t-1} \cdot X_{t-2}} \leftarrow  \text{ is updated with the next } X_t \cdot X_{t-1}$$
+$$S_{xy} = \sum_{t}{X_t \cdot X_{t-1}} \leftarrow S_{xy} + X_t \cdot X_{t-1}$$
 
-$$\sum^n_{t=1}{X_{t-2}^2} \leftarrow \text{ is updated with the next } X_{t-1}^2$$
+$$S_{xx} = \sum_{t}{X_{t-1}^2} \leftarrow S_{xx} + X_{t-1}^2$$
 
-**2. Update $\sigma$ parameter components:** Compute prediction error and update variance accumulator using Welford's correction:
+**2. Update $\sigma$ parameter components:** Compute the prediction error with the coefficient from before the pair was added, and update the sum of squared errors with the exact rank-1 identity:
 
-$$\epsilon_t = X_t - e^{\hat{\mu}} \cdot X_{t-1}$$
+$$\epsilon_t = X_t - \hat{a} \cdot X_{t-1}$$
 
-$$S_{\text{new}} = S_{\text{old}} + \frac{n-1}{n} \cdot \epsilon_t^2$$
+$$S_{\text{new}} = S_{\text{old}} + \epsilon_t^2 \cdot \frac{S_{xx,\text{old}}}{S_{xx,\text{new}}}$$
 
 **3. Update state:**
 
-$(n-1) \leftarrow n$ and $X_{\text{last}} \leftarrow X_t$
+$n \leftarrow n + 1$ and $X_{\text{last}} \leftarrow X_t$
 
 **4. Update stateful object parameters:** $\mu$ and $\sigma$ are updated in a stateful object based on the new state.
 
-$$\hat{\mu} = \ln{\frac{\sum^n_{t=1}{X_t \cdot X_{t-1}}}{\sum^n_{t=1}{X_{t-1}^2}}}$$
+$$\hat{\mu} = \ln{\frac{S_{xy}}{S_{xx}}}$$
 
-$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n}}$$
+$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n} \cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
 
 **For the Ornstein-Uhlenbeck model of the form:**
 

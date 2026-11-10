@@ -1,5 +1,7 @@
 #include "stochastic_models/exceptions/errors.h"
 #include "stochastic_models/likelihood/general_linear_likelihood.h"
+#include "support/expected_values.h"
+#include "support/general_linear_fixtures.h"
 
 #include <gtest/gtest.h>
 #include <unordered_map>
@@ -12,12 +14,9 @@
  * precomputed reference results for a small sample series.
  */
 TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
-  const double tolerance = 1e-4;
+  const double tolerance = 1e-9;
   // Generate mock data.
-  const std::vector<double> test_vec{1094.1, 1104.1, 1107.7, 1123.6, 1115.6,
-                                     1112.7, 1118.4, 1116.9, 1127.9, 1153.2,
-                                     1159.6, 1153.6, 1138.3, 1124.6, 1122.6,
-                                     1134.,  1132.5, 1139.8, 1133.6, 1124.5};
+  const std::vector<double> test_vec = test_support::generalLinearSeries();
   // Generate likelihood calculator and generate estimates.
   const GeneralLinearLikelihood likelihood;
   const GeneralLinearLikelihoodComponents components =
@@ -26,12 +25,18 @@ TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
       likelihood.calculateParameters(components);
 
   // Expect equality for mu value.
-  EXPECT_NEAR(params.mu, -0.0014364658021903459, tolerance)
-      << "GeneralLinearLikelihood not calculating correct value mu.";
+  EXPECT_NEAR(
+      params.mu,
+      expected::general_linear_likelihood_calculate_test::parameter_test_mu,
+      tolerance
+  ) << "GeneralLinearLikelihood not calculating correct value mu.";
 
   // Expect equality for sigma value.
-  EXPECT_NEAR(params.sigma, 10.457329129393298, tolerance)
-      << "GeneralLinearLikelihood not calculating correct value sigma.";
+  EXPECT_NEAR(
+      params.sigma,
+      expected::general_linear_likelihood_calculate_test::parameter_test_sigma,
+      tolerance
+  ) << "GeneralLinearLikelihood not calculating correct value sigma.";
 }
 
 /**
@@ -112,4 +117,14 @@ TEST(
       calculator.calculateSquaredError({1.0}, 0.0),
       InvalidNumberObservationsError
   ) << "calculateSquaredError accepted a one-element series.";
+}
+
+/**
+ * @test calculateLagSquared sums the squares of the lagged values, so the
+ * last observation is excluded.
+ */
+TEST(GeneralLinearLikelihoodCalculateTest, LagSquaredExcludesLastObservation) {
+  const GeneralLinearLikelihoodComponentCalculator calculator{};
+  EXPECT_DOUBLE_EQ(calculator.calculateLagSquared({1.0, 2.0, 3.0}), 5.0)
+      << "calculateLagSquared did not sum the lagged squares 1 + 4.";
 }
