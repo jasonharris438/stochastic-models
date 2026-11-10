@@ -4,6 +4,7 @@
 #include "stochastic_models/numeric_utils/helpers.h"
 
 #include <cmath>
+#include <iterator>
 #include <numeric>
 
 const double GeneralLinearLikelihoodComponentCalculator::calculateSeriesMean(
@@ -35,9 +36,7 @@ const double GeneralLinearLikelihoodComponentCalculator::calculateLagSquared(
 ) const {
   check_minimum_observations(data, 2, "calculateLagSquared");
   const std::vector<double> squared = valuesSquared(data);
-  std::vector<double>::const_iterator iter = squared.cbegin();
-  std::advance(iter, 1);
-  return std::reduce(iter, squared.cend(), 0.0);
+  return std::reduce(squared.cbegin(), std::prev(squared.cend()), 0.0);
 };
 const double GeneralLinearLikelihoodComponentCalculator::calculateSquaredError(
     const std::vector<double>& data, const double& mu
@@ -70,14 +69,16 @@ const double GeneralLinearLikelihoodComponentCalculator::updateSquaredError(
     const double& squared_error,
     const double& new_observation,
     const double& last_observation,
-    const double& mean,
-    const uint32_t& n_observations
+    const double& prior_mean,
+    const double& lag_squared_old,
+    const double& lag_squared_new
 ) const {
-  const double n_observations_new = n_observations + 1.0;
-  const double n_observations_ratio = n_observations / n_observations_new;
+  if (lag_squared_old == 0.0) {
+    return squared_error;
+  }
+  const double residual = new_observation - prior_mean * last_observation;
   return squared_error +
-         (n_observations_ratio *
-          std::pow(new_observation - mean * last_observation, 2));
+         std::pow(residual, 2) * lag_squared_old / lag_squared_new;
 }
 const double GeneralLinearLikelihoodComponentCalculator::calculateMu(
     const GeneralLinearLikelihoodComponents& components
@@ -89,11 +90,14 @@ const double GeneralLinearLikelihoodComponentCalculator::calculateMu(
 const double GeneralLinearLikelihoodComponentCalculator::calculateSigma(
     const GeneralLinearLikelihoodComponents& components, const double& mu
 ) const {
-  const double sigma =
-      (components.squared_error != 0.0 && components.n_obs > 0)
-          ? std::sqrt(components.squared_error / components.n_obs)
-          : 0.0;
-  return sigma;
+  if (components.squared_error == 0.0 || components.n_obs < 2) {
+    return 0.0;
+  }
+  const double n_pairs = components.n_obs - 1.0;
+  // Transition variance to squared diffusion coefficient; the removable
+  // singularity at mu == 0 has limit 1.
+  const double conversion = (mu == 0.0) ? 1.0 : (2 * mu) / std::expm1(2 * mu);
+  return std::sqrt(components.squared_error / n_pairs * conversion);
 };
 const GeneralLinearParameters GeneralLinearLikelihood::calculateParameters(
     const GeneralLinearLikelihoodComponents& components
@@ -128,6 +132,9 @@ GeneralLinearLikelihood::updateComponents(
     const double& new_observation,
     const double& last_observation
 ) const {
+  const double prior_mean = component_calculator.calculateSeriesMean(
+      components.lead_lag_inner_product, components.lag_squared
+  );
   const double lag_squared = component_calculator.updateLagSquared(
       components.lag_squared, last_observation
   );
@@ -135,12 +142,9 @@ GeneralLinearLikelihood::updateComponents(
       component_calculator.updateLeadLagInnerProduct(
           components.lead_lag_inner_product, new_observation, last_observation
       );
-  const double mean = component_calculator.calculateSeriesMean(
-      lead_lag_inner_product, lag_squared
-  );
   const double squared_error = component_calculator.updateSquaredError(
-      components.squared_error, new_observation, last_observation, mean,
-      components.n_obs
+      components.squared_error, new_observation, last_observation, prior_mean,
+      components.lag_squared, lag_squared
   );
   return GeneralLinearLikelihoodComponents{
       lag_squared, lead_lag_inner_product, squared_error, components.n_obs + 1

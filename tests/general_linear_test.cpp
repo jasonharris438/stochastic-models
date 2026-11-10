@@ -131,9 +131,7 @@ TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
 
 /**
  * @test Simulate-then-estimate round trip at horizons 1 and 2 with n = 50000.
- * The estimator returns mu * horizon. Its sigma is the standard deviation of
- * 1 increment, sigma * sqrt((exp(2 mu horizon) - 1) / (2 mu)), not the model
- * sigma.
+ * The estimator returns mu * horizon and sigma * sqrt(horizon).
  */
 TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
   const double mu = -0.5;
@@ -150,13 +148,13 @@ TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
     const std::vector<double> path = model.Simulate(1.0, 50000, horizon);
     const GeneralLinearParameters estimate =
         likelihood.calculateParameters(likelihood.calculateComponents(path));
-    const double innovation_standard_deviation =
-        sigma * std::sqrt(std::expm1(2.0 * mu * horizon) / (2.0 * mu));
+    const double expected_sigma =
+        sigma * std::sqrt(static_cast<double>(horizon));
     EXPECT_NEAR(estimate.mu, mu * horizon, mu_tolerance)
         << "GL round trip fails to recover mu * horizon at horizon " << horizon
         << ".";
-    EXPECT_NEAR(estimate.sigma, innovation_standard_deviation, sigma_tolerance)
-        << "GL round trip fails to recover the increment sigma at horizon "
+    EXPECT_NEAR(estimate.sigma, expected_sigma, sigma_tolerance)
+        << "GL round trip fails to recover sigma * sqrt(horizon) at horizon "
         << horizon << ".";
   }
 }
