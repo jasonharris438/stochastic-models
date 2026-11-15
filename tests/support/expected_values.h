@@ -43,7 +43,7 @@ inline constexpr double update_sigma_test = 9.992816952468337;
 }
 
 namespace general_sde_model_test {
-inline constexpr double update_general_linear_sde_model_output_test_mu = 0.1582240052148942;
+inline constexpr double update_general_linear_sde_model_output_test_mu = 0.15822400521489416;
 inline constexpr double update_general_linear_sde_model_output_test_sigma = 0.0120619131424014;
 }
 
@@ -104,19 +104,19 @@ inline constexpr double method_f_output_test = 5.804824006148855;
 
 namespace optimal_mean_reversion_stop_loss_value_test {
 inline constexpr double method_above_v_stop_loss_output_test = 0.5499999999999999;
-inline constexpr double method_below_v_stop_loss_output_test = 0.46932190365804205;
-inline constexpr double method_v_stop_loss_boundary_test_at_exit = 0.5173030000866377;
-inline constexpr double method_v_stop_loss_boundary_test_at_stop_loss = 0.43340353624186934;
+inline constexpr double method_below_v_stop_loss_output_test = 0.46932190365804316;
+inline constexpr double method_v_stop_loss_boundary_test_at_exit = 0.5173030000866383;
+inline constexpr double method_v_stop_loss_boundary_test_at_stop_loss = 0.43340353624187045;
 }
 
 namespace optimal_mean_reversion_test {
 inline constexpr double method_a_stop_loss_output_test = -132.55275540985355;
 inline constexpr double method_above_v_output_test = 0.53;
 inline constexpr double method_b_output_test = 135.51123787337457;
-inline constexpr double method_b_stop_loss_output_test = 187.80766789904345;
-inline constexpr double method_below_v_output_test = 0.40338919206893725;
+inline constexpr double method_b_stop_loss_output_test = 187.80766789903623;
+inline constexpr double method_below_v_output_test = 0.4033891920689373;
 inline constexpr double method_d_output_test = -129.09611238885014;
-inline constexpr double method_d_stop_loss_output_test = -61.83256664630987;
+inline constexpr double method_d_stop_loss_output_test = -61.832566646309694;
 inline constexpr double method_g_output_test = 163.61682127334302;
 }
 
@@ -127,9 +127,9 @@ inline constexpr double optimal_exit_level_exponential_output_test = 1.409299541
 
 namespace optimal_trading_levels_test {
 inline constexpr double optimal_entry_level_output_test = 0.115681099001361;
-inline constexpr double optimal_entry_level_stop_loss_output_test = 0.1309297751813362;
-inline constexpr double optimal_entry_lower_stop_loss_output_test = 0.10763308326813294;
-inline constexpr double optimal_exit_level_output_test = 0.4668358699144522;
+inline constexpr double optimal_entry_level_stop_loss_output_test = 0.13092977518133622;
+inline constexpr double optimal_entry_lower_stop_loss_output_test = 0.10763308326813295;
+inline constexpr double optimal_exit_level_output_test = 0.46683586991445225;
 inline constexpr double optimal_exit_level_stop_loss_output_test = 0.455190759905994;
 }
 
@@ -144,6 +144,7 @@ inline constexpr double parameter_test_alpha = 0.7205461547480593;
 inline constexpr double parameter_test_mu = 0.8947368421052632;
 inline constexpr double parameter_test_sigma = 0.5163352372797948;
 inline constexpr double sigma_near_zero_alpha_test = 0.4472135955558596;
+inline constexpr double sigma_zero_alpha_test = 0.4472135954999579;
 }
 
 namespace ornstein_uhlenbeck_likelihood_update_test {
@@ -155,7 +156,7 @@ inline constexpr double components_test_lead_sum_squared = 4.6875;
 inline constexpr unsigned components_test_n_obs = 7u;
 inline constexpr double parameter_test_alpha = 0.8266785731844672;
 inline constexpr double parameter_test_mu = 0.8240740740740741;
-inline constexpr double parameter_test_sigma = 0.5007098524429628;
+inline constexpr double parameter_test_sigma = 0.5007098524429631;
 }
 
 namespace ornstein_uhlenbeck_model_test {
@@ -189,13 +190,13 @@ inline constexpr double exit_level_exponential_output_test = 1.40929954132349;
 }
 
 namespace trading_levels_test {
-inline constexpr double entry_level_lower_bound_stop_loss_output_test = 0.10763308326813294;
+inline constexpr double entry_level_lower_bound_stop_loss_output_test = 0.10763308326813295;
 inline constexpr double entry_level_output_test = 0.115681099001361;
-inline constexpr double entry_level_stop_loss_output_test = 0.1309297751813362;
-inline constexpr double exit_level_output_test = 0.4668358699144522;
+inline constexpr double entry_level_stop_loss_output_test = 0.13092977518133622;
+inline constexpr double exit_level_output_test = 0.46683586991445225;
 inline constexpr double exit_level_stop_loss_output_test = 0.455190759905994;
-inline constexpr double level_ordering_chain_test_a_star = 0.10763308326819017;
-inline constexpr double level_ordering_chain_test_b_star = 0.4668358699144522;
+inline constexpr double level_ordering_chain_test_a_star = 0.10763308326819016;
+inline constexpr double level_ordering_chain_test_b_star = 0.46683586991445225;
 inline constexpr double level_ordering_chain_test_b_star_stop_loss = 0.455190759905994;
 inline constexpr double level_ordering_chain_test_d_star = 0.1309297751814221;
 }

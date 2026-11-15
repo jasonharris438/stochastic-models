@@ -45,11 +45,11 @@ This method drops the assumption that parameters are time-varying and requires t
 
 $$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$
 
-The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(X_{t-1}e^{\mu},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{e^{2\mu}-1}{2\mu}$, and the likelihood function being optimized over the $n$ transition pairs is:
+The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(X_{t-1}e^{\mu},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{e^{2\mu}-1}{2\mu}$, and the likelihood function being optimized over the $n-1$ transition pairs is:
 
-$$\mathcal{L}(\mu,\sigma)=-\frac{n\log{2\pi}}{2}-\frac{n}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=1}{(X_t-X_{t-1}e^{\mu})^2}$$
+$$\mathcal{L}(\mu,\sigma)=-\frac{(n-1)\log{2\pi}}{2}-\frac{n-1}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=2}{(X_t-X_{t-1}e^{\mu})^2}$$
 
-Here $n$ is the number of transition pairs, 1 fewer than the number of observations, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
+Here $n$ is the number of observations, so the sums run over the $n-1$ transition pairs, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
 
 When a new observation $X_t$ arrives, the `GeneralLinearUpdater` performs the following update steps:
 
@@ -67,13 +67,13 @@ $$S_{\text{new}} = S_{\text{old}} + \epsilon_t^2 \cdot \frac{S_{xx,\text{old}}}{
 
 **3. Update state:**
 
-$n \leftarrow n + 1$ and $X_{\text{last}} \leftarrow X_t$
+$n \leftarrow n + 1$. The caller supplies $X_{t-1}$ with each update.
 
 **4. Update stateful object parameters:** $\mu$ and $\sigma$ are updated in a stateful object based on the new state.
 
 $$\hat{\mu} = \ln{\frac{S_{xy}}{S_{xx}}}$$
 
-$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n} \cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
+$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n-1} \cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
 
 **For the Ornstein-Uhlenbeck model of the form:**
 
@@ -119,7 +119,7 @@ $$\hat{\sigma} = \sqrt{\tilde{v} \cdot \frac{2\hat{\alpha}}{1 - e^{-2\hat{\alpha
 
 **5. Update state:**
 
-$(n-1) \leftarrow n$ and $X_{\text{last}} \leftarrow X_t$
+$n \leftarrow n + 1$. The caller supplies $X_{t-1}$ with each update.
 
 **6. Update stateful object parameters:** $\mu$, $\alpha$, and $\sigma$ are updated in a stateful object based on the new state.
 

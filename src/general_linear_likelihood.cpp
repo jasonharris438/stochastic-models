@@ -69,14 +69,16 @@ const double GeneralLinearLikelihoodComponentCalculator::updateSquaredError(
     const double& squared_error,
     const double& new_observation,
     const double& last_observation,
-    const double& prior_mean,
+    const double& prior_coefficient,
     const double& lag_squared_old,
     const double& lag_squared_new
 ) const {
-  if (lag_squared_old == 0.0) {
-    return squared_error;
+  if (lag_squared_new == 0.0) {
+    // Every lag is 0, so no coefficient fits the pair.
+    return squared_error + std::pow(new_observation, 2);
   }
-  const double residual = new_observation - prior_mean * last_observation;
+  const double residual =
+      new_observation - prior_coefficient * last_observation;
   return squared_error +
          std::pow(residual, 2) * lag_squared_old / lag_squared_new;
 }
@@ -132,7 +134,7 @@ GeneralLinearLikelihood::updateComponents(
     const double& new_observation,
     const double& last_observation
 ) const {
-  const double prior_mean = component_calculator.calculateSeriesMean(
+  const double prior_coefficient = component_calculator.calculateSeriesMean(
       components.lead_lag_inner_product, components.lag_squared
   );
   const double lag_squared = component_calculator.updateLagSquared(
@@ -143,8 +145,8 @@ GeneralLinearLikelihood::updateComponents(
           components.lead_lag_inner_product, new_observation, last_observation
       );
   const double squared_error = component_calculator.updateSquaredError(
-      components.squared_error, new_observation, last_observation, prior_mean,
-      components.lag_squared, lag_squared
+      components.squared_error, new_observation, last_observation,
+      prior_coefficient, components.lag_squared, lag_squared
   );
   return GeneralLinearLikelihoodComponents{
       lag_squared, lead_lag_inner_product, squared_error, components.n_obs + 1

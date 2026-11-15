@@ -70,7 +70,10 @@ $$\mathrm{SSE}' = \mathrm{SSE} + (y - \hat{a}x)^2\,\frac{S_{xx}}{S'_{xx}}$$
 
 which follows from $\mathrm{SSE} = S_{yy} - S_{xy}^2 / S_{xx}$: the difference
 of the 2 values has numerator $(y S_{xx} - x S_{xy})^2$ over $S_{xx} S'_{xx}$.
-When $S_{xx} = 0$ there is no prior pair and the increment is $0$. The same
+When $S_{xx} = 0$ every earlier lag is $0$, so the earlier residuals do not
+depend on the coefficient. A pair with $x \neq 0$ is then fitted exactly and
+the increment is $0$, as the formula gives. A pair with $x = 0$ leaves
+$S'_{xx} = 0$: no coefficient fits it and the increment is $y^2$. The same
 recursion with the OU sums is not needed, because the OU estimator recomputes
 its closed forms from the 5 accumulated sums.
 

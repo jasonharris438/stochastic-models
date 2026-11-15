@@ -136,11 +136,11 @@ TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
 TEST(GeneralLinearModelTest, SimulateEstimateRoundTrip) {
   const double mu = -0.5;
   const double sigma = 0.2;
-  // Standard errors at n = 50000: mu below 0.012, sigma below 0.001. The
+  // Standard errors at n = 50000: mu below 0.012, sigma below 0.0015. The
   // tolerances leave a margin of 4 standard errors or more, and the seed
   // fixes the path so that a failure reproduces.
   const double mu_tolerance = 0.05;
-  const double sigma_tolerance = 0.03;
+  const double sigma_tolerance = 0.006;
   const GeneralLinearModel model(mu, sigma, std::uint64_t{40});
   const GeneralLinearLikelihood likelihood;
 

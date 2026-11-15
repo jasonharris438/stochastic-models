@@ -113,14 +113,15 @@ public:
   /**
    * @brief Adds 1 pair to the accumulated squared error exactly.
    *
-   * Adds `(new - prior_mean * last)^2 * lag_squared_old / lag_squared_new`,
-   * which equals a batch recalculation over the extended series. A zero old
-   * sum means no prior pair, and adds 0.
+   * Adds `(new - prior_coefficient * last)^2 * lag_squared_old /
+   * lag_squared_new`, which equals a batch recalculation over the extended
+   * series. The first nonzero lag is fitted exactly and adds 0. While every
+   * lag is 0, no coefficient fits the pair and its squared lead is added.
    *
    * @param squared_error Current accumulated squared error.
    * @param new_observation New time t (lead) observation.
    * @param last_observation Previous time t-1 (lag) observation.
-   * @param prior_mean The autoregressive coefficient before this pair.
+   * @param prior_coefficient The autoregressive coefficient before this pair.
    * @param lag_squared_old The sum of squared lags before this pair.
    * @param lag_squared_new The sum of squared lags including this pair.
    * @return const double Updated squared error.
@@ -129,7 +130,7 @@ public:
       const double& squared_error,
       const double& new_observation,
       const double& last_observation,
-      const double& prior_mean,
+      const double& prior_coefficient,
       const double& lag_squared_old,
       const double& lag_squared_new
   ) const;

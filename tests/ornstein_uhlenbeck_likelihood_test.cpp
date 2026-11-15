@@ -343,3 +343,21 @@ TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, SigmaNearZeroAlphaTest) {
   ) << "calculateSigma lost precision in the conversion factor at alpha = "
        "1e-9.";
 }
+
+/**
+ * @test calculateSigma at alpha exactly 0 uses the limit 1 of the conversion
+ * factor, where the factor itself is 0 / 0.
+ */
+TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, SigmaZeroAlphaTest) {
+  const double tolerance = 1e-12;
+  const OrnsteinUhlenbeckLikelihoodComponents components = {4.0,   3.5,  4.125,
+                                                            3.375, 3.25, 6};
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_NEAR(
+      calculator.calculateSigma(components, 0.5, 0.0),
+      expected::ornstein_uhlenbeck_likelihood_calculate_test::
+          sigma_zero_alpha_test,
+      tolerance
+  ) << "calculateSigma did not use the limit 1 of the conversion factor at "
+       "alpha = 0.";
+}

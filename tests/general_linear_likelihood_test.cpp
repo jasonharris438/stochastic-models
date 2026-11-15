@@ -128,3 +128,19 @@ TEST(GeneralLinearLikelihoodCalculateTest, LagSquaredExcludesLastObservation) {
   EXPECT_DOUBLE_EQ(calculator.calculateLagSquared({1.0, 2.0, 3.0}), 5.0)
       << "calculateLagSquared did not sum the lagged squares 1 + 4.";
 }
+
+/**
+ * @test The series {-1, 1, 3} has an autoregressive coefficient of exactly 1,
+ * so mu is 0 and the conversion factor takes its limit 1: sigma is
+ * sqrt(8 / 2).
+ */
+TEST(GeneralLinearLikelihoodCalculateTest, SigmaAtZeroMu) {
+  const GeneralLinearLikelihood likelihood;
+  const GeneralLinearParameters parameters = likelihood.calculateParameters(
+      likelihood.calculateComponents({-1.0, 1.0, 3.0})
+  );
+  EXPECT_DOUBLE_EQ(parameters.mu, 0.0)
+      << "mu is not 0 for an autoregressive coefficient of 1.";
+  EXPECT_DOUBLE_EQ(parameters.sigma, 2.0)
+      << "sigma did not use the limit 1 of the conversion factor at mu = 0.";
+}

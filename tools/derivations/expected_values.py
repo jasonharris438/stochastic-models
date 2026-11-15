@@ -12,9 +12,10 @@ brentq for the roots. Run with:
 
 Without arguments the script prints 1 `name value` line per expected value,
 keyed by the gtest identifier that locks it. With `--header PATH` it writes the
-same values as a C++ header of compile time constants. With `--check PATH` it
-compares the header at PATH with the same values and exits 1 when a value is
-not within 1e-10 relative or when any other text differs.
+same values as a C++ header of compile time constants, and keeps each literal
+already at PATH that is within 1e-10 relative of its value. With `--check PATH`
+it compares the header at PATH with the same values and exits 1 when a value
+is not within 1e-10 relative or when any other text differs.
 """
 
 import argparse
@@ -1072,6 +1073,9 @@ def expected_values() -> dict[str, ExpectedValue]:
     values["OrnsteinUhlenbeckLikelihoodCalculateTest.SigmaNearZeroAlphaTest"] = (
         ornstein_uhlenbeck_sigma(fixed_sums, mu=0.5, alpha=1e-9)
     )
+    values["OrnsteinUhlenbeckLikelihoodCalculateTest.SigmaZeroAlphaTest"] = (
+        ornstein_uhlenbeck_sigma(fixed_sums, mu=0.5, alpha=0.0)
+    )
 
     linear_series = [
         1094.1,
@@ -1251,6 +1255,43 @@ def check_header(path: Path, values: dict[str, ExpectedValue]) -> list[str]:
     return failures
 
 
+NAMESPACE_OPENING = re.compile(r"namespace (\w+) \{")
+
+
+def keyed_lines(header: str) -> list[tuple[tuple[str, str], str]]:
+    """Each header line with its key: the enclosing namespace and the line without its literals."""
+    namespace = ""
+    keyed = []
+    for line in header.splitlines():
+        opening = NAMESPACE_OPENING.fullmatch(line)
+        if opening:
+            namespace = opening.group(1)
+        keyed.append(((namespace, VALUE_LITERAL.sub("?", line)), line))
+    return keyed
+
+
+def retain_committed_literals(committed: str, generated: str) -> str:
+    """The generated header with each committed line kept when its values are within tolerance.
+
+    A zero is kept only for a zero. A line with a new name or a moved value is
+    written as generated.
+    """
+    committed_lines = dict(keyed_lines(committed))
+    retained = []
+    for key, new_line in keyed_lines(generated):
+        old_line = committed_lines.get(key, new_line)
+        within_tolerance = all(
+            math.isclose(
+                float(old_text), float(new_text), rel_tol=CHECK_RELATIVE_TOLERANCE, abs_tol=0.0
+            )
+            for old_text, new_text in zip(
+                VALUE_LITERAL.findall(old_line), VALUE_LITERAL.findall(new_line), strict=True
+            )
+        )
+        retained.append(old_line if within_tolerance else new_line)
+    return "\n".join(retained) + "\n"
+
+
 def main() -> None:
     """Print every expected value, write them as a C++ header, or check a header."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -1268,7 +1309,13 @@ def main() -> None:
     arguments = parser.parse_args()
     values = expected_values()
     if arguments.header is not None:
-        Path(arguments.header).write_text(generate_header(values), encoding="utf-8")
+        header_path = Path(arguments.header)
+        generated = generate_header(values)
+        if header_path.exists():
+            generated = retain_committed_literals(
+                header_path.read_text(encoding="utf-8"), generated
+            )
+        header_path.write_text(generated, encoding="utf-8")
         return
     if arguments.check is not None:
         failures = check_header(Path(arguments.check), values)

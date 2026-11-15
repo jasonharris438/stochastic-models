@@ -25,6 +25,11 @@ That prints 1 line per value. To regenerate the header:
 
     uv run --locked --script tools/derivations/expected_values.py --header tests/support/expected_values.h
 
+The script keeps each literal already in the header that is within 1e-10
+relative of its value, so the diff holds only new and moved values on any
+machine. To rewrite 1 literal, delete its line and regenerate. To rewrite
+every literal, delete the header and regenerate.
+
 To check the committed header:
 
     uv run --locked --script tools/derivations/expected_values.py --check tests/support/expected_values.h
