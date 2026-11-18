@@ -13,6 +13,11 @@
  * These tests verify the values produced by `GeneralLinearLikelihood` match
  * precomputed reference results for a small sample series.
  */
+
+/**
+ * @test The batch estimator must return the replica values of mu and sigma
+ * for the 20-point fixture series.
+ */
 TEST(GeneralLinearLikelihoodCalculateTest, ParameterTest) {
   const double tolerance = 1e-9;
   // Generate mock data.

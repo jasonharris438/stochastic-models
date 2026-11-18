@@ -29,6 +29,18 @@ TEST(OuModelTest, simulateOrnsteinUhlenbeckOutputTest) {
 }
 
 /**
+ * @test The simulate entrypoint must apply a fractional step. A step that
+ * truncates to 0 leaves every value at the start.
+ */
+TEST(OuModelTest, simulateOrnsteinUhlenbeckFractionalStepTest) {
+  const double step = 0.5;
+  const std::vector<double> series =
+      simulateOrnsteinUhlenbeck(0.5, 0.01, 0.0067, 0.0, 20, step);
+  EXPECT_NE(series.at(1), series.at(0))
+      << "simulateOrnsteinUhlenbeck ignored a fractional step.";
+}
+
+/**
  * @test Tests the output of the hittingTimeDensityOrnsteinUhlenbeck function
  * and asserts that it is near the expected value.
  *
@@ -116,6 +128,16 @@ TEST(OuModelValidationTest, simulateEntrypointRejectsZeroSize) {
       simulateOrnsteinUhlenbeck(0.5, 0.01, 0.0067, 0.0, 0, 1),
       std::invalid_argument
   ) << "simulateOrnsteinUhlenbeck accepted size == 0.";
+}
+
+/**
+ * @test The simulate entrypoint must surface the step guard.
+ */
+TEST(OuModelValidationTest, simulateEntrypointRejectsInvalidStep) {
+  EXPECT_THROW(
+      simulateOrnsteinUhlenbeck(0.5, 0.01, 0.0067, 0.0, 20, 0.0),
+      std::invalid_argument
+  ) << "simulateOrnsteinUhlenbeck accepted t == 0.";
 }
 
 /**

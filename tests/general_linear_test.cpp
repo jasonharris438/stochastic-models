@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 /**
@@ -67,9 +68,8 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceTest) {
 }
 
 /**
- * @test Conditional variance at mu = 0 must take the sigma^2 * t limit
- * branch, and must agree with that limit near the mu = 1e-12 guard
- * threshold.
+ * @test Conditional variance at mu = 0 must take the sigma^2 * t limit, and
+ * the closed form must stay continuous with that limit for a mu near 0.
  */
 TEST(GeneralLinearModelTest, GetConditionalVarianceZeroMuLimitTest) {
   const GeneralLinearModel zero_mu(0.0, 0.05);
@@ -86,16 +86,46 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceZeroMuLimitTest) {
       1e-12
   ) << "GeneralLinearModel conditional variance wrong at mu = 0, t = 2.";
 
-  // Just above the guard, so the closed-form branch is exercised at the
-  // smallest mu it ever sees.
   const GeneralLinearModel near_zero_mu(1.1e-12, 0.05);
   EXPECT_NEAR(
       near_zero_mu.getConditionalVariance(1.0),
       expected::general_linear_model_test::
           get_conditional_variance_zero_mu_limit_test_near_zero_mu_step_1,
       1e-12
-  ) << "GeneralLinearModel conditional variance discontinuous across the "
-       "mu = 1e-12 guard threshold.";
+  ) << "GeneralLinearModel conditional variance discontinuous near mu = 0.";
+}
+
+/**
+ * @test Conditional variance for a nonzero mu below 1e-12 must follow the
+ * closed form. Over a step of 1000 the limit sigma^2 * t is 5e-10 relative
+ * below it.
+ */
+TEST(GeneralLinearModelTest, GetConditionalVarianceSmallMuLongStepTest) {
+  const GeneralLinearModel small_mu(5e-13, 0.05);
+  EXPECT_NEAR(
+      small_mu.getConditionalVariance(1000.0),
+      expected::general_linear_model_test::
+          get_conditional_variance_small_mu_long_step_test,
+      1e-12
+  ) << "GeneralLinearModel conditional variance takes the mu = 0 limit for a "
+       "nonzero mu.";
+}
+
+/**
+ * @test Conditional variance for a subnormal mu must equal the limit
+ * sigma^2 * t, because the closed form underflows there.
+ */
+TEST(GeneralLinearModelTest, GetConditionalVarianceSubnormalMuTest) {
+  const GeneralLinearModel subnormal_mu(
+      std::numeric_limits<double>::denorm_min(), 0.05
+  );
+  EXPECT_NEAR(
+      subnormal_mu.getConditionalVariance(0.5),
+      expected::general_linear_model_test::
+          get_conditional_variance_subnormal_mu_test,
+      1e-15
+  ) << "GeneralLinearModel conditional variance underflows for a subnormal "
+       "mu.";
 }
 /**
  * @test size = 0 must be rejected for a contract consistent with the OU model.
@@ -106,16 +136,29 @@ TEST(GeneralLinearValidationTest, simulateRejectsZeroSize) {
       << "Simulate accepted size == 0.";
 }
 /**
+ * @test A step that is 0, negative or not finite must be rejected. The exact
+ * scheme is defined for a positive finite step only.
+ */
+TEST(GeneralLinearValidationTest, simulateRejectsInvalidStep) {
+  const GeneralLinearModel model(0.5, 0.1);
+  for (const double step :
+       {0.0, -1.0, std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity()}) {
+    EXPECT_THROW(model.Simulate(0.0, 10, step), std::invalid_argument)
+        << "Simulate accepted t = " << step << ".";
+  }
+}
+/**
  * @test Per-step sample variance of simulated residuals must match the
- * closed-form conditional variance for t = 1 and t = 3. Tolerance 10%
+ * closed-form conditional variance for the steps 0.5, 1 and 3. Tolerance 10%
  * (~10 standard errors of a variance estimate at n = 20000).
  */
 TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
   const double mu = -0.05, sigma = 0.4;
   const GeneralLinearModel model(mu, sigma);
-  for (const unsigned int t : {1u, 3u}) {
-    const std::vector<double> path = model.Simulate(1.0, 20000, t);
-    const double growth = std::exp(mu * static_cast<double>(t));
+  for (const double step : {0.5, 1.0, 3.0}) {
+    const std::vector<double> path = model.Simulate(1.0, 20000, step);
+    const double growth = std::exp(mu * step);
     double sum_sq = 0.0;
     for (std::size_t i = 1; i < path.size(); ++i) {
       const double residual = path[i] - path[i - 1] * growth;
@@ -123,9 +166,9 @@ TEST(GeneralLinearModelTest, SimulatorVarianceMatchesConditionalVariance) {
     }
     const double sample_variance =
         sum_sq / static_cast<double>(path.size() - 1);
-    const double expected = model.getConditionalVariance(t);
+    const double expected = model.getConditionalVariance(step);
     EXPECT_NEAR(sample_variance, expected, 0.1 * expected)
-        << "GL simulator per-step variance off at t = " << t << ".";
+        << "GL simulator per-step variance off at t = " << step << ".";
   }
 }
 
