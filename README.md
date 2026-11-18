@@ -45,11 +45,11 @@ This method drops the assumption that parameters are time-varying and requires t
 
 $$\mathrm{d}X(t) = \mu X(t)\mathrm{d}t + \sigma\mathrm{d}W(t), $$
 
-The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(X_{t-1}e^{\mu},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{e^{2\mu}-1}{2\mu}$, and the likelihood function being optimized over the $n-1$ transition pairs is:
+The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(X_{t-1}e^{\mu},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{e^{2\mu}-1}{2\mu}$, and the likelihood function being optimized over the $n$ transition pairs is:
 
-$$\mathcal{L}(\mu,\sigma)=-\frac{(n-1)\log{2\pi}}{2}-\frac{n-1}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=2}{(X_t-X_{t-1}e^{\mu})^2}$$
+$$\mathcal{L}(\mu,\sigma)=-\frac{n\log{2\pi}}{2}-\frac{n}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=1}{(X_t-X_{t-1}e^{\mu})^2}$$
 
-Here $n$ is the number of observations, so the sums run over the $n-1$ transition pairs, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
+Here $N$ is the number of observations $X_0, \dots, X_{N-1}$ and $n = N - 1$ is the number of transition pairs, so every sum runs over $t = 1, \dots, n$, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation in the same notation.
 
 When a new observation $X_t$ arrives, the `GeneralLinearUpdater` performs the following update steps:
 
@@ -75,7 +75,7 @@ $n \leftarrow n + 1$. The caller supplies $X_{t-1}$ with each update.
 
 $$\hat{\mu} = \ln{\frac{S_{xy}}{S_{xx}}}$$
 
-$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n-1} \cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
+$$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n} \cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
 
 The conversion factor has limit $1$ as $\hat{\mu} \to 0$.
 
@@ -83,11 +83,11 @@ The conversion factor has limit $1$ as $\hat{\mu} \to 0$.
 
 $$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
 
-The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(\mu + (X_{t-1}-\mu)e^{-\alpha},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{1-e^{-2\alpha}}{2\alpha}$, and the likelihood function being optimized over the $n-1$ transition pairs is:
+The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(\mu + (X_{t-1}-\mu)e^{-\alpha},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{1-e^{-2\alpha}}{2\alpha}$, and the likelihood function being optimized over the $n$ transition pairs is:
 
-$$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{(n-1)\log{2\pi}}{2}-\frac{n-1}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=2}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
+$$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{n\log{2\pi}}{2}-\frac{n}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=1}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
 
-Here $n$ is the number of observations; the estimators below sum over the $n-1$ transition pairs, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
+Here $N$ is the number of observations $X_0, \dots, X_{N-1}$ and $n = N - 1$ is the number of transition pairs, so every sum runs over $t = 1, \dots, n$, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation in the same notation.
 
 **1. Update parameter components:** Accumulate individual components used in calculations for the MLE solution:
 
@@ -103,21 +103,21 @@ $$\sum^n_{t=1}{X_{t-1} \cdot X_{t-2}} \leftarrow \text{ is updated with the next
 
 **2. Update $\mu$ parameter:**
 
-$$\hat{\mu} = \frac{\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}^2} - \sum^n_{t=1}X_{t-1} \cdot \sum^n_{t=1}X_{t}X_{t-1}}{(n-1) \cdot \left(\sum^n_{t=1}X_{t-1}^2 - \sum^n_{t=1}{X_{t}X_{t-1}}\right) - \left(\sum^n_{t=1}X_{t-1}\right)^2+\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}}}$$
+$$\hat{\mu} = \frac{\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}^2} - \sum^n_{t=1}X_{t-1} \cdot \sum^n_{t=1}X_{t}X_{t-1}}{n \cdot \left(\sum^n_{t=1}X_{t-1}^2 - \sum^n_{t=1}{X_{t}X_{t-1}}\right) - \left(\sum^n_{t=1}X_{t-1}\right)^2+\sum^n_{t=1}X_{t} \cdot \sum^n_{t=1}{X_{t-1}}}$$
 
 **3. Update $\alpha$ parameter:**
 
-$$\hat{\alpha} = \ln{\left(\frac{\sum^n_{t=1}{X_{t-1}^2} - 2\mu \sum^n_{t=1}{X_{t-1}}+(n-1)\mu^2}{\sum^n_{t=1}{X_{t}X_{t-1}} - \mu \sum^n_{t=1}{X_{t-1}}-\mu \sum^n_{t=1}{X_{t}}+(n-1)\mu^2}\right)}$$
+$$\hat{\alpha} = \ln{\left(\frac{\sum^n_{t=1}{X_{t-1}^2} - 2\mu \sum^n_{t=1}{X_{t-1}}+n\mu^2}{\sum^n_{t=1}{X_{t}X_{t-1}} - \mu \sum^n_{t=1}{X_{t-1}}-\mu \sum^n_{t=1}{X_{t}}+n\mu^2}\right)}$$
 
 **4. Update $\sigma$ parameter:**
 
 First accumulate the transition-variance sum:
 
-$$\tilde{v} = \sum^n_{t=1}{X_t^2} - 2e^{-\hat{\alpha}}\sum^n_{t=1}{X_t \cdot X_{t-1}} + e^{-2\hat{\alpha}} \sum^n_{t=1}{X_{t-1}^2}-2\mu\left(1-e^{-\hat{\alpha}}\right) \left(\sum^n_{t=1}{X_{t}}-e^{-\hat{\alpha}}\sum^n_{t=1}{X_{t-1}}\right)+(n-1)\mu^2\left(1-e^{-\hat{\alpha}}\right)^2$$
+$$\tilde{v} = \sum^n_{t=1}{X_t^2} - 2e^{-\hat{\alpha}}\sum^n_{t=1}{X_t \cdot X_{t-1}} + e^{-2\hat{\alpha}} \sum^n_{t=1}{X_{t-1}^2}-2\mu\left(1-e^{-\hat{\alpha}}\right) \left(\sum^n_{t=1}{X_{t}}-e^{-\hat{\alpha}}\sum^n_{t=1}{X_{t-1}}\right)+n\mu^2\left(1-e^{-\hat{\alpha}}\right)^2$$
 
-Then divide by the $n-1$ transition-pair count and convert the transition variance to the SDE diffusion coefficient (the conversion factor's $\alpha \to 0$ limit is $1$):
+Then divide by the transition-pair count $n$ and convert the transition variance to the SDE diffusion coefficient (the conversion factor's $\alpha \to 0$ limit is $1$):
 
-$$\tilde{v} \leftarrow \frac{\tilde{v}}{n-1}$$
+$$\tilde{v} \leftarrow \frac{\tilde{v}}{n}$$
 
 $$\hat{\sigma} = \sqrt{\tilde{v} \cdot \frac{2\hat{\alpha}}{1 - e^{-2\hat{\alpha}}}}$$
 
@@ -269,6 +269,8 @@ int main() {
     return 0;
 }
 ```
+
+The last argument of `simulateOrnsteinUhlenbeck` is the length of 1 time step, in the time units of `alpha` and `sigma`. It must be finite and greater than 0, and it can be fractional: a step of `0.5` samples the process twice per time unit. The estimators assume unit spacing, so `ornsteinUhlenbeckMaximumLikelihood` returns $\mu$, $\alpha t$ and $\sigma\sqrt{t}$ for a series simulated with step $t$.
 
 Then run 
 ```

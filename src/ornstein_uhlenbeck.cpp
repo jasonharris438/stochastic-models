@@ -3,6 +3,7 @@
 #include "stochastic_models/distributions/gaussian.h"
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 /**
  * @brief No args constructor delegates to main constructor.
@@ -63,19 +64,26 @@ const double OrnsteinUhlenbeckModel::getUnconditionalVariance() const {
 }
 const double
 OrnsteinUhlenbeckModel::getConditionalVariance(const double t) const {
-  if (std::abs(alpha) < 1e-12) {
+  const double exponent = 2 * alpha * t;
+  // A subnormal exponent has lost precision, and the limit is exact there.
+  if (alpha == 0.0 || std::abs(exponent) < std::numeric_limits<double>::min()) {
     return std::pow(sigma, 2) * t;
   }
   // expm1 avoids catastrophic cancellation in 1 - exp(-2 alpha t) for small
-  // alpha * t; the guard above still handles the 0/0 case at alpha == 0.
-  return std::pow(sigma, 2) * -std::expm1(-2 * alpha * t) / (2 * alpha);
+  // alpha * t. The quotient is taken first so that it cannot underflow.
+  return std::pow(sigma, 2) * (-std::expm1(-exponent) / (2 * alpha));
 }
 std::vector<double> OrnsteinUhlenbeckModel::Simulate(
-    const double start, const unsigned int& size, const unsigned int& t
+    const double start, const unsigned int& size, const double t
 ) const {
   if (size < 1) {
     throw std::invalid_argument(
         "OrnsteinUhlenbeckModel::Simulate requires size >= 1."
+    );
+  }
+  if (!std::isfinite(t) || t <= 0.0) {
+    throw std::invalid_argument(
+        "OrnsteinUhlenbeckModel::Simulate requires a finite t > 0."
     );
   }
   const std::vector<double> distribution_draws = (*dist).sample(size - 1);
@@ -89,7 +97,7 @@ std::vector<double> OrnsteinUhlenbeckModel::Simulate(
   return vec;
 }
 const double OrnsteinUhlenbeckModel::coreEquation(
-    const double& x, const double& noise, const unsigned int& t
+    const double& x, const double& noise, const double t
 ) const {
   const double delta{std::exp(-alpha * t)};
   const double diffusion_sd = std::sqrt(getConditionalVariance(t));
