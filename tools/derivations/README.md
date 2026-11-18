@@ -4,11 +4,6 @@
 `tests/support/expected_values.h` from the model formulas with numpy and scipy.
 It never calls the library.
 
-It does not cover the General Linear estimator outputs in
-`general_linear_likelihood_test.cpp`, `general_linear_online_test.cpp` and
-`general_sde_model_test.cpp`. Those tests lock the library's current output
-until the estimator is corrected.
-
 The tests include the header and name each value. Never edit the header by
 hand.
 
@@ -29,6 +24,11 @@ Run from the repository root:
 That prints 1 line per value. To regenerate the header:
 
     uv run --locked --script tools/derivations/expected_values.py --header tests/support/expected_values.h
+
+The script keeps each literal already in the header that is within 1e-10
+relative of its value, so the diff holds only new and moved values on any
+machine. To rewrite 1 literal, delete its line and regenerate. To rewrite
+every literal, delete the header and regenerate.
 
 To check the committed header:
 

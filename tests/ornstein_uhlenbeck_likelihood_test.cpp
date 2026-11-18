@@ -325,3 +325,39 @@ TEST(OuLikelihoodValidationTest, calculateLeadLagSumProductRejectsShortSeries) {
       InvalidNumberObservationsError
   ) << "calculateLeadLagSumProduct accepted a single-observation series.";
 }
+
+/**
+ * @test calculateSigma keeps full precision when alpha is tiny: the
+ * conversion factor 2 alpha / (1 - e^(-2 alpha)) must not cancel.
+ */
+TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, SigmaNearZeroAlphaTest) {
+  const double tolerance = 1e-12;
+  const OrnsteinUhlenbeckLikelihoodComponents components = {4.0,   3.5,  4.125,
+                                                            3.375, 3.25, 6};
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_NEAR(
+      calculator.calculateSigma(components, 0.5, 1e-9),
+      expected::ornstein_uhlenbeck_likelihood_calculate_test::
+          sigma_near_zero_alpha_test,
+      tolerance
+  ) << "calculateSigma lost precision in the conversion factor at alpha = "
+       "1e-9.";
+}
+
+/**
+ * @test calculateSigma at alpha exactly 0 uses the limit 1 of the conversion
+ * factor, where the factor itself is 0 / 0.
+ */
+TEST(OrnsteinUhlenbeckLikelihoodCalculateTest, SigmaZeroAlphaTest) {
+  const double tolerance = 1e-12;
+  const OrnsteinUhlenbeckLikelihoodComponents components = {4.0,   3.5,  4.125,
+                                                            3.375, 3.25, 6};
+  const OrnsteinUhlenbeckLikelihoodComponentCalculator calculator{};
+  EXPECT_NEAR(
+      calculator.calculateSigma(components, 0.5, 0.0),
+      expected::ornstein_uhlenbeck_likelihood_calculate_test::
+          sigma_zero_alpha_test,
+      tolerance
+  ) << "calculateSigma did not use the limit 1 of the conversion factor at "
+       "alpha = 0.";
+}

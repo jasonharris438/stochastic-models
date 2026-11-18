@@ -13,6 +13,11 @@
  * implementation is designed to allow efficient calculation of sums over the
  * lead/lag series and to support incremental updates.
  *
+ * The estimators assume unit spacing between consecutive observations
+ * (dt = 1). Applied to a series sampled every t time units of the continuous
+ * process they return mu, alpha t and sigma sqrt(t), with sigma the diffusion
+ * coefficient of the SDE. See docs/derivations/sde-mle-derivations.md.
+ *
  * @note The functions operating on `OrnsteinUhlenbeckLikelihoodComponents`
  * expect `components.n_obs > 0` where indicated. Consumers should validate
  * input series length before calling the higher-level compute functions.

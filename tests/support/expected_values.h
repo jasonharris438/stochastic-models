@@ -23,6 +23,11 @@ namespace gaussian_distribution_test {
 inline constexpr double cdf_test = 0.5735637353767205;
 }
 
+namespace general_linear_likelihood_calculate_test {
+inline constexpr double parameter_test_mu = 0.001353867467455757;
+inline constexpr double parameter_test_sigma = 10.250781255657532;
+}
+
 namespace general_linear_model_test {
 inline constexpr double get_conditional_variance_test_step_1 = 109.19818826032954;
 inline constexpr double get_conditional_variance_test_step_2 = 218.08310689556842;
@@ -30,6 +35,16 @@ inline constexpr double get_conditional_variance_zero_mu_limit_test_near_zero_mu
 inline constexpr double get_conditional_variance_zero_mu_limit_test_zero_mu_step_1 = 0.0025000000000000005;
 inline constexpr double get_conditional_variance_zero_mu_limit_test_zero_mu_step_2 = 0.005000000000000001;
 inline constexpr double get_unconditional_variance_test = 38063.83819014668;
+}
+
+namespace general_linear_online_test {
+inline constexpr double update_mu_test = 0.0013196736345545028;
+inline constexpr double update_sigma_test = 9.992816952468337;
+}
+
+namespace general_sde_model_test {
+inline constexpr double update_general_linear_sde_model_output_test_mu = 0.15822400521489416;
+inline constexpr double update_general_linear_sde_model_output_test_sigma = 0.0120619131424014;
 }
 
 namespace hitting_time_density_test {
@@ -128,6 +143,8 @@ inline constexpr unsigned components_test_n_obs = 6u;
 inline constexpr double parameter_test_alpha = 0.7205461547480593;
 inline constexpr double parameter_test_mu = 0.8947368421052632;
 inline constexpr double parameter_test_sigma = 0.5163352372797948;
+inline constexpr double sigma_near_zero_alpha_test = 0.4472135955558596;
+inline constexpr double sigma_zero_alpha_test = 0.4472135954999579;
 }
 
 namespace ornstein_uhlenbeck_likelihood_update_test {
