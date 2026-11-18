@@ -144,3 +144,14 @@ TEST(GeneralLinearLikelihoodCalculateTest, SigmaAtZeroMu) {
   EXPECT_DOUBLE_EQ(parameters.sigma, 2.0)
       << "sigma did not use the limit 1 of the conversion factor at mu = 0.";
 }
+
+/**
+ * @test Components that hold 1 observation have no transition pair, so
+ * calculateSigma returns 0 whatever their squared error.
+ */
+TEST(GeneralLinearLikelihoodCalculateTest, SigmaWithoutPairsIsZero) {
+  const GeneralLinearLikelihoodComponentCalculator calculator{};
+  const GeneralLinearLikelihoodComponents components{4.0, 4.0, 2.0, 1};
+  EXPECT_DOUBLE_EQ(calculator.calculateSigma(components, 0.0), 0.0)
+      << "calculateSigma did not return 0 for components with no pair.";
+}

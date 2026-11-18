@@ -516,7 +516,7 @@ def general_linear_conversion(mu: float) -> float:
 
 
 def general_linear_sums(series: list[float]) -> GeneralLinearSums:
-    """Sufficient statistics of a series with unit steps."""
+    """Sufficient statistics of a series with unit steps and a nonzero lag sum."""
     lag = np.asarray(series[:-1])
     lead = np.asarray(series[1:])
     lag_squared = float((lag**2).sum())
@@ -533,8 +533,11 @@ def general_linear_sums(series: list[float]) -> GeneralLinearSums:
 def update_general_linear_sums(
     sums: GeneralLinearSums, *, new_observation: float, last_observation: float
 ) -> GeneralLinearSums:
-    """Sufficient statistics after 1 more pair, with the exact rank-1 squared-error update."""
-    prior_slope = sums.lead_lag_inner_product / sums.lag_squared if sums.lag_squared else 0.0
+    """Sufficient statistics after 1 more pair, with the exact rank-1 squared-error update.
+
+    Requires a nonzero lag sum in `sums`.
+    """
+    prior_slope = sums.lead_lag_inner_product / sums.lag_squared
     lag_squared = sums.lag_squared + last_observation**2
     residual = new_observation - prior_slope * last_observation
     return GeneralLinearSums(

@@ -114,9 +114,10 @@ public:
    * @brief Adds 1 pair to the accumulated squared error exactly.
    *
    * Adds `(new - prior_coefficient * last)^2 * lag_squared_old /
-   * lag_squared_new`, which equals a batch recalculation over the extended
-   * series. The first nonzero lag is fitted exactly and adds 0. While every
-   * lag is 0, no coefficient fits the pair and its squared lead is added.
+   * lag_squared_new`, the exact increase in the least-squares squared error
+   * from the pair. A `squared_error` that is not finite stays not finite.
+   * The first nonzero lag is fitted exactly and adds 0. While every lag is
+   * 0, no coefficient fits the pair and its squared lead is added.
    *
    * @param squared_error Current accumulated squared error.
    * @param new_observation New time t (lead) observation.

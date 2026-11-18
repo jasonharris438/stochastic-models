@@ -21,13 +21,13 @@ namespace {
   /**
    * @brief Expects online components and their parameters to equal a batch
    * fit of `series`: sums within 1e-12 relative, the count exactly, and
-   * parameters within 1e-9.
+   * parameters within 1e-9. `stream_description` begins each failure message.
    */
   void expectOnlineEqualsBatch(
       const GeneralLinearLikelihood& likelihood,
       const GeneralLinearLikelihoodComponents& online_components,
       const std::vector<double>& series,
-      const char* message
+      const char* stream_description
   ) {
     const double parameter_tolerance = 1e-9;
     const double relative_component_tolerance = 1e-12;
@@ -41,28 +41,28 @@ namespace {
     EXPECT_NEAR(
         online_components.lag_squared, batch_components.lag_squared,
         relative_component_tolerance * std::abs(batch_components.lag_squared)
-    ) << message
-      << " lag_squared differs.";
+    ) << stream_description
+      << " differs from the batch fit in lag_squared.";
     EXPECT_NEAR(
         online_components.lead_lag_inner_product,
         batch_components.lead_lag_inner_product,
         relative_component_tolerance *
             std::abs(batch_components.lead_lag_inner_product)
-    ) << message
-      << " lead_lag_inner_product differs.";
+    ) << stream_description
+      << " differs from the batch fit in lead_lag_inner_product.";
     EXPECT_NEAR(
         online_components.squared_error, batch_components.squared_error,
         relative_component_tolerance * std::abs(batch_components.squared_error)
-    ) << message
-      << " squared_error differs.";
+    ) << stream_description
+      << " differs from the batch fit in squared_error.";
     EXPECT_EQ(online_components.n_obs, batch_components.n_obs)
-        << message << " n_obs differs.";
+        << stream_description << " differs from the batch fit in n_obs.";
     EXPECT_NEAR(online_parameters.mu, batch_parameters.mu, parameter_tolerance)
-        << message << " mu differs.";
+        << stream_description << " differs from the batch fit in mu.";
     EXPECT_NEAR(
         online_parameters.sigma, batch_parameters.sigma, parameter_tolerance
-    ) << message
-      << " sigma differs.";
+    ) << stream_description
+      << " differs from the batch fit in sigma.";
   }
 
   /**
@@ -162,8 +162,7 @@ TEST(GeneralLinearOnlineTest, OneUpdateEqualsBatchRecalculation) {
       );
 
   expectOnlineEqualsBatch(
-      likelihood, online_components, extended_series,
-      "1 online update differs from the batch fit."
+      likelihood, online_components, extended_series, "1 online update"
   );
 }
 
@@ -179,7 +178,7 @@ TEST(GeneralLinearOnlineTest, StreamFromFirstObservationEqualsBatch) {
 
   expectOnlineEqualsBatch(
       likelihood, streamFromFirstObservation(likelihood, series), series,
-      "A stream from the first observation differs from the batch fit."
+      "A stream from the first observation"
   );
 }
 
@@ -193,6 +192,38 @@ TEST(GeneralLinearOnlineTest, StreamStartingAtZeroEqualsBatch) {
 
   expectOnlineEqualsBatch(
       likelihood, streamFromFirstObservation(likelihood, series), series,
-      "A stream starting at 0 differs from the batch fit."
+      "A stream starting at 0"
   );
+}
+
+/**
+ * @test Streams of the 21-point series scaled by 1e80 and by 1e-85 equal a
+ * batch fit, so the squared-error update neither overflows nor underflows
+ * before its division.
+ */
+TEST(GeneralLinearOnlineTest, StreamAtExtremeScaleEqualsBatch) {
+  const double scaled_sigma_tolerance = 1e-9;
+  const GeneralLinearLikelihood likelihood;
+  std::vector<double> series = test_support::generalLinearSeries();
+  series.push_back(test_support::general_linear_next_observation);
+
+  for (const double scale : {1e80, 1e-85}) {
+    std::vector<double> scaled_series;
+    for (const double observation : series) {
+      scaled_series.push_back(observation * scale);
+    }
+    const GeneralLinearParameters batch_parameters =
+        likelihood.calculateParameters(
+            likelihood.calculateComponents(scaled_series)
+        );
+    const GeneralLinearParameters online_parameters =
+        likelihood.calculateParameters(
+            streamFromFirstObservation(likelihood, scaled_series)
+        );
+    EXPECT_NEAR(
+        online_parameters.sigma / scale, batch_parameters.sigma / scale,
+        scaled_sigma_tolerance
+    ) << "A stream at scale "
+      << scale << " differs from the batch fit in sigma.";
+  }
 }

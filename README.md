@@ -37,7 +37,7 @@ with $\mu(X,t)$ the drift term and $\sigma(X,t)$ diffusion term. The term $\math
 
 ### Online Updating of MLE Parameters
 
-A method to update model parameters as new data arrives is implemented by accumulating the sufficient statistics of each estimator, so 1 update costs the same as 1 more observation pair and reproduces a batch fit over the extended series.
+A method to update model parameters as new data arrives is implemented by accumulating the sufficient statistics of each estimator, so 1 update costs the same as 1 more observation pair and reproduces a batch fit over the extended series when the components it starts from are finite.
 
 This method drops the assumption that parameters are time-varying and requires the client to maintain a stateful representation of the current model parameters.
 
@@ -65,6 +65,8 @@ $$\epsilon_t = X_t - \hat{a} \cdot X_{t-1}$$
 
 $$S_{\text{new}} = S_{\text{old}} + \epsilon_t^2 \cdot \frac{S_{xx,\text{old}}}{S_{xx,\text{new}}}$$
 
+When $S_{xx,\text{new}} = 0$ every lag is $0$, no coefficient fits the pair, and the increment is $X_t^2$.
+
 **3. Update state:**
 
 $n \leftarrow n + 1$. The caller supplies $X_{t-1}$ with each update.
@@ -74,6 +76,8 @@ $n \leftarrow n + 1$. The caller supplies $X_{t-1}$ with each update.
 $$\hat{\mu} = \ln{\frac{S_{xy}}{S_{xx}}}$$
 
 $$\hat{\sigma} = \sqrt{\frac{S_{\text{new}}}{n-1} \cdot \frac{2\hat{\mu}}{e^{2\hat{\mu}} - 1}}$$
+
+The conversion factor has limit $1$ as $\hat{\mu} \to 0$.
 
 **For the Ornstein-Uhlenbeck model of the form:**
 
@@ -176,7 +180,7 @@ const std::vector<double> test_vec{0.5, 0.25, 0.5, 0.75, 1.5, 0.5};
 const std::unordered_map<std::string, const double> likelihood =
     ornsteinUhlenbeckMaximumLikelihood(test_vec);
 
-// Approx 0.58333333.
+// Approx 0.7.
 std::cout << likelihood.at("mu");
 ```
 ## **To Build**

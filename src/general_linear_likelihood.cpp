@@ -80,7 +80,7 @@ const double GeneralLinearLikelihoodComponentCalculator::updateSquaredError(
   const double residual =
       new_observation - prior_coefficient * last_observation;
   return squared_error +
-         std::pow(residual, 2) * lag_squared_old / lag_squared_new;
+         std::pow(residual, 2) * (lag_squared_old / lag_squared_new);
 }
 const double GeneralLinearLikelihoodComponentCalculator::calculateMu(
     const GeneralLinearLikelihoodComponents& components
