@@ -83,9 +83,9 @@ The conversion factor has limit $1$ as $\hat{\mu} \to 0$.
 
 $$\mathrm{d}X(t) = \alpha(\mu-X(t))\mathrm{d}t + \sigma \mathrm{d}W(t), $$
 
-The likelihood function being optimized is:
+The exact unit-step transition is $X_t \mid X_{t-1} \sim \mathcal{N}\left(\mu + (X_{t-1}-\mu)e^{-\alpha},\ \tilde{v}\right)$ with $\tilde{v} = \sigma^2\frac{1-e^{-2\alpha}}{2\alpha}$, and the likelihood function being optimized over the $n-1$ transition pairs is:
 
-$$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{n\log{2\pi}}{2}-n\log{\hat{\sigma}}-\frac{1}{2\hat{\sigma}^2}\sum^n_{i=1}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
+$$\mathcal{L}(\alpha,\mu,\sigma)=-\frac{(n-1)\log{2\pi}}{2}-\frac{n-1}{2}\log{\tilde{v}}-\frac{1}{2\tilde{v}}\sum^n_{t=2}{(X_t-X_{t-1}e^{-\alpha}-\mu(1-e^{-\alpha}))^2}$$
 
 Here $n$ is the number of observations; the estimators below sum over the $n-1$ transition pairs, and $\hat{\sigma}$ is the diffusion coefficient of the SDE. See [`docs/derivations/sde-mle-derivations.md`](docs/derivations/sde-mle-derivations.md) for the full derivation.
 
