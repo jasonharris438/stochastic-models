@@ -3,6 +3,7 @@
 #include "stochastic_models/distributions/gaussian.h"
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 GeneralLinearModel::GeneralLinearModel()
     : GeneralLinearModel::GeneralLinearModel(0.0, 1.0) {}
@@ -39,19 +40,33 @@ const double GeneralLinearModel::getUnconditionalVariance() const {
   return std::pow(sigma, 2) / (-2 * mu);
 }
 const double GeneralLinearModel::getConditionalVariance(const double t) const {
-  if (std::abs(mu) < 1e-12) {
+  const double exponent = 2 * mu * t;
+  // A subnormal exponent has lost precision, and the limit is exact there.
+  if (mu == 0.0 || std::abs(exponent) < std::numeric_limits<double>::min()) {
     return std::pow(sigma, 2) * t;
   }
   // expm1 avoids catastrophic cancellation in exp(2 mu t) - 1 for small
-  // mu * t; the guard above still handles the 0/0 case at mu == 0.
-  return std::pow(sigma, 2) * std::expm1(2 * mu * t) / (2 * mu);
+  // mu * t.
+  const double growth = std::expm1(exponent);
+  // Dividing first keeps the product with sigma^2 from underflowing.
+  const double quotient = growth / (2 * mu);
+  if (std::isinf(quotient)) {
+    // Multiplying first keeps the quotient from overflowing early.
+    return std::pow(sigma, 2) * growth / (2 * mu);
+  }
+  return std::pow(sigma, 2) * quotient;
 }
 std::vector<double> GeneralLinearModel::Simulate(
-    const double start, const unsigned int& size, const unsigned int& t
+    const double start, const unsigned int& size, const double t
 ) const {
   if (size < 1) {
     throw std::invalid_argument(
         "GeneralLinearModel::Simulate requires size >= 1."
+    );
+  }
+  if (!std::isfinite(t) || t <= 0.0) {
+    throw std::invalid_argument(
+        "GeneralLinearModel::Simulate requires a finite t > 0."
     );
   }
   const std::vector<double> distribution_draws = (*dist).sample(size);
@@ -65,7 +80,7 @@ std::vector<double> GeneralLinearModel::Simulate(
   return vec;
 }
 const double GeneralLinearModel::coreEquation(
-    const double& x, const double& noise, const unsigned int& t
+    const double& x, const double& noise, const double t
 ) const {
   const double exp_mu_t = std::exp(mu * t);
   const double diffusion_sd = std::sqrt(getConditionalVariance(t));

@@ -19,7 +19,7 @@ const std::vector<double> simulateOrnsteinUhlenbeck(
     const double& sigma,
     const double start,
     const unsigned int& size,
-    const unsigned int& t
+    const double t
 ) {
   // Create the Ornstein-Uhlenbeck process model
   OrnsteinUhlenbeckModel model(mu, alpha, sigma);

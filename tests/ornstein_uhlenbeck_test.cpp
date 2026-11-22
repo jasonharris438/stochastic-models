@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 /**
@@ -63,9 +64,8 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceOutputTest) {
   ) << "OrnsteinUhlenbeckModel conditional variance wrong at t = 2.";
 }
 /**
- * @test Conditional variance at alpha = 0 must take the sigma^2 * t limit
- * branch, and must agree with that limit near the alpha = 1e-12 guard
- * threshold.
+ * @test Conditional variance at alpha = 0 must take the sigma^2 * t limit, and
+ * the closed form must stay continuous with that limit for an alpha near 0.
  */
 TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceZeroAlphaLimitTest) {
   OrnsteinUhlenbeckModel zero_alpha(0.5, 0.0, 0.05);
@@ -84,16 +84,80 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceZeroAlphaLimitTest) {
   ) << "OrnsteinUhlenbeckModel conditional variance wrong at alpha = 0, "
        "t = 2.";
 
-  // Just above the guard, so the closed-form branch is exercised at the
-  // smallest alpha it ever sees.
   OrnsteinUhlenbeckModel near_zero_alpha(0.5, 1.1e-12, 0.05);
   EXPECT_NEAR(
       near_zero_alpha.getConditionalVariance(1.0),
       expected::ornstein_uhlenbeck_model_test::
           get_conditional_variance_zero_alpha_limit_test_near_zero_alpha_step_1,
       1e-12
-  ) << "OrnsteinUhlenbeckModel conditional variance discontinuous across "
-       "the alpha = 1e-12 guard threshold.";
+  ) << "OrnsteinUhlenbeckModel conditional variance discontinuous near "
+       "alpha = 0.";
+}
+/**
+ * @test Conditional variance for a nonzero alpha below 1e-12 must follow the
+ * closed form. Over a step of 1000 the limit sigma^2 * t is 5e-10 relative
+ * above it.
+ */
+TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceSmallAlphaLongStepTest) {
+  const OrnsteinUhlenbeckModel small_alpha(0.5, 5e-13, 0.05);
+  EXPECT_NEAR(
+      small_alpha.getConditionalVariance(1000.0),
+      expected::ornstein_uhlenbeck_model_test::
+          get_conditional_variance_small_alpha_long_step_test,
+      1e-12
+  ) << "OrnsteinUhlenbeckModel conditional variance takes the alpha = 0 "
+       "limit for a nonzero alpha.";
+}
+/**
+ * @test Conditional variance for a subnormal alpha of either sign must equal
+ * the limit sigma^2 * t, because the closed form loses precision in a
+ * subnormal exponent. At a step of 0.3 the closed form returns sigma^2 * 0.5.
+ */
+TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceSubnormalAlphaTest) {
+  for (const double alpha :
+       {std::numeric_limits<double>::denorm_min(),
+        -std::numeric_limits<double>::denorm_min()}) {
+    const OrnsteinUhlenbeckModel subnormal_alpha(0.5, alpha, 0.05);
+    EXPECT_NEAR(
+        subnormal_alpha.getConditionalVariance(0.3),
+        expected::ornstein_uhlenbeck_model_test::
+            get_conditional_variance_subnormal_alpha_test,
+        1e-15
+    ) << "OrnsteinUhlenbeckModel conditional variance leaves the limit for "
+         "alpha = "
+      << alpha << ".";
+  }
+}
+/**
+ * @test Conditional variance for a growing process must stay finite while the
+ * closed form is finite. With alpha = -0.05 and t = 7095 the quotient
+ * -expm1(-2 alpha t) / (2 alpha) overflows, and the variance is about
+ * 1.35e307.
+ */
+TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceNearOverflowTest) {
+  const OrnsteinUhlenbeckModel growing_alpha(0.5, -0.05, 0.1);
+  const double expected_variance = expected::ornstein_uhlenbeck_model_test::
+      get_conditional_variance_near_overflow_test;
+  EXPECT_NEAR(
+      growing_alpha.getConditionalVariance(7095.0), expected_variance,
+      1e-12 * expected_variance
+  ) << "OrnsteinUhlenbeckModel conditional variance overflows before the "
+       "closed form does.";
+}
+/**
+ * @test Conditional variance must keep its precision when sigma^2 times the
+ * decay term is subnormal. With alpha = 1e-300 and sigma = 1e-10 that product
+ * is about 2e-320, and the variance over a step of 1 is sigma^2.
+ */
+TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceSubnormalProductTest) {
+  const OrnsteinUhlenbeckModel small_sigma(0.5, 1e-300, 1e-10);
+  const double expected_variance = expected::ornstein_uhlenbeck_model_test::
+      get_conditional_variance_subnormal_product_test;
+  EXPECT_NEAR(
+      small_sigma.getConditionalVariance(1.0), expected_variance,
+      1e-12 * expected_variance
+  ) << "OrnsteinUhlenbeckModel conditional variance loses precision when "
+       "sigma^2 * -expm1(-2 alpha t) is subnormal.";
 }
 /**
  * @test Tests the output of the
@@ -234,16 +298,29 @@ TEST(OrnsteinUhlenbeckValidationTest, simulateRejectsZeroSize) {
       << "Simulate accepted size == 0.";
 }
 /**
+ * @test A step that is 0, negative or not finite must be rejected. The exact
+ * scheme is defined for a positive finite step only.
+ */
+TEST(OrnsteinUhlenbeckValidationTest, simulateRejectsInvalidStep) {
+  const OrnsteinUhlenbeckModel model(0.5, 0.01, 0.0067);
+  for (const double step :
+       {0.0, -1.0, std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity()}) {
+    EXPECT_THROW(model.Simulate(0.0, 10, step), std::invalid_argument)
+        << "Simulate accepted t = " << step << ".";
+  }
+}
+/**
  * @test Per-step sample variance of simulated residuals must match the
- * closed-form conditional variance for t = 1 and t = 3. Tolerance 10%
+ * closed-form conditional variance for the steps 0.5, 1 and 3. Tolerance 10%
  * (~10 standard errors of a variance estimate at n = 20000).
  */
 TEST(OrnsteinUhlenbeckModelTest, SimulatorVarianceMatchesConditionalVariance) {
   const double mu = 1.0, alpha = 0.5, sigma = 0.3;
   OrnsteinUhlenbeckModel model(mu, alpha, sigma);
-  for (const unsigned int t : {1u, 3u}) {
-    const std::vector<double> path = model.Simulate(mu, 20000, t);
-    const double decay = std::exp(-alpha * static_cast<double>(t));
+  for (const double step : {0.5, 1.0, 3.0}) {
+    const std::vector<double> path = model.Simulate(mu, 20000, step);
+    const double decay = std::exp(-alpha * step);
     double sum_sq = 0.0;
     for (std::size_t i = 1; i < path.size(); ++i) {
       const double residual =
@@ -252,9 +329,9 @@ TEST(OrnsteinUhlenbeckModelTest, SimulatorVarianceMatchesConditionalVariance) {
     }
     const double sample_variance =
         sum_sq / static_cast<double>(path.size() - 1);
-    const double expected = model.getConditionalVariance(t);
+    const double expected = model.getConditionalVariance(step);
     EXPECT_NEAR(sample_variance, expected, 0.1 * expected)
-        << "OU simulator per-step variance off at t = " << t << ".";
+        << "OU simulator per-step variance off at t = " << step << ".";
   }
 }
 /**

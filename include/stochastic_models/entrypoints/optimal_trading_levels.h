@@ -7,7 +7,7 @@
  *
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param stop_loss The stop loss value.
  * @param r The risk free rate.
  * @param c The transaction cost.
@@ -26,7 +26,7 @@ const double optimalExitLevel(
  *
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param r The risk free rate.
  * @param c The transaction cost.
  * @return const double The optimal trading level exit value.
@@ -44,7 +44,7 @@ const double optimalExitLevel(
  *
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param r The risk free rate.
  * @param c The transaction cost.
  * @return const double The optimal trading level exit value.
@@ -64,7 +64,7 @@ const double optimalExitLevelExponential(
  * @param b_star The optimal trading level exit value.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param r The risk free rate.
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.
@@ -86,7 +86,7 @@ const double optimalEntryLevelLowerExponential(
  * @param b_star The optimal trading level exit value.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param stop_loss The stop loss value.
  * @param r The risk free rate.
  * @param c The transaction cost.
@@ -109,7 +109,7 @@ const double optimalEntryLevelLower(
  * @param b_star The optimal trading level exit value.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param r The risk free rate.
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.
@@ -129,7 +129,7 @@ const double optimalEntryLevelExponential(
  * @param b_star The optimal trading level exit value.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param stop_loss The stop loss value.
  * @param r The risk free rate.
  * @param c The transaction cost.
@@ -150,7 +150,7 @@ const double optimalEntryLevel(
  * @param b_star The optimal trading level exit value.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param r The risk free rate.
  * @param c The transaction cost.
  * @return const double The optimal trading level entry value.

@@ -21,7 +21,7 @@ private:
    */
   const double alpha;
   /**
-   * @brief The standard deviation of the Ornstein-Uhlenbeck model.
+   * @brief The diffusion coefficient of the Ornstein-Uhlenbeck SDE.
    *
    */
   const double sigma;
@@ -37,7 +37,7 @@ public:
    *
    * @param mu The mean.
    * @param alpha The mean-reverting velocity.
-   * @param sigma The standard deviation.
+   * @param sigma The diffusion coefficient.
    * @param seed Seed for the noise distribution's pseudo-random engine.
    */
   OrnsteinUhlenbeckModel(
@@ -80,11 +80,13 @@ public:
    *
    * @param start The value to start the simulation at.
    * @param size The number of values to simulate.
+   * @param t The length of 1 time step.
    * @return std::vector<double> A simulated model series.
-   * @throws std::invalid_argument If `size < 1`.
+   * @throws std::invalid_argument If `size < 1`, or if `t` is not finite or
+   * not greater than 0.
    */
   std::vector<double> Simulate(
-      const double start, const unsigned int& size, const unsigned int& t
+      const double start, const unsigned int& size, const double t
   ) const override;
   /**
    * @brief Exact-scheme step of the Ornstein-Uhlenbeck process: conditional-
@@ -93,11 +95,11 @@ public:
    *
    * @param x The current value of the series.
    * @param noise The random Gaussian noise to add to the series.
-   * @param t The time increment of a single step.
+   * @param t The length of 1 time step. Must be finite and greater than 0.
    * @return const double The next value in the series.
    */
   const double coreEquation(
-      const double& x, const double& noise, const unsigned int& t
+      const double& x, const double& noise, const double t
   ) const override;
 
   ~OrnsteinUhlenbeckModel() override;

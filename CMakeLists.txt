@@ -10,7 +10,7 @@ option(STOCHASTIC_MODELS_FUZZ "Build the libFuzzer targets" OFF)
 # Set the project name and version.
 project(StochasticModels
     DESCRIPTION "Core stochastic differential equation implementation of fast mathematical tools for stochastic calculus."
-    VERSION 0.6.0
+    VERSION 0.6.1
     LANGUAGES CXX)
 
 # An empty build type compiles with no optimization and no debug info.
@@ -104,7 +104,7 @@ configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
+    COMPATIBILITY SameMinorVersion
 )
 
 # A consumer's install prefix belongs to the consumer.
