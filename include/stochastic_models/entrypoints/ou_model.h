@@ -11,7 +11,7 @@
  * instance.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param start The value to start the simulation at.
  * @param size The number of values to simulate.
  * @param t The length of 1 time step.
@@ -35,7 +35,7 @@ const std::vector<double> simulateOrnsteinUhlenbeck(
  * @param x The starting point of the hitting time density calculation.
  * @param mu The series mean.
  * @param alpha The series mean reversion speed.
- * @param sigma The series volatility.
+ * @param sigma The diffusion coefficient of the SDE.
  * @param first The first level that is hit.
  * @param second The level first is assumed to be hit before.
  * @return const double The probability of hitting the level first before

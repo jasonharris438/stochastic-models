@@ -29,7 +29,7 @@ public:
    * Simulate is reproducible. A copy draws a fresh nondeterministic stream.
    *
    * @param mu The drift parameter.
-   * @param sigma The diffusion parameter.
+   * @param sigma The diffusion coefficient.
    * @param seed Seed for the noise distribution's pseudo-random engine.
    */
   GeneralLinearModel(
@@ -94,7 +94,7 @@ public:
    *
    * @param x The current value of the series.
    * @param noise The random Gaussian noise to add to the series.
-   * @param t The length of 1 time step.
+   * @param t The length of 1 time step. Must be finite and greater than 0.
    * @return const double The next value in the series.
    */
   const double coreEquation(

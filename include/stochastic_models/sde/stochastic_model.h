@@ -59,7 +59,7 @@ public:
    *
    * @param x The point at which to evaluate the core equation.
    * @param noise Gaussian noise to apply to the value produced.
-   * @param t The length of 1 time step.
+   * @param t The length of 1 time step. Must be finite and greater than 0.
    * @returns Core equation evaluated at x.
    */
   virtual const double

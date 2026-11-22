@@ -46,8 +46,15 @@ const double GeneralLinearModel::getConditionalVariance(const double t) const {
     return std::pow(sigma, 2) * t;
   }
   // expm1 avoids catastrophic cancellation in exp(2 mu t) - 1 for small
-  // mu * t. The quotient is taken first so that it cannot underflow.
-  return std::pow(sigma, 2) * (std::expm1(exponent) / (2 * mu));
+  // mu * t.
+  const double growth = std::expm1(exponent);
+  // Dividing first keeps the product with sigma^2 from underflowing.
+  const double quotient = growth / (2 * mu);
+  if (std::isinf(quotient)) {
+    // Multiplying first keeps the quotient from overflowing early.
+    return std::pow(sigma, 2) * growth / (2 * mu);
+  }
+  return std::pow(sigma, 2) * quotient;
 }
 std::vector<double> GeneralLinearModel::Simulate(
     const double start, const unsigned int& size, const double t

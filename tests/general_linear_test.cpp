@@ -112,20 +112,55 @@ TEST(GeneralLinearModelTest, GetConditionalVarianceSmallMuLongStepTest) {
 }
 
 /**
- * @test Conditional variance for a subnormal mu must equal the limit
- * sigma^2 * t, because the closed form underflows there.
+ * @test Conditional variance for a subnormal mu of either sign must equal the
+ * limit sigma^2 * t, because the closed form loses precision in a subnormal
+ * exponent. At a step of 0.3 the closed form returns sigma^2 * 0.5.
  */
 TEST(GeneralLinearModelTest, GetConditionalVarianceSubnormalMuTest) {
-  const GeneralLinearModel subnormal_mu(
-      std::numeric_limits<double>::denorm_min(), 0.05
-  );
+  for (const double mu :
+       {std::numeric_limits<double>::denorm_min(),
+        -std::numeric_limits<double>::denorm_min()}) {
+    const GeneralLinearModel subnormal_mu(mu, 0.05);
+    EXPECT_NEAR(
+        subnormal_mu.getConditionalVariance(0.3),
+        expected::general_linear_model_test::
+            get_conditional_variance_subnormal_mu_test,
+        1e-15
+    ) << "GeneralLinearModel conditional variance leaves the limit for mu = "
+      << mu << ".";
+  }
+}
+
+/**
+ * @test Conditional variance for a growing process must stay finite while the
+ * closed form is finite. With mu = 0.05 and t = 7095 the quotient
+ * expm1(2 mu t) / (2 mu) overflows, and the variance is about 1.35e307.
+ */
+TEST(GeneralLinearModelTest, GetConditionalVarianceNearOverflowTest) {
+  const GeneralLinearModel growing_mu(0.05, 0.1);
+  const double expected_variance = expected::general_linear_model_test::
+      get_conditional_variance_near_overflow_test;
   EXPECT_NEAR(
-      subnormal_mu.getConditionalVariance(0.5),
-      expected::general_linear_model_test::
-          get_conditional_variance_subnormal_mu_test,
-      1e-15
-  ) << "GeneralLinearModel conditional variance underflows for a subnormal "
-       "mu.";
+      growing_mu.getConditionalVariance(7095.0), expected_variance,
+      1e-12 * expected_variance
+  ) << "GeneralLinearModel conditional variance overflows before the closed "
+       "form does.";
+}
+
+/**
+ * @test Conditional variance must keep its precision when sigma^2 times the
+ * growth term is subnormal. With mu = 1e-300 and sigma = 1e-10 that product is
+ * about 2e-320, and the variance over a step of 1 is sigma^2.
+ */
+TEST(GeneralLinearModelTest, GetConditionalVarianceSubnormalProductTest) {
+  const GeneralLinearModel small_sigma(1e-300, 1e-10);
+  const double expected_variance = expected::general_linear_model_test::
+      get_conditional_variance_subnormal_product_test;
+  EXPECT_NEAR(
+      small_sigma.getConditionalVariance(1.0), expected_variance,
+      1e-12 * expected_variance
+  ) << "GeneralLinearModel conditional variance loses precision when "
+       "sigma^2 * expm1(2 mu t) is subnormal.";
 }
 /**
  * @test size = 0 must be rejected for a contract consistent with the OU model.

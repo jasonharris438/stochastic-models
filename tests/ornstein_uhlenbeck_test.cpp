@@ -109,20 +109,55 @@ TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceSmallAlphaLongStepTest) {
        "limit for a nonzero alpha.";
 }
 /**
- * @test Conditional variance for a subnormal alpha must equal the limit
- * sigma^2 * t, because the closed form underflows there.
+ * @test Conditional variance for a subnormal alpha of either sign must equal
+ * the limit sigma^2 * t, because the closed form loses precision in a
+ * subnormal exponent. At a step of 0.3 the closed form returns sigma^2 * 0.5.
  */
 TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceSubnormalAlphaTest) {
-  const OrnsteinUhlenbeckModel subnormal_alpha(
-      0.5, std::numeric_limits<double>::denorm_min(), 0.05
-  );
+  for (const double alpha :
+       {std::numeric_limits<double>::denorm_min(),
+        -std::numeric_limits<double>::denorm_min()}) {
+    const OrnsteinUhlenbeckModel subnormal_alpha(0.5, alpha, 0.05);
+    EXPECT_NEAR(
+        subnormal_alpha.getConditionalVariance(0.3),
+        expected::ornstein_uhlenbeck_model_test::
+            get_conditional_variance_subnormal_alpha_test,
+        1e-15
+    ) << "OrnsteinUhlenbeckModel conditional variance leaves the limit for "
+         "alpha = "
+      << alpha << ".";
+  }
+}
+/**
+ * @test Conditional variance for a growing process must stay finite while the
+ * closed form is finite. With alpha = -0.05 and t = 7095 the quotient
+ * -expm1(-2 alpha t) / (2 alpha) overflows, and the variance is about
+ * 1.35e307.
+ */
+TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceNearOverflowTest) {
+  const OrnsteinUhlenbeckModel growing_alpha(0.5, -0.05, 0.1);
+  const double expected_variance = expected::ornstein_uhlenbeck_model_test::
+      get_conditional_variance_near_overflow_test;
   EXPECT_NEAR(
-      subnormal_alpha.getConditionalVariance(0.5),
-      expected::ornstein_uhlenbeck_model_test::
-          get_conditional_variance_subnormal_alpha_test,
-      1e-15
-  ) << "OrnsteinUhlenbeckModel conditional variance underflows for a "
-       "subnormal alpha.";
+      growing_alpha.getConditionalVariance(7095.0), expected_variance,
+      1e-12 * expected_variance
+  ) << "OrnsteinUhlenbeckModel conditional variance overflows before the "
+       "closed form does.";
+}
+/**
+ * @test Conditional variance must keep its precision when sigma^2 times the
+ * decay term is subnormal. With alpha = 1e-300 and sigma = 1e-10 that product
+ * is about 2e-320, and the variance over a step of 1 is sigma^2.
+ */
+TEST(OrnsteinUhlenbeckModelTest, getConditionalVarianceSubnormalProductTest) {
+  const OrnsteinUhlenbeckModel small_sigma(0.5, 1e-300, 1e-10);
+  const double expected_variance = expected::ornstein_uhlenbeck_model_test::
+      get_conditional_variance_subnormal_product_test;
+  EXPECT_NEAR(
+      small_sigma.getConditionalVariance(1.0), expected_variance,
+      1e-12 * expected_variance
+  ) << "OrnsteinUhlenbeckModel conditional variance loses precision when "
+       "sigma^2 * -expm1(-2 alpha t) is subnormal.";
 }
 /**
  * @test Tests the output of the

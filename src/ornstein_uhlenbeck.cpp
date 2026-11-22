@@ -70,8 +70,15 @@ OrnsteinUhlenbeckModel::getConditionalVariance(const double t) const {
     return std::pow(sigma, 2) * t;
   }
   // expm1 avoids catastrophic cancellation in 1 - exp(-2 alpha t) for small
-  // alpha * t. The quotient is taken first so that it cannot underflow.
-  return std::pow(sigma, 2) * (-std::expm1(-exponent) / (2 * alpha));
+  // alpha * t.
+  const double decay = -std::expm1(-exponent);
+  // Dividing first keeps the product with sigma^2 from underflowing.
+  const double quotient = decay / (2 * alpha);
+  if (std::isinf(quotient)) {
+    // Multiplying first keeps the quotient from overflowing early.
+    return std::pow(sigma, 2) * decay / (2 * alpha);
+  }
+  return std::pow(sigma, 2) * quotient;
 }
 std::vector<double> OrnsteinUhlenbeckModel::Simulate(
     const double start, const unsigned int& size, const double t

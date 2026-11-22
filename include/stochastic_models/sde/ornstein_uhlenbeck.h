@@ -95,7 +95,7 @@ public:
    *
    * @param x The current value of the series.
    * @param noise The random Gaussian noise to add to the series.
-   * @param t The length of 1 time step.
+   * @param t The length of 1 time step. Must be finite and greater than 0.
    * @return const double The next value in the series.
    */
   const double coreEquation(

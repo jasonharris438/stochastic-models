@@ -29,8 +29,10 @@ inline constexpr double parameter_test_sigma = 10.250781255657532;
 }
 
 namespace general_linear_model_test {
+inline constexpr double get_conditional_variance_near_overflow_test = 1.354986319314633e+307;
 inline constexpr double get_conditional_variance_small_mu_long_step_test = 2.500000001250001;
-inline constexpr double get_conditional_variance_subnormal_mu_test = 0.0012500000000000002;
+inline constexpr double get_conditional_variance_subnormal_mu_test = 0.0007500000000000001;
+inline constexpr double get_conditional_variance_subnormal_product_test = 1.0000000000000001e-20;
 inline constexpr double get_conditional_variance_test_step_1 = 109.19818826032954;
 inline constexpr double get_conditional_variance_test_step_2 = 218.08310689556842;
 inline constexpr double get_conditional_variance_zero_mu_limit_test_near_zero_mu_step_1 = 0.002500000000002751;
@@ -162,10 +164,12 @@ inline constexpr double parameter_test_sigma = 0.5007098524429631;
 }
 
 namespace ornstein_uhlenbeck_model_test {
+inline constexpr double get_conditional_variance_near_overflow_test = 1.354986319314633e+307;
 inline constexpr double get_conditional_variance_output_test_step_1 = 0.0024506600529797997;
 inline constexpr double get_conditional_variance_output_test_step_2 = 0.004805228350835264;
 inline constexpr double get_conditional_variance_small_alpha_long_step_test = 2.499999998750001;
-inline constexpr double get_conditional_variance_subnormal_alpha_test = 0.0012500000000000002;
+inline constexpr double get_conditional_variance_subnormal_alpha_test = 0.0007500000000000001;
+inline constexpr double get_conditional_variance_subnormal_product_test = 1.0000000000000001e-20;
 inline constexpr double get_conditional_variance_zero_alpha_limit_test_near_zero_alpha_step_1 = 0.0024999999999972505;
 inline constexpr double get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_1 = 0.0025000000000000005;
 inline constexpr double get_conditional_variance_zero_alpha_limit_test_zero_alpha_step_2 = 0.005000000000000001;

@@ -57,7 +57,11 @@ class OrnsteinUhlenbeck:
         exponent = 2.0 * self.alpha * step
         if self.alpha == 0.0 or abs(exponent) < sys.float_info.min:
             return self.sigma**2 * step
-        return float(self.sigma**2 * (-np.expm1(-exponent) / (2.0 * self.alpha)))
+        decay = -float(np.expm1(-exponent))
+        quotient = decay / (2.0 * self.alpha)
+        if math.isinf(quotient):
+            return self.sigma**2 * decay / (2.0 * self.alpha)
+        return self.sigma**2 * quotient
 
 
 @dataclass(frozen=True)
@@ -77,7 +81,11 @@ class GeneralLinear:
         exponent = 2.0 * self.mu * step
         if self.mu == 0.0 or abs(exponent) < sys.float_info.min:
             return self.sigma**2 * step
-        return float(self.sigma**2 * (np.expm1(exponent) / (2.0 * self.mu)))
+        growth = float(np.expm1(exponent))
+        quotient = growth / (2.0 * self.mu)
+        if math.isinf(quotient):
+            return self.sigma**2 * growth / (2.0 * self.mu)
+        return self.sigma**2 * quotient
 
 
 @dataclass(frozen=True)
@@ -1020,7 +1028,15 @@ def expected_values() -> dict[str, ExpectedValue]:
     )
     subnormal_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=math.ulp(0.0), sigma=0.05)
     values["OrnsteinUhlenbeckModelTest.getConditionalVarianceSubnormalAlphaTest"] = (
-        subnormal_alpha_model.conditional_variance(0.5)
+        subnormal_alpha_model.conditional_variance(0.3)
+    )
+    growing_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=-0.05, sigma=0.1)
+    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceNearOverflowTest"] = (
+        growing_alpha_model.conditional_variance(7095.0)
+    )
+    small_sigma_alpha_model = OrnsteinUhlenbeck(mu=0.5, alpha=1e-300, sigma=1e-10)
+    values["OrnsteinUhlenbeckModelTest.getConditionalVarianceSubnormalProductTest"] = (
+        small_sigma_alpha_model.conditional_variance(1.0)
     )
 
     values["HittingTimeOrnsteinUhlenbeckTest.hittingTimeCoreOutputTest"] = hitting_time_core(
@@ -1065,7 +1081,15 @@ def expected_values() -> dict[str, ExpectedValue]:
     )
     subnormal_mu_model = GeneralLinear(mu=math.ulp(0.0), sigma=0.05)
     values["GeneralLinearModelTest.GetConditionalVarianceSubnormalMuTest"] = (
-        subnormal_mu_model.conditional_variance(0.5)
+        subnormal_mu_model.conditional_variance(0.3)
+    )
+    growing_mu_model = GeneralLinear(mu=0.05, sigma=0.1)
+    values["GeneralLinearModelTest.GetConditionalVarianceNearOverflowTest"] = (
+        growing_mu_model.conditional_variance(7095.0)
+    )
+    small_sigma_mu_model = GeneralLinear(mu=1e-300, sigma=1e-10)
+    values["GeneralLinearModelTest.GetConditionalVarianceSubnormalProductTest"] = (
+        small_sigma_mu_model.conditional_variance(1.0)
     )
 
     entry_sums = ornstein_uhlenbeck_sums([0.5, 0.25, 0.5, 0.75, 1.5, 0.5])
